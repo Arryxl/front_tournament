@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@10..48,300;10..48,400;10..48,600;10..48,800&family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,500&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --void: #0c0c0e;
+  --void-2: #131316;
+  --ink: #f3f0e9;
+  --mute: #76747c;
+  --ignite: #ff4d17;
+  --ignite-soft: rgba(255, 77, 23, 0.14);
+  --line: rgba(243, 240, 233, 0.12);
+  --line-2: rgba(243, 240, 233, 0.06);
+  --green: #9dd66b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--ink);
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+::selection {
+  background: var(--ignite);
+  color: var(--void);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--void);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 8px;
+}
+
+@layer components {
+  .kicker {
+    @apply font-mono text-[11px] tracking-[0.28em] uppercase text-ignite inline-flex items-center gap-2.5;
+  }
+  .kicker::before {
+    content: '';
+    @apply inline-block w-7 h-px bg-ignite;
+  }
+  .card {
+    @apply bg-void-2 border border-line rounded-lg;
+  }
+  .btn {
+    @apply font-mono text-xs tracking-[0.15em] uppercase px-5 py-3 rounded-md border border-line text-ink transition-colors cursor-pointer;
+  }
+  .btn:hover {
+    @apply border-ink;
+  }
+  .btn-ignite {
+    @apply bg-ignite text-void border-ignite font-bold;
+  }
+  .btn-ignite:hover {
+    @apply opacity-90 border-ignite;
+  }
+  .input {
+    @apply w-full bg-void border border-line rounded-md px-4 py-3 text-ink font-mono text-sm outline-none focus:border-ignite transition-colors;
+  }
+  .label {
+    @apply block font-mono text-[11px] tracking-[0.2em] uppercase text-mute mb-2;
+  }
+  .stat-num {
+    @apply font-display font-extrabold tracking-tight;
+  }
+}
