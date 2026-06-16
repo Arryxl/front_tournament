@@ -155,7 +155,7 @@ export default function Register() {
 
   if (done) {
     return (
-      <div className="py-24 text-center">
+      <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-24 text-center">
         <span className="kicker">Recibido</span>
         <h1 className="font-display font-extrabold uppercase text-5xl tracking-tight mt-4">
           ¡Inscripción enviada!
@@ -168,6 +168,7 @@ export default function Register() {
   }
 
   return (
+    <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-16">
     <Section kicker="Únete" title="Inscribe tu equipo">
       <form onSubmit={submit} className="flex flex-col gap-6 max-w-3xl">
         <div className="card p-5 flex flex-col gap-4">
@@ -221,5 +222,6 @@ export default function Register() {
         </button>
       </form>
     </Section>
+    </div>
   );
 }

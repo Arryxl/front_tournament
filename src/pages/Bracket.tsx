@@ -21,9 +21,15 @@ export default function Bracket() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <Spinner />;
+  if (loading)
+    return (
+      <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-20">
+        <Spinner />
+      </div>
+    );
 
   return (
+    <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-16">
     <Section kicker="Eliminatoria" title="La Llave">
       <div className="grid lg:grid-cols-4 gap-6 items-start">
         {PHASES.map((p) => {
@@ -43,5 +49,6 @@ export default function Bracket() {
         })}
       </div>
     </Section>
+    </div>
   );
 }

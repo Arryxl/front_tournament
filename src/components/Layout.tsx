@@ -2,9 +2,10 @@ import type { ReactNode } from 'react';
 import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../store/auth';
 import { CoinBalance } from './ui';
+import { Atmosphere } from './Atmosphere';
+import { GravityMark, Wordmark } from './brand';
+import { SocialRow } from './Socials';
 import type { Role } from '../types';
-
-const APP = import.meta.env.VITE_APP_NAME || 'Gravity';
 
 export function PublicLayout() {
   const { user, logout } = useAuth();
@@ -15,11 +16,13 @@ export function PublicLayout() {
     { to: '/register', label: 'Inscripción' },
   ];
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-50 bg-void/90 backdrop-blur border-b border-line-2">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="font-mono tracking-[0.35em] text-sm font-bold">
-            {APP.toUpperCase()}
+    <div className="min-h-screen flex flex-col relative">
+      <Atmosphere />
+      <header className="sticky top-0 z-50 mix-blend-difference">
+        <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-5 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5">
+            <GravityMark size={26} />
+            <span className="font-mono tracking-[0.32em] text-xs font-bold text-white">GRAVITY</span>
           </Link>
           <nav className="hidden md:flex items-center gap-7">
             {links.map((l) => (
@@ -27,8 +30,8 @@ export function PublicLayout() {
                 key={l.to}
                 to={l.to}
                 className={({ isActive }) =>
-                  `font-mono text-[11px] tracking-[0.2em] uppercase transition-colors ${
-                    isActive ? 'text-ignite' : 'text-mute hover:text-ink'
+                  `font-mono text-[11px] tracking-[0.2em] uppercase transition-opacity ${
+                    isActive ? 'text-white opacity-100' : 'text-white opacity-60 hover:opacity-100'
                   }`
                 }
                 end={l.to === '/'}
@@ -40,16 +43,15 @@ export function PublicLayout() {
           <div className="flex items-center gap-4">
             {user ? (
               <>
-                <CoinBalance coins={user.coins} />
                 <Link
                   to={user.role === 'admin' ? '/admin' : '/player'}
-                  className="font-mono text-[11px] tracking-[0.2em] uppercase text-ink hover:text-ignite"
+                  className="font-mono text-[11px] tracking-[0.2em] uppercase text-white hover:opacity-70"
                 >
                   Panel
                 </Link>
                 <button
                   onClick={logout}
-                  className="font-mono text-[11px] tracking-[0.2em] uppercase text-mute hover:text-ink"
+                  className="font-mono text-[11px] tracking-[0.2em] uppercase text-white opacity-60 hover:opacity-100"
                 >
                   Salir
                 </button>
@@ -57,7 +59,7 @@ export function PublicLayout() {
             ) : (
               <Link
                 to="/login"
-                className="font-mono text-[11px] tracking-[0.2em] uppercase text-ink hover:text-ignite"
+                className="font-mono text-[11px] tracking-[0.2em] uppercase text-white hover:opacity-70"
               >
                 Entrar
               </Link>
@@ -65,11 +67,24 @@ export function PublicLayout() {
           </div>
         </div>
       </header>
-      <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-10">
+      <main className="flex-1 w-full">
         <Outlet />
       </main>
-      <footer className="border-t border-line-2 py-8 text-center font-mono text-[10px] tracking-[0.3em] uppercase text-mute">
-        {APP} · Rocket League 3v3 · Temporada 01
+      <footer className="border-t border-line mt-10">
+        <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
+          <div>
+            <Wordmark className="text-5xl" />
+            <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mt-4">
+              Rocket League 3v3 · Temporada 01 · GRV-01
+            </p>
+          </div>
+          <div className="flex flex-col gap-4 md:items-end">
+            <SocialRow />
+            <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-mute">
+              © {new Date().getFullYear()} Gravity League
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   );
@@ -89,8 +104,9 @@ export function DashboardLayout({
   return (
     <div className="min-h-screen flex">
       <aside className="w-60 border-r border-line-2 p-6 flex flex-col gap-6 sticky top-0 h-screen">
-        <Link to="/" className="font-mono tracking-[0.3em] text-sm font-bold">
-          {APP.toUpperCase()}
+        <Link to="/" className="flex items-center gap-2">
+          <GravityMark size={20} />
+          <span className="font-mono tracking-[0.3em] text-sm font-bold">GRAVITY</span>
         </Link>
         <div className="font-mono text-[10px] tracking-[0.25em] uppercase text-ignite">{title}</div>
         <nav className="flex flex-col gap-1">

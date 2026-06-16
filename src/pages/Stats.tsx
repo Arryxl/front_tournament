@@ -48,16 +48,23 @@ export default function Stats() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <Spinner />;
+  if (loading)
+    return (
+      <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-20">
+        <Spinner />
+      </div>
+    );
 
   return (
-    <Section kicker="Rendimiento" title="Estadísticas">
-      <div className="grid md:grid-cols-2 gap-5">
-        <StatTable title="Top Goleadores" data={data.goleadores || []} />
-        <StatTable title="Top Asistencias" data={data.asistencias || []} />
-        <StatTable title="Top Salvadas" data={data.salvadas || []} />
-        <StatTable title="Top Score" data={data.score || []} />
-      </div>
-    </Section>
+    <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-16">
+      <Section kicker="Rendimiento" title="Estadísticas">
+        <div className="grid md:grid-cols-2 gap-5">
+          <StatTable title="Top Goleadores" data={data.goleadores || []} />
+          <StatTable title="Top Asistencias" data={data.asistencias || []} />
+          <StatTable title="Top Salvadas" data={data.salvadas || []} />
+          <StatTable title="Top Score" data={data.score || []} />
+        </div>
+      </Section>
+    </div>
   );
 }
