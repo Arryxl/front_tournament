@@ -107,7 +107,19 @@ export default function AdminRegistrations() {
                 </div>
               </div>
               {selected?.id === r.id && (
-                <div className="grid md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-line-2">
+                <>
+                <div className="mt-4 pt-4 border-t border-line-2 font-mono text-xs">
+                  <span className="text-mute">Contacto del capitán: </span>
+                  {(r as any).contactValue ? (
+                    <span className="text-ink">
+                      {(r as any).contactMethod === 'email' ? 'Correo' : 'Discord'} ·{' '}
+                      <span className="text-ignite">{(r as any).contactValue}</span>
+                    </span>
+                  ) : (
+                    <span className="text-ignite">⚠ sin medio de contacto</span>
+                  )}
+                </div>
+                <div className="grid md:grid-cols-3 gap-4 mt-4">
                   {[1, 2, 3, 4, 5].map((n) => {
                     const epic = (r as any)[`player${n}Epic`];
                     const steam = (r as any)[`player${n}Steam`];
@@ -137,6 +149,7 @@ export default function AdminRegistrations() {
                     );
                   })}
                 </div>
+                </>
               )}
             </div>
           ))}

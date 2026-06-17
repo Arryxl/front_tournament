@@ -149,6 +149,8 @@ export default function Register() {
   const [step, setStep] = useState(0);
   const [teamName, setTeamName] = useState('');
   const [shieldUrl, setShieldUrl] = useState('');
+  const [contactMethod, setContactMethod] = useState<'discord' | 'email'>('discord');
+  const [contactValue, setContactValue] = useState('');
   const [players, setPlayers] = useState<PlayerData[]>(
     Array.from({ length: TOTAL_PLAYERS }, emptyPlayer),
   );
@@ -171,9 +173,23 @@ export default function Register() {
 
   const validateStep = () => {
     setError('');
-    if (step === 0 && !teamName.trim()) {
-      setError('Ponle un nombre a tu equipo.');
-      return false;
+    if (step === 0) {
+      if (!teamName.trim()) {
+        setError('Ponle un nombre a tu equipo.');
+        return false;
+      }
+      if (!contactValue.trim()) {
+        setError(
+          contactMethod === 'discord'
+            ? 'Déjanos tu usuario de Discord para enviarte la respuesta y las credenciales.'
+            : 'Déjanos un correo para enviarte la respuesta y las credenciales.',
+        );
+        return false;
+      }
+      if (contactMethod === 'email' && !/^\S+@\S+\.\S+$/.test(contactValue.trim())) {
+        setError('Escribe un correo válido.');
+        return false;
+      }
     }
     if (step === 1) {
       if (players.some((p) => !p.epic && !p.steam)) {
@@ -202,6 +218,8 @@ export default function Register() {
       teamName,
       shieldUrl,
       captainPlayer: captain,
+      contactMethod,
+      contactValue: contactValue.trim(),
       ...players.reduce(
         (acc, p, i) => ({
           ...acc,
@@ -259,7 +277,9 @@ export default function Register() {
         </h1>
         <p className="font-display text-mute text-lg mt-6 max-w-[46ch] mx-auto leading-[1.5]">
           Recibimos la inscripción de <b className="text-ink">{teamName}</b>. El admin revisará las
-          capturas y te enviará las credenciales de cada jugador por Discord.
+          capturas y te enviará la respuesta junto con las credenciales de cada jugador
+          {contactMethod === 'discord' ? ' por Discord' : ' por correo'} a{' '}
+          <b className="text-ink">{contactValue}</b>.
         </p>
         <div className="flex justify-center gap-3 mt-10">
           <Link to="/" className="btn">Volver al inicio</Link>
@@ -329,6 +349,53 @@ export default function Register() {
                 <div className="font-mono text-[10px] text-mute mt-1.5">{teamName.length}/50 · debe ser único</div>
               </div>
               <UploadField label="Escudo del equipo (opcional)" endpoint="shield" value={shieldUrl} onChange={setShieldUrl} thumb />
+
+              {/* Medio de contacto: por aquí llega la respuesta y las credenciales */}
+              <div className="border-t border-line-2 pt-5 flex flex-col gap-4">
+                <div>
+                  <div className="font-display font-black uppercase tracking-tight text-lg">
+                    ¿Cómo te contactamos?
+                  </div>
+                  <p className="font-mono text-[11px] text-mute mt-1.5 leading-[1.7]">
+                    Aquí te enviaremos la respuesta de tu inscripción y las credenciales de
+                    ingreso de cada jugador al torneo. Asegúrate de que sea un medio activo.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="label">Medio de contacto <span className="text-ignite">*</span></label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {([['discord', 'Discord'], ['email', 'Correo']] as const).map(([v, l]) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setContactMethod(v)}
+                        className={`btn ${contactMethod === v ? 'btn-ignite' : ''}`}
+                      >
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="label">
+                    {contactMethod === 'discord' ? 'Usuario de Discord' : 'Correo electrónico'}{' '}
+                    <span className="text-ignite">*</span>
+                  </label>
+                  <input
+                    className="input"
+                    type={contactMethod === 'email' ? 'email' : 'text'}
+                    value={contactValue}
+                    onChange={(e) => setContactValue(e.target.value)}
+                    maxLength={150}
+                    placeholder={contactMethod === 'discord' ? 'Ej. nova_boost' : 'tu@correo.com'}
+                  />
+                  <div className="font-mono text-[10px] text-mute mt-1.5">
+                    Será el contacto del capitán para todo el torneo.
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -452,6 +519,12 @@ export default function Register() {
             <div className="flex justify-between">
               <span>Escudo</span>
               <span className={shieldUrl ? 'text-green' : ''}>{shieldUrl ? '✓' : 'pendiente'}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span>Contacto</span>
+              <span className={`truncate ${contactValue ? 'text-green normal-case' : ''}`}>
+                {contactValue ? `${contactMethod === 'discord' ? 'DC' : '@'} ${contactValue}` : 'pendiente'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span>Capturas principales</span>

@@ -35,7 +35,12 @@ export default function AdminTeams() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [edit, setEdit] = useState<string | null>(null);
-  const [form, setForm] = useState<{ name: string; groupId: string }>({ name: '', groupId: '' });
+  const [form, setForm] = useState<{
+    name: string;
+    groupId: string;
+    contactMethod: 'discord' | 'email';
+    contactValue: string;
+  }>({ name: '', groupId: '', contactMethod: 'discord', contactValue: '' });
 
   // alta de reemplazo
   const [addingFor, setAddingFor] = useState<string | null>(null);
@@ -56,11 +61,21 @@ export default function AdminTeams() {
 
   const openEdit = (t: Team) => {
     setEdit(t.id);
-    setForm({ name: t.name, groupId: t.groupId || '' });
+    setForm({
+      name: t.name,
+      groupId: t.groupId || '',
+      contactMethod: t.contactMethod || 'discord',
+      contactValue: t.contactValue || '',
+    });
   };
 
   const save = async (id: string) => {
-    await api.patch(`/teams/${id}`, { name: form.name, groupId: form.groupId || null });
+    await api.patch(`/teams/${id}`, {
+      name: form.name,
+      groupId: form.groupId || null,
+      contactMethod: form.contactMethod,
+      contactValue: form.contactValue.trim() || null,
+    });
     setEdit(null);
     load();
   };
@@ -160,6 +175,14 @@ export default function AdminTeams() {
                     </span>
                   )}
                   <StatusBadge status={t.status} />
+                  {t.contactValue ? (
+                    <span className="font-mono text-[10px] text-mute">
+                      {t.contactMethod === 'email' ? '✉' : 'DC'}{' '}
+                      <span className="text-ink">{t.contactValue}</span>
+                    </span>
+                  ) : (
+                    <span className="font-mono text-[10px] text-ignite">⚠ sin contacto</span>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -340,29 +363,58 @@ export default function AdminTeams() {
               )}
 
               {edit === t.id && (
-                <div className="mt-4 pt-4 border-t border-line-2 grid md:grid-cols-[1fr_200px_auto] gap-3 items-end">
-                  <div>
-                    <label className="label">Nombre</label>
-                    <input
-                      className="input"
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    />
+                <div className="mt-4 pt-4 border-t border-line-2 flex flex-col gap-3">
+                  <div className="grid md:grid-cols-[1fr_200px] gap-3">
+                    <div>
+                      <label className="label">Nombre</label>
+                      <input
+                        className="input"
+                        value={form.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Grupo</label>
+                      <select
+                        className="input"
+                        value={form.groupId}
+                        onChange={(e) => setForm({ ...form, groupId: e.target.value })}
+                      >
+                        <option value="">— Sin grupo —</option>
+                        {groups.map((g) => (
+                          <option key={g.id} value={g.id}>
+                            Grupo {g.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <label className="label">Grupo</label>
-                    <select
-                      className="input"
-                      value={form.groupId}
-                      onChange={(e) => setForm({ ...form, groupId: e.target.value })}
-                    >
-                      <option value="">— Sin grupo —</option>
-                      {groups.map((g) => (
-                        <option key={g.id} value={g.id}>
-                          Grupo {g.name}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="grid md:grid-cols-[200px_1fr] gap-3">
+                    <div>
+                      <label className="label">Medio de contacto</label>
+                      <select
+                        className="input"
+                        value={form.contactMethod}
+                        onChange={(e) =>
+                          setForm({ ...form, contactMethod: e.target.value as 'discord' | 'email' })
+                        }
+                      >
+                        <option value="discord">Discord</option>
+                        <option value="email">Correo</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label">
+                        {form.contactMethod === 'discord' ? 'Usuario de Discord' : 'Correo electrónico'}
+                      </label>
+                      <input
+                        className="input"
+                        type={form.contactMethod === 'email' ? 'email' : 'text'}
+                        value={form.contactValue}
+                        onChange={(e) => setForm({ ...form, contactValue: e.target.value })}
+                        placeholder={form.contactMethod === 'discord' ? 'usuario' : 'tu@correo.com'}
+                      />
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button className="btn btn-ignite" onClick={() => save(t.id)}>

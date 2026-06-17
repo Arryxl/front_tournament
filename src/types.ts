@@ -21,6 +21,8 @@ export interface Team {
   shieldUrl: string | null;
   status: 'pending' | 'approved' | 'rejected';
   groupId: string | null;
+  contactMethod: 'discord' | 'email' | null;
+  contactValue: string | null;
   members?: TeamMember[];
   group?: Group | null;
 }
