@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../store/auth';
 import { CoinBalance, Grats } from './ui';
@@ -112,15 +112,92 @@ export function DashboardLayout({
 }) {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [open, setOpen] = useState(false);
+
+  // Cerrar el cajón al navegar a otra sección.
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
+
+  // Bloquear scroll de fondo y cerrar con Escape mientras el cajón está abierto.
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
   return (
-    <div className="min-h-screen flex">
-      <aside className="w-60 border-r border-line-2 p-6 flex flex-col gap-6 sticky top-0 h-screen">
-        <Link to="/" className="flex items-center gap-2.5">
-          <BrandLogo size={30} />
-          <span className="font-display font-black italic uppercase tracking-tight text-base leading-none">
+    <div className="min-h-screen lg:flex">
+      {/* ===== Barra superior — solo móvil/tablet ===== */}
+      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between gap-3 px-4 py-3 border-b border-line-2 bg-void/85 backdrop-blur-md">
+        <Link to="/admin" className="flex items-center gap-2.5 min-w-0">
+          <BrandLogo size={28} />
+          <span className="font-display font-black italic uppercase tracking-tight text-base leading-none truncate">
             GRAV<span className="text-ignite">I</span>TY
           </span>
+          <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-ignite border-l border-line pl-2.5 ml-1 truncate">
+            {title}
+          </span>
         </Link>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Abrir menú del panel"
+          aria-expanded={open}
+          className="nav-trig shrink-0"
+        >
+          <svg width="26" height="22" viewBox="0 0 26 22" fill="none" aria-hidden="true">
+            <path
+              d="M18.5 7 A7.5 7.5 0 1 0 20 13 H13.5"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle cx="5.5" cy="16.5" r="2.6" fill="var(--ignite)" />
+          </svg>
+          <span className="nav-trig-label">Menú</span>
+        </button>
+      </header>
+
+      {/* ===== Backdrop del cajón (móvil) ===== */}
+      <div
+        onClick={() => setOpen(false)}
+        aria-hidden="true"
+        className={`lg:hidden fixed inset-0 z-40 bg-void/70 backdrop-blur-sm transition-opacity duration-300 ${
+          open ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      />
+
+      {/* ===== Sidebar / cajón ===== */}
+      <aside
+        className={`fixed lg:sticky top-0 z-50 h-screen w-[270px] lg:w-60 shrink-0 border-r border-line-2 p-6 flex flex-col gap-6 bg-void lg:bg-transparent overflow-y-auto transition-transform duration-300 ${
+          open ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0`}
+        role="dialog"
+        aria-label="Navegación del panel"
+      >
+        <div className="flex items-center justify-between gap-2">
+          <Link to="/" className="flex items-center gap-2.5 min-w-0">
+            <BrandLogo size={30} />
+            <span className="font-display font-black italic uppercase tracking-tight text-base leading-none truncate">
+              GRAV<span className="text-ignite">I</span>TY
+            </span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label="Cerrar menú"
+            className="lg:hidden text-mute hover:text-ignite text-lg leading-none px-1"
+          >
+            ✕
+          </button>
+        </div>
         <Link
           to="/"
           className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] uppercase text-mute hover:text-ignite transition-colors group -mt-2"
@@ -145,7 +222,7 @@ export function DashboardLayout({
             );
           })}
         </nav>
-        <div className="mt-auto flex flex-col gap-3">
+        <div className="mt-auto flex flex-col gap-3 pt-4">
           {user && <CoinBalance coins={user.coins} />}
           <div className="font-mono text-[10px] text-mute truncate">{user?.username}</div>
           <button onClick={logout} className="btn text-left">
@@ -153,7 +230,8 @@ export function DashboardLayout({
           </button>
         </div>
       </aside>
-      <main className="flex-1 p-8 overflow-auto">{children || <Outlet />}</main>
+
+      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-x-auto">{children || <Outlet />}</main>
     </div>
   );
 }
