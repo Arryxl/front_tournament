@@ -7,25 +7,28 @@ import { GravityMark, Wordmark } from './brand';
 import { SocialRow } from './Socials';
 import type { Role } from '../types';
 
+const PUBLIC_LINKS = [
+  { to: '/', label: 'Inicio' },
+  { to: '/bracket', label: 'Llave' },
+  { to: '/stats', label: 'Estadísticas' },
+  { to: '/predictions', label: 'Predicciones' },
+  { to: '/rewards', label: 'Tienda' },
+  { to: '/register', label: 'Inscripción' },
+];
+
 export function PublicLayout() {
   const { user, logout } = useAuth();
-  const links = [
-    { to: '/', label: 'Inicio' },
-    { to: '/bracket', label: 'Llave' },
-    { to: '/stats', label: 'Stats' },
-    { to: '/register', label: 'Inscripción' },
-  ];
   return (
     <div className="min-h-screen flex flex-col relative">
       <Atmosphere />
       <header className="sticky top-0 z-50 mix-blend-difference">
-        <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-5 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
+        <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-5 flex items-center justify-between gap-6">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0">
             <GravityMark size={26} />
             <span className="font-mono tracking-[0.32em] text-xs font-bold text-white">GRAVITY</span>
           </Link>
-          <nav className="hidden md:flex items-center gap-7">
-            {links.map((l) => (
+          <nav className="hidden lg:flex items-center gap-6">
+            {PUBLIC_LINKS.map((l) => (
               <NavLink
                 key={l.to}
                 to={l.to}
@@ -40,14 +43,25 @@ export function PublicLayout() {
               </NavLink>
             ))}
           </nav>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 shrink-0">
             {user ? (
               <>
+                <span className="hidden sm:inline font-mono text-[11px] tracking-[0.2em] text-white">
+                  {user.coins} GRV
+                </span>
+                {user.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className="font-mono text-[11px] tracking-[0.2em] uppercase text-white opacity-70 hover:opacity-100"
+                  >
+                    Panel
+                  </Link>
+                )}
                 <Link
-                  to={user.role === 'admin' ? '/admin' : '/player'}
+                  to="/me"
                   className="font-mono text-[11px] tracking-[0.2em] uppercase text-white hover:opacity-70"
                 >
-                  Panel
+                  Mi perfil
                 </Link>
                 <button
                   onClick={logout}
@@ -75,7 +89,7 @@ export function PublicLayout() {
           <div>
             <Wordmark className="text-5xl" />
             <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mt-4">
-              Rocket League 3v3 · Temporada 01 · GRV-01
+              Rocket League 3v3 · Temporada 01 · GRV-02
             </p>
           </div>
           <div className="flex flex-col gap-4 md:items-end">
@@ -90,6 +104,7 @@ export function PublicLayout() {
   );
 }
 
+/** Layout con sidebar — exclusivo del panel de administración. */
 export function DashboardLayout({
   title,
   links,
@@ -111,8 +126,7 @@ export function DashboardLayout({
         <div className="font-mono text-[10px] tracking-[0.25em] uppercase text-ignite">{title}</div>
         <nav className="flex flex-col gap-1">
           {links.map((l) => {
-            const active =
-              location.pathname === l.to || location.pathname.startsWith(l.to + '/');
+            const active = location.pathname === l.to || location.pathname.startsWith(l.to + '/');
             return (
               <Link
                 key={l.to}

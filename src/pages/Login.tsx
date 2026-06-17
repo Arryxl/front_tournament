@@ -35,7 +35,7 @@ export default function Login() {
         <Link to="/" className="font-mono tracking-[0.35em] text-sm font-bold block mb-2">
           GRAVITY
         </Link>
-        <h1 className="font-display font-extrabold uppercase text-4xl tracking-tight mb-8">
+        <h1 className="font-display font-black uppercase text-4xl tracking-tight mb-8">
           {mode === 'login' ? 'Entrar' : 'Crear cuenta'}
         </h1>
         <form onSubmit={submit} className="flex flex-col gap-4">

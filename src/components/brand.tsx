@@ -1,30 +1,42 @@
-// Componentes de identidad Gravity (brand book GRV-01)
+// Componentes de identidad Gravity (brand book GRV-02 · Estadio Nocturno)
 import type { CSSProperties } from 'react';
 
+/**
+ * Marca Gravity: un bracket que converge en un solo nodo.
+ * Dos ramas entran por la izquierda y caen hacia un punto — el campeón.
+ * (la gravedad lo atrae todo a un mismo lugar / la llave a una sola final)
+ */
 export function GravityMark({ size = 64, className = '' }: { size?: number; className?: string }) {
   return (
     <svg viewBox="0 0 64 64" fill="none" width={size} height={size} className={className}>
-      <circle cx="32" cy="32" r="28" stroke="var(--ink)" strokeWidth="2" />
-      <circle cx="32" cy="32" r="5" fill="var(--ink)" />
-      <circle cx="60" cy="32" r="4.5" fill="var(--ignite)" />
+      <g stroke="var(--ink)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 18 H26 V32" />
+        <path d="M8 46 H26 V32" />
+        <path d="M26 32 H44" />
+      </g>
+      <circle cx="47" cy="32" r="5.5" fill="var(--ignite)" />
     </svg>
   );
 }
 
+/**
+ * Marca decorativa para zonas amplias: diana concéntrica con un nodo
+ * cayendo hacia el centro. Estática, sin ruido.
+ */
 export function OrbitMark({ className = '' }: { className?: string }) {
   return (
     <svg viewBox="0 0 200 200" fill="none" className={className}>
-      <circle cx="100" cy="100" r="78" stroke="rgba(243,240,233,.18)" />
-      <circle cx="100" cy="100" r="48" stroke="rgba(243,240,233,.10)" />
-      <g className="spin">
-        <circle cx="178" cy="100" r="7" fill="#FF4D17" />
-      </g>
-      <circle cx="100" cy="100" r="5" fill="#F3F0E9" />
+      <circle cx="100" cy="100" r="82" stroke="rgba(242,245,247,.10)" />
+      <circle cx="100" cy="100" r="54" stroke="rgba(242,245,247,.07)" />
+      <circle cx="100" cy="100" r="26" stroke="rgba(242,245,247,.12)" />
+      <line x1="100" y1="18" x2="100" y2="74" stroke="var(--ignite)" strokeWidth="2" strokeDasharray="3 5" />
+      <circle cx="100" cy="100" r="6" fill="var(--ink)" />
+      <circle cx="100" cy="22" r="7" fill="var(--ignite)" />
     </svg>
   );
 }
 
-/** Wordmark GRAVITY con el anillo orbital sobre la I. */
+/** Wordmark GRAVITY — la "I" lleva el acento lima eléctrico. */
 export function Wordmark({
   className = '',
   animateRing = false,
@@ -35,11 +47,9 @@ export function Wordmark({
   style?: CSSProperties;
 }) {
   return (
-    <span className={`wordmark ${className}`} style={style}>
+    <span className={`wordmark ${animateRing ? 'lit' : ''} ${className}`} style={style}>
       GRAV
-      <span className="o">
-        I{animateRing && <span className="ring" />}
-      </span>
+      <span className="o">I</span>
       TY
     </span>
   );

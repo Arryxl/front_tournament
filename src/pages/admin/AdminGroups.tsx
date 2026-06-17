@@ -39,7 +39,7 @@ export default function AdminGroups() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <span className="kicker">Torneo</span>
-          <h1 className="font-display font-extrabold uppercase text-4xl tracking-tight mt-3">Grupos</h1>
+          <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3">Grupos</h1>
         </div>
         <button className="btn btn-ignite" onClick={draw} disabled={busy}>
           {busy ? 'Sorteando…' : 'Ejecutar sorteo'}
@@ -52,7 +52,7 @@ export default function AdminGroups() {
             .sort((a, b) => (a.position ?? 99) - (b.position ?? 99));
           return (
             <div key={g.id} className="card p-4">
-              <div className="font-display font-extrabold text-2xl mb-3">Grupo {g.name}</div>
+              <div className="font-display font-black text-2xl mb-3">Grupo {g.name}</div>
               <table className="w-full font-mono text-xs">
                 <thead className="text-mute">
                   <tr className="text-left">

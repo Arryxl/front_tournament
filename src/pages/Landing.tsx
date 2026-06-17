@@ -43,7 +43,7 @@ function CountdownBox({ target }: { target: string }) {
     <div className="flex gap-px bg-line border border-line">
       {cells.map(([v, l]) => (
         <div key={l} className="bg-void px-4 py-3 text-center min-w-[64px]">
-          <div className="font-display font-extrabold text-2xl md:text-3xl tabular-nums leading-none">
+          <div className="font-display font-black text-2xl md:text-3xl tabular-nums leading-none">
             {v}
           </div>
           <div className="font-mono text-[9px] tracking-[0.2em] uppercase text-mute mt-1.5">{l}</div>
@@ -53,7 +53,7 @@ function CountdownBox({ target }: { target: string }) {
   );
 }
 
-/* ---------------- Branded match card ---------------- */
+/* ---------------- Match card (broadcast) ---------------- */
 function LiveMatch({ match }: { match: Match }) {
   const date = match.scheduledAt
     ? new Date(match.scheduledAt).toLocaleDateString('es', { day: '2-digit', month: 'short' })
@@ -63,19 +63,19 @@ function LiveMatch({ match }: { match: Match }) {
       <div className="px-5 py-3 flex justify-between items-center border-b border-line font-mono text-[10px] tracking-[0.18em] uppercase text-mute">
         <span>{match.matchCode} · {match.format.toUpperCase()}</span>
         {match.status === 'live' ? (
-          <span className="text-ignite flex items-center gap-2 live-dot">EN VIVO</span>
+          <span className="text-cyan flex items-center gap-2 live-dot">EN VIVO</span>
         ) : (
           <span>{date}</span>
         )}
       </div>
       <div className="grid grid-cols-[1fr_auto_1fr] items-center px-5 py-6">
         <div className="flex flex-col gap-1.5">
-          <span className="font-display font-extrabold uppercase text-lg md:text-xl leading-none tracking-tight">
+          <span className="font-display font-black uppercase text-lg md:text-xl leading-none tracking-tight">
             {match.teamHome?.name || 'Por definir'}
           </span>
           <span className="font-mono text-[10px] text-mute tracking-[0.14em]">LOCAL</span>
         </div>
-        <div className="font-display font-extrabold text-3xl md:text-4xl px-4 flex gap-2 tabular-nums">
+        <div className="font-display font-black text-3xl md:text-4xl px-4 flex gap-2 tabular-nums">
           <span className={match.winnerId && match.winnerId === match.teamHomeId ? 'text-ignite' : ''}>
             {match.homeScore ?? '–'}
           </span>
@@ -85,7 +85,7 @@ function LiveMatch({ match }: { match: Match }) {
           </span>
         </div>
         <div className="flex flex-col gap-1.5 items-end text-right">
-          <span className="font-display font-extrabold uppercase text-lg md:text-xl leading-none tracking-tight">
+          <span className="font-display font-black uppercase text-lg md:text-xl leading-none tracking-tight">
             {match.teamAway?.name || 'Por definir'}
           </span>
           <span className="font-mono text-[10px] text-mute tracking-[0.14em]">VISITA</span>
@@ -95,36 +95,22 @@ function LiveMatch({ match }: { match: Match }) {
   );
 }
 
-/* ---------------- Page ---------------- */
-const PRINCIPLES = [
+/* ---------------- Cómo funciona la plataforma ---------------- */
+const FEATURES = [
   {
-    n: 'F1',
-    title: 'Masa',
-    text: 'El peso del juego. Tres jugadores, un objetivo, cero excusas. Lo que pesa, queda.',
-    icon: <circle cx="18" cy="18" r="11" fill="#FF4D17" />,
-    vb: '0 0 36 36',
-    w: 36,
+    n: '01',
+    title: 'Compite',
+    text: '16 equipos 3v3. Fase de grupos todos contra todos y una llave a eliminación directa hasta la gran final.',
   },
   {
-    n: 'F2',
-    title: 'Momento',
-    text: 'Velocidad con dirección. Cada partido empuja el bracket hacia la final: nunca estático.',
-    icon: (
-      <>
-        <path d="M2 18h44" stroke="#FF4D17" strokeWidth="2" />
-        <path d="M40 11l8 7-8 7" stroke="#FF4D17" strokeWidth="2" />
-      </>
-    ),
-    vb: '0 0 56 36',
-    w: 56,
+    n: '02',
+    title: 'Predice',
+    text: 'Acierta los ganadores de cada partido y gana monedas GRV. Mientras más arriesgas, más sumas.',
   },
   {
-    n: 'F3',
-    title: 'Arco',
-    text: 'La curva del tiro aéreo. La parábola perfecta entre el saque inicial y el gol de la final.',
-    icon: <path d="M2 34C2 14 22 2 28 2s26 12 26 32" stroke="#FF4D17" strokeWidth="2" />,
-    vb: '0 0 56 36',
-    w: 56,
+    n: '03',
+    title: 'Canjea',
+    text: 'Cambia tus monedas por recompensas: roles, merch y premios dentro de la liga.',
   },
 ];
 
@@ -146,7 +132,7 @@ export default function Landing() {
       {/* ============ COVER ============ */}
       <section className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden px-[var(--pad)] pt-20">
         <div className="cover-halo" />
-        <OrbitMark className="hidden md:block absolute right-[var(--pad)] top-[16vh] w-[clamp(90px,12vw,170px)] opacity-90 z-[1]" />
+        <OrbitMark className="hidden md:block absolute right-[var(--pad)] top-[15vh] w-[clamp(90px,12vw,180px)] opacity-90 z-[1]" />
 
         <div className="max-w-[1240px] mx-auto w-full relative z-[2]">
           <div className="reveal flex flex-wrap justify-between gap-4 font-mono text-[11px] tracking-[0.18em] uppercase text-mute mb-[clamp(24px,5vh,56px)]">
@@ -160,7 +146,7 @@ export default function Landing() {
           </h1>
 
           <div className="reveal flex flex-wrap justify-between items-end gap-6 mt-[clamp(28px,5vh,52px)] pt-6 border-t border-line">
-            <p className="font-serif italic text-[clamp(18px,2.4vw,30px)] max-w-[24ch]">
+            <p className="font-display font-medium text-[clamp(18px,2.2vw,28px)] max-w-[22ch] leading-[1.2] text-ink">
               {TOURNAMENT.tagline}
             </p>
             <div className="font-mono text-[11px] tracking-[0.16em] uppercase text-mute text-right leading-[2]">
@@ -190,39 +176,30 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ============ CONCEPTO ============ */}
+      {/* ============ QUÉ ES GRAVITY ============ */}
       <section className="px-[var(--pad)] py-[clamp(80px,12vh,150px)] border-t border-line-2">
         <div className="max-w-[1240px] mx-auto">
-          <span className="kicker reveal">01 / Qué es Gravity</span>
-          <h2 className="reveal font-display font-extrabold uppercase text-[clamp(40px,8vw,108px)] leading-[0.92] tracking-tight mt-4">
-            La física<br />como juego
+          <span className="kicker reveal">01 / La plataforma</span>
+          <h2 className="reveal font-display font-black uppercase text-[clamp(40px,8vw,108px)] leading-[0.9] tracking-tight mt-4 max-w-[14ch]">
+            Juega, predice<br />y gana
           </h2>
-          <p className="reveal font-serif italic text-[clamp(20px,3vw,38px)] leading-[1.25] max-w-[20ch] mt-10 mb-16">
-            La pelota tiene masa, el coche tiene momento y cada jugada es un arco que termina en el
-            fondo de una red.
+          <p className="reveal font-display text-mute text-[clamp(16px,2vw,22px)] leading-[1.4] max-w-[44ch] mt-8 mb-16">
+            Gravity no es solo un torneo: es la liga completa. Sigue cada partido en vivo, apuesta
+            tus predicciones y escala en el ranking de la temporada.
           </p>
 
           <div className="grid md:grid-cols-3 gap-px bg-line border border-line">
-            {PRINCIPLES.map((p) => (
+            {FEATURES.map((f) => (
               <div
-                key={p.n}
-                className="reveal bg-void p-[clamp(28px,3vw,44px)] min-h-[320px] flex flex-col justify-between relative lift"
+                key={f.n}
+                className="reveal bg-void p-[clamp(28px,3vw,44px)] min-h-[300px] flex flex-col justify-between lift"
               >
-                <span className="font-mono text-[11px] tracking-[0.2em] text-mute">[ {p.n} ]</span>
-                <svg
-                  width={p.w}
-                  height={36}
-                  viewBox={p.vb}
-                  fill="none"
-                  className="absolute top-6 right-6 opacity-50"
-                >
-                  {p.icon}
-                </svg>
+                <span className="font-mono text-[11px] tracking-[0.2em] text-ignite">[ {f.n} ]</span>
                 <div>
-                  <h3 className="font-display font-extrabold uppercase text-[clamp(28px,3.4vw,46px)] leading-none tracking-tight">
-                    {p.title}
+                  <h3 className="font-display font-black uppercase text-[clamp(30px,3.6vw,50px)] leading-none tracking-tight">
+                    {f.title}
                   </h3>
-                  <p className="text-mute text-sm max-w-[32ch] mt-3.5">{p.text}</p>
+                  <p className="text-mute text-sm max-w-[34ch] mt-4 leading-[1.6]">{f.text}</p>
                 </div>
               </div>
             ))}
@@ -234,8 +211,8 @@ export default function Landing() {
       <section className="px-[var(--pad)] py-[clamp(80px,12vh,150px)] border-t border-line-2 grid-paper">
         <div className="max-w-[1240px] mx-auto">
           <span className="kicker reveal">02 / El formato</span>
-          <h2 className="reveal font-display font-extrabold uppercase text-[clamp(40px,8vw,108px)] leading-[0.92] tracking-tight mt-4 mb-14">
-            16 equipos.<br />Una caída.
+          <h2 className="reveal font-display font-black uppercase text-[clamp(40px,8vw,108px)] leading-[0.9] tracking-tight mt-4 mb-14">
+            16 equipos.<br />Una final.
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-line border border-line mb-12">
@@ -246,7 +223,7 @@ export default function Landing() {
               ['3v3', 'En cancha'],
             ].map(([num, label]) => (
               <div key={label} className="reveal bg-void p-7 lift">
-                <div className="font-display font-extrabold text-[clamp(44px,7vw,88px)] leading-none tracking-tight">
+                <div className="font-display font-black text-[clamp(44px,7vw,88px)] leading-none tracking-tight tabular-nums">
                   {num}
                 </div>
                 <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mt-3">
@@ -256,18 +233,22 @@ export default function Landing() {
             ))}
           </div>
 
-          <div className="grid md:grid-cols-3 gap-px bg-line border border-line">
+          <div className="grid md:grid-cols-3 gap-px bg-line border border-line mb-10">
             {[
               ['Fase de grupos', 'Cuatro grupos de cuatro juegan todos contra todos. Los dos mejores de cada grupo avanzan.'],
               ['Eliminatoria', 'Ocho equipos a muerte súbita: cuartos (BO3), semifinales (BO5) y la antesala del título.'],
               ['Gran final', 'Best of 7. Un solo campeón levanta la copa Gravity y se lleva el premio en efectivo.'],
             ].map(([t, d]) => (
               <div key={t} className="reveal bg-void p-7">
-                <h4 className="font-display font-extrabold uppercase text-lg tracking-tight">{t}</h4>
-                <p className="text-mute text-sm mt-2">{d}</p>
+                <h4 className="font-display font-black uppercase text-lg tracking-tight">{t}</h4>
+                <p className="text-mute text-sm mt-2 leading-[1.6]">{d}</p>
               </div>
             ))}
           </div>
+
+          <Link to="/bracket" className="reveal btn inline-flex">
+            Ver la llave completa →
+          </Link>
         </div>
       </section>
 
@@ -281,10 +262,10 @@ export default function Landing() {
           <div className="reveal font-mono text-[11px] tracking-[0.25em] uppercase text-mute mt-6">
             {TOURNAMENT.prize.label}
           </div>
-          <div className="reveal font-display font-extrabold uppercase text-[clamp(48px,13vw,180px)] leading-[0.85] tracking-tight mt-3 text-ignite">
+          <div className="reveal font-display font-black uppercase text-[clamp(48px,13vw,180px)] leading-[0.85] tracking-tight mt-3 text-ignite">
             {TOURNAMENT.prize.amount}
           </div>
-          <p className="reveal font-serif italic text-[clamp(18px,2.4vw,28px)] text-ink mt-8 max-w-[28ch] mx-auto">
+          <p className="reveal font-display text-[clamp(16px,2.2vw,26px)] text-mute mt-8 max-w-[30ch] mx-auto leading-[1.3]">
             El que sube más alto, cae con el trofeo. Inscripción 100% gratuita.
           </p>
           <div className="reveal mt-10 flex justify-center">
@@ -293,11 +274,11 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ============ CÓMO FUNCIONA / TIMELINE ============ */}
+      {/* ============ RUTA / TIMELINE ============ */}
       <section className="px-[var(--pad)] py-[clamp(80px,12vh,150px)] border-t border-line-2">
         <div className="max-w-[1240px] mx-auto">
           <span className="kicker reveal">04 / La ruta</span>
-          <h2 className="reveal font-display font-extrabold uppercase text-[clamp(40px,8vw,108px)] leading-[0.92] tracking-tight mt-4 mb-14">
+          <h2 className="reveal font-display font-black uppercase text-[clamp(40px,8vw,108px)] leading-[0.9] tracking-tight mt-4 mb-14">
             Hasta la<br />final
           </h2>
           <div className="border-t border-line">
@@ -306,7 +287,7 @@ export default function Landing() {
                 key={s.label}
                 className="reveal grid grid-cols-[90px_1fr] md:grid-cols-[140px_120px_1fr] gap-4 items-center py-5 border-b border-line group"
               >
-                <span className="font-display font-extrabold text-xl md:text-3xl tracking-tight group-hover:text-ignite transition-colors">
+                <span className="font-display font-black text-xl md:text-3xl tracking-tight group-hover:text-ignite transition-colors">
                   {s.date}
                 </span>
                 <span className="hidden md:inline font-mono text-[10px] tracking-[0.2em] uppercase text-ignite">
@@ -326,7 +307,7 @@ export default function Landing() {
             <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
               <div>
                 <span className="kicker reveal">05 / En cancha</span>
-                <h2 className="reveal font-display font-extrabold uppercase text-[clamp(32px,6vw,72px)] leading-none tracking-tight mt-4">
+                <h2 className="reveal font-display font-black uppercase text-[clamp(32px,6vw,72px)] leading-none tracking-tight mt-4">
                   Próximos partidos
                 </h2>
               </div>
@@ -353,10 +334,10 @@ export default function Landing() {
       {/* ============ CTA FINAL ============ */}
       <section className="px-[var(--pad)] py-[clamp(80px,12vh,160px)] border-t border-line text-center">
         <div className="max-w-[1240px] mx-auto">
-          <h2 className="reveal font-display font-extrabold uppercase text-[clamp(40px,11vw,150px)] leading-[0.85] tracking-tight">
+          <h2 className="reveal font-display font-black uppercase text-[clamp(40px,11vw,150px)] leading-[0.85] tracking-tight">
             Entra en<br />órbita
           </h2>
-          <p className="reveal font-serif italic text-[clamp(18px,2.4vw,28px)] text-mute mt-8">
+          <p className="reveal font-display text-[clamp(16px,2.2vw,26px)] text-mute mt-8">
             Reúne a tus tres. El sorteo no espera.
           </p>
           <div className="reveal flex flex-wrap items-center justify-center gap-4 mt-10">

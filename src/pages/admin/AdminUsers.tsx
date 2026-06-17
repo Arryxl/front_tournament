@@ -47,7 +47,7 @@ export default function AdminUsers() {
   return (
     <div>
       <span className="kicker">Sistema</span>
-      <h1 className="font-display font-extrabold uppercase text-4xl tracking-tight mt-3 mb-6">
+      <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3 mb-6">
         Usuarios
       </h1>
 
@@ -77,7 +77,7 @@ export default function AdminUsers() {
               {!u.isActive && <span className="font-mono text-[10px] text-ignite">inactivo</span>}
             </div>
             <div className="flex items-center gap-3">
-              <span className="font-display font-extrabold text-ignite">{u.coins} GRV</span>
+              <span className="font-display font-black text-ignite">{u.coins} GRV</span>
               <button className="btn" onClick={() => grant(u.id)}>
                 Monedas
               </button>

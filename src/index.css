@@ -1,19 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@10..48,300;10..48,400;10..48,600;10..48,800&family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,500&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=Space+Mono:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --void: #0c0c0e;
-  --void-2: #131316;
-  --ink: #f3f0e9;
-  --mute: #76747c;
-  --ignite: #ff4d17;
-  --ignite-soft: rgba(255, 77, 23, 0.14);
-  --line: rgba(243, 240, 233, 0.12);
-  --line-2: rgba(243, 240, 233, 0.06);
-  --green: #9dd66b;
+  /* === GRAVITY · Estadio Nocturno (brand book GRV-02) === */
+  --void: #07080a; /* fondo base, near-black frío */
+  --void-2: #0e1014; /* superficies elevadas */
+  --ink: #f2f5f7; /* texto principal, blanco frío */
+  --mute: #7a7f88; /* texto secundario */
+  --ignite: #ccff33; /* acento único: lima eléctrico (scoreboard) */
+  --ignite-soft: rgba(204, 255, 51, 0.1);
+  --green: #5fe3a1; /* estado positivo */
+  --cyan: #46e8ff; /* en vivo / secundario raro */
+  --line: rgba(242, 245, 247, 0.1);
+  --line-2: rgba(242, 245, 247, 0.05);
 }
 
 * {
@@ -30,7 +32,8 @@ body {
   margin: 0;
   background: var(--void);
   color: var(--ink);
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-feature-settings: 'tnum' 1; /* numerales tabulares: scoreboard */
   line-height: 1.5;
 }
 
@@ -55,6 +58,9 @@ a {
   background: var(--line);
   border-radius: 8px;
 }
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(204, 255, 51, 0.3);
+}
 
 @layer components {
   .kicker {
@@ -68,7 +74,7 @@ a {
     @apply bg-void-2 border border-line rounded-lg;
   }
   .btn {
-    @apply font-mono text-xs tracking-[0.15em] uppercase px-5 py-3 rounded-md border border-line text-ink transition-colors cursor-pointer;
+    @apply font-mono text-xs tracking-[0.15em] uppercase px-5 py-3 rounded-md border border-line text-ink transition-all duration-200 cursor-pointer;
   }
   .btn:hover {
     @apply border-ink;
@@ -78,6 +84,7 @@ a {
   }
   .btn-ignite:hover {
     @apply opacity-90 border-ignite;
+    box-shadow: 0 0 28px rgba(204, 255, 51, 0.35);
   }
   .input {
     @apply w-full bg-void border border-line rounded-md px-4 py-3 text-ink font-mono text-sm outline-none focus:border-ignite transition-colors;
@@ -86,6 +93,6 @@ a {
     @apply block font-mono text-[11px] tracking-[0.2em] uppercase text-mute mb-2;
   }
   .stat-num {
-    @apply font-display font-extrabold tracking-tight;
+    @apply font-display font-black tracking-tight tabular-nums;
   }
 }

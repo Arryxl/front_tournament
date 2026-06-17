@@ -46,7 +46,7 @@ export default function AdminRewards() {
   return (
     <div>
       <span className="kicker">Economía</span>
-      <h1 className="font-display font-extrabold uppercase text-4xl tracking-tight mt-3 mb-6">
+      <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3 mb-6">
         Recompensas
       </h1>
 

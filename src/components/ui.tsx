@@ -51,7 +51,7 @@ export function TeamBadge({ team, fallback }: { team: Team | null; fallback?: st
           className="w-8 h-8 rounded-sm object-cover border border-line"
         />
       ) : (
-        <div className="w-8 h-8 rounded-sm bg-void border border-line flex items-center justify-center font-display font-extrabold text-xs">
+        <div className="w-8 h-8 rounded-sm bg-void border border-line flex items-center justify-center font-display font-black text-xs">
           {team.name.slice(0, 2).toUpperCase()}
         </div>
       )}
@@ -89,7 +89,7 @@ export function MatchCard({ match }: { match: Match }) {
       </div>
       <div className="flex items-center justify-between gap-2">
         <TeamBadge team={match.teamHome} fallback="Por definir" />
-        <span className="font-display font-extrabold text-xl tabular-nums">
+        <span className="font-display font-black text-xl tabular-nums">
           {match.homeScore ?? '-'}
           <span className="text-mute mx-1">:</span>
           {match.awayScore ?? '-'}
@@ -116,7 +116,7 @@ export function Section({
     <section className="mb-16">
       {kicker && <Kicker>{kicker}</Kicker>}
       {title && (
-        <h2 className="font-display font-extrabold uppercase tracking-tight text-3xl md:text-5xl mt-3 mb-8 leading-none">
+        <h2 className="font-display font-black uppercase tracking-tight text-3xl md:text-5xl mt-3 mb-8 leading-none">
           {title}
         </h2>
       )}

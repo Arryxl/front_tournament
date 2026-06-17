@@ -4,24 +4,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        void: '#0C0C0E',
-        'void-2': '#131316',
-        ink: '#F3F0E9',
-        mute: '#76747C',
-        ignite: '#FF4D17',
-        green: '#9DD66B',
-        line: 'rgba(243,240,233,.12)',
-        'line-2': 'rgba(243,240,233,.06)',
+        // Estadio nocturno — near-black frío + acento lima eléctrico.
+        // Se conservan los nombres de token; cambian los valores.
+        void: '#07080A',
+        'void-2': '#0E1014',
+        ink: '#F2F5F7',
+        mute: '#7A7F88',
+        ignite: '#CCFF33', // acento de marca (scoreboard / live / acción)
+        green: '#5FE3A1', // estado positivo (aprobado / ganador)
+        cyan: '#46E8FF', // secundario raro (en vivo / enlaces destacados)
+        line: 'rgba(242,245,247,.10)',
+        'line-2': 'rgba(242,245,247,.05)',
       },
       fontFamily: {
-        display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
-        serif: ['"Fraunces"', 'Georgia', 'serif'],
+        display: ['"Archivo"', 'system-ui', 'sans-serif'],
+        serif: ['"Archivo"', 'system-ui', 'sans-serif'],
         mono: ['"Space Mono"', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
-        sm: '4px',
-        md: '8px',
-        lg: '14px',
+        sm: '3px',
+        md: '7px',
+        lg: '12px',
       },
     },
   },

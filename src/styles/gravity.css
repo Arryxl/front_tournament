@@ -1,6 +1,6 @@
 /* ============================================================
-   GRAVITY — Capa de marca (brand book GRV-01)
-   Física aplicada: Masa · Momento · Arco.
+   GRAVITY — Capa de marca · Estadio Nocturno (brand book GRV-02)
+   Oscuro, data-forward, un acento lima eléctrico.
    ============================================================ */
 
 :root {
@@ -9,13 +9,13 @@
   --maxw: 1240px;
 }
 
-/* ---------- ATMÓSFERA: grano + halo ---------- */
+/* ---------- ATMÓSFERA: grano sutil ---------- */
 .grain {
   position: fixed;
   inset: -50%;
   z-index: 60;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: 0.035;
   mix-blend-mode: screen;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   animation: grain 6s steps(6) infinite;
@@ -29,16 +29,16 @@
   100% { transform: translate(0, 0); }
 }
 
-/* ---------- CURSOR ORBITAL ---------- */
+/* ---------- CURSOR ---------- */
 .g-cursor {
   position: fixed;
   top: 0;
   left: 0;
   z-index: 70;
   pointer-events: none;
-  width: 28px;
-  height: 28px;
-  margin: -14px 0 0 -14px;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
   border-radius: 50%;
   border: 1px solid var(--ink);
   mix-blend-mode: difference;
@@ -46,9 +46,9 @@
     border-color 0.25s, opacity 0.3s;
 }
 .g-cursor.is-hot {
-  width: 54px;
-  height: 54px;
-  margin: -27px 0 0 -27px;
+  width: 50px;
+  height: 50px;
+  margin: -25px 0 0 -25px;
   border-color: var(--ignite);
   mix-blend-mode: normal;
 }
@@ -62,7 +62,7 @@
   height: 4px;
   margin: -2px 0 0 -2px;
   border-radius: 50%;
-  background: var(--ink);
+  background: var(--ignite);
   mix-blend-mode: difference;
 }
 @media (hover: none) {
@@ -87,8 +87,8 @@
 /* ---------- REVEAL ---------- */
 .reveal {
   opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 1s var(--ease), transform 1s var(--ease);
+  transform: translateY(24px);
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
 }
 .reveal.in {
   opacity: 1;
@@ -99,54 +99,58 @@
   .grain, .g-cursor, .g-cursor-dot { animation: none; }
 }
 
-/* ---------- HALO / COVER ---------- */
+/* ---------- HALO ---------- */
 .cover-halo {
   position: absolute;
-  top: 42%;
+  top: 44%;
   left: 50%;
   width: 120vmin;
   height: 120vmin;
   transform: translate(-50%, -50%);
-  background: radial-gradient(circle, var(--ignite-soft) 0%, transparent 60%);
+  background: radial-gradient(circle, var(--ignite-soft) 0%, transparent 62%);
   pointer-events: none;
   z-index: 0;
-  animation: breathe 9s var(--ease) infinite;
+  animation: breathe 10s var(--ease) infinite;
 }
 @keyframes breathe {
-  50% { transform: translate(-50%, -50%) scale(1.12); opacity: 0.7; }
+  50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.65; }
 }
 
 /* ---------- WORDMARK ---------- */
 .wordmark {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
-  font-weight: 800;
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-weight: 900;
   text-transform: uppercase;
-  line-height: 0.82;
-  letter-spacing: -0.045em;
+  line-height: 0.84;
+  letter-spacing: -0.03em;
   position: relative;
   display: inline-block;
+  font-stretch: expanded;
 }
-.wordmark .o { position: relative; display: inline-block; }
-.wordmark .ring {
+/* la "I" lleva el acento: una barra lima eléctrica */
+.wordmark .o {
+  position: relative;
+  display: inline-block;
+  color: var(--ignite);
+}
+.wordmark .o::after {
+  content: '';
   position: absolute;
-  top: 46%;
   left: 50%;
-  width: 1.05em;
-  height: 1.05em;
-  transform: translate(-50%, -50%) scale(0.4);
-  border: 2px solid var(--ignite);
-  border-radius: 50%;
-  opacity: 0;
-  pointer-events: none;
-  animation: ringIn 1.4s var(--ease) 0.6s forwards;
+  bottom: -0.08em;
+  width: 0.5em;
+  height: 0.12em;
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: center;
+  background: var(--ignite);
+  box-shadow: 0 0 18px var(--ignite);
 }
-@keyframes ringIn {
-  to { opacity: 0.9; transform: translate(-50%, -50%) scale(1); }
+.wordmark.lit .o::after {
+  animation: barIn 0.9s var(--ease) 0.5s forwards;
 }
-
-/* ---------- ORBIT MARK ---------- */
-.spin { transform-origin: 50% 50%; animation: spin 14s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes barIn {
+  to { transform: translateX(-50%) scaleX(1); }
+}
 
 /* ---------- SCROLLCUE ---------- */
 .scrollcue {
@@ -161,7 +165,7 @@
 }
 .scrollcue .bar {
   width: 1px;
-  height: 46px;
+  height: 44px;
   background: linear-gradient(var(--ignite), transparent);
   animation: drop 2s var(--ease) infinite;
 }
@@ -178,21 +182,135 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--ignite);
-  box-shadow: 0 0 10px var(--ignite);
+  background: var(--cyan);
+  box-shadow: 0 0 10px var(--cyan);
   animation: pulse 1.4s infinite;
   display: inline-block;
 }
 @keyframes pulse { 50% { opacity: 0.3; } }
 
 /* ---------- HOVER LIFT ---------- */
-.lift { transition: transform 0.5s var(--ease), background 0.5s; }
-.lift:hover { transform: translateY(-6px); }
+.lift { transition: transform 0.4s var(--ease), border-color 0.4s, background 0.4s; }
+.lift:hover { transform: translateY(-5px); border-color: rgba(204, 255, 51, 0.4); }
 
 /* ---------- GRID PAPER ---------- */
 .grid-paper {
   background:
-    linear-gradient(var(--line-2) 1px, transparent 1px) 0 0 / 100% 40px,
-    linear-gradient(90deg, var(--line-2) 1px, transparent 1px) 0 0 / 40px 100%,
+    linear-gradient(var(--line-2) 1px, transparent 1px) 0 0 / 100% 44px,
+    linear-gradient(90deg, var(--line-2) 1px, transparent 1px) 0 0 / 44px 100%,
     var(--void);
 }
+
+/* ============================================================
+   BRACKET — árbol recursivo con conectores (raíz = final, a la derecha)
+   ============================================================ */
+:root {
+  --bk-ch: 34px;   /* ancho del canal de conectores entre rondas */
+  --bk-line: rgba(242, 245, 247, 0.16);
+}
+
+.bk-node {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+}
+.bk-slot {
+  position: relative;
+  flex: 0 0 auto;
+}
+.bk-branches {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  margin-right: var(--bk-ch);
+}
+
+/* línea vertical que une los centros de los dos hijos */
+.bk-branches::before {
+  content: '';
+  position: absolute;
+  right: calc(var(--bk-ch) * -0.5);
+  top: 25%;
+  bottom: 25%;
+  width: 2px;
+  background: var(--bk-line);
+}
+/* tramo horizontal desde cada hijo hasta la vertical */
+.bk-branches > .bk-node::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: calc(var(--bk-ch) * -0.5);
+  width: calc(var(--bk-ch) * 0.5);
+  height: 2px;
+  background: var(--bk-line);
+}
+/* tramo horizontal desde el partido padre hasta la vertical de sus hijos */
+.bk-node:has(> .bk-branches) > .bk-slot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(var(--bk-ch) * -0.5);
+  width: calc(var(--bk-ch) * 0.5);
+  height: 2px;
+  background: var(--bk-line);
+}
+
+/* tarjeta de partido del bracket */
+.bk-match {
+  width: 210px;
+  background: var(--void-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.bk-match:hover { border-color: rgba(204, 255, 51, 0.45); transform: translateY(-2px); }
+.bk-match.is-final { width: 230px; border-color: rgba(204, 255, 51, 0.4); }
+.bk-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+}
+.bk-row + .bk-row { border-top: 1px solid var(--line-2); }
+.bk-row.win { color: var(--ink); }
+.bk-row.win .bk-score { color: var(--ignite); }
+.bk-team {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bk-team.tbd { color: var(--mute); font-weight: 500; }
+.bk-score {
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  min-width: 16px;
+  text-align: right;
+  color: var(--mute);
+}
+.bk-cap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--line-2);
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+/* scroll horizontal en móvil para no romper el árbol */
+.bk-scroll {
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+.bk-scroll::-webkit-scrollbar { height: 8px; }

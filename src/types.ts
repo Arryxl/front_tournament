@@ -87,6 +87,13 @@ export interface Reward {
   isActive: boolean;
 }
 
+export interface TournamentSettings {
+  id: string;
+  registrationsOpen: boolean;
+  tournamentStarted: boolean;
+  updatedAt: string;
+}
+
 export interface Registration {
   id: string;
   teamName: string;
