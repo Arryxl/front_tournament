@@ -1,42 +1,71 @@
-// Componentes de identidad Gravity (brand book GRV-02 · Estadio Nocturno)
+// Componentes de identidad Gravity (brand book GRV-03 · Velocidad de Escape)
 import type { CSSProperties } from 'react';
 
 /**
- * Marca Gravity: un bracket que converge en un solo nodo.
- * Dos ramas entran por la izquierda y caen hacia un punto — el campeón.
- * (la gravedad lo atrae todo a un mismo lugar / la llave a una sola final)
+ * Marca Gravity: la "G" como una órbita abierta con el balón-brasa cayendo
+ * por la izquierda. Lee como letra G y como pozo de gravedad / estela del coche.
+ * Trazo en --ink (marfil), balón y estela en --ignite (brasa naranja).
  */
 export function GravityMark({ size = 64, className = '' }: { size?: number; className?: string }) {
   return (
-    <svg viewBox="0 0 64 64" fill="none" width={size} height={size} className={className}>
-      <g stroke="var(--ink)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M8 18 H26 V32" />
-        <path d="M8 46 H26 V32" />
-        <path d="M26 32 H44" />
-      </g>
-      <circle cx="47" cy="32" r="5.5" fill="var(--ignite)" />
+    <svg viewBox="0 0 64 64" fill="none" width={size} height={size} className={className} aria-hidden="true">
+      {/* anillo abierto de la G */}
+      <path
+        d="M45 23 A17 17 0 1 0 49 37 H34"
+        stroke="var(--ink)"
+        strokeWidth="4.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* estela */}
+      <path d="M13 47 q12 6 23 0.5" stroke="var(--ignite)" strokeWidth="2.6" strokeLinecap="round" opacity="0.8" />
+      {/* balón brasa */}
+      <circle cx="15.5" cy="45" r="5" fill="var(--ignite)" />
     </svg>
   );
 }
 
 /**
- * Marca decorativa para zonas amplias: diana concéntrica con un nodo
- * cayendo hacia el centro. Estática, sin ruido.
+ * Logo en imagen (la "G" con el coche), PNG con fondo transparente.
+ * Se recorta con object-contain y sin recuadro para integrarse sobre --void.
+ */
+export function BrandLogo({
+  size = 40,
+  className = '',
+}: {
+  size?: number;
+  className?: string;
+}) {
+  return (
+    <img
+      src="/brand/logo.png"
+      alt="Gravity League"
+      width={size}
+      height={size}
+      className={className}
+      style={{ width: size, height: size, objectFit: 'contain', display: 'block' }}
+    />
+  );
+}
+
+/**
+ * Marca decorativa para zonas amplias: anillo orbital con el nodo-brasa
+ * trazando la órbita. Estática, atmósfera de transmisión.
  */
 export function OrbitMark({ className = '' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 200 200" fill="none" className={className}>
-      <circle cx="100" cy="100" r="82" stroke="rgba(242,245,247,.10)" />
-      <circle cx="100" cy="100" r="54" stroke="rgba(242,245,247,.07)" />
-      <circle cx="100" cy="100" r="26" stroke="rgba(242,245,247,.12)" />
-      <line x1="100" y1="18" x2="100" y2="74" stroke="var(--ignite)" strokeWidth="2" strokeDasharray="3 5" />
+    <svg viewBox="0 0 200 200" fill="none" className={className} aria-hidden="true">
+      <circle cx="100" cy="100" r="82" stroke="rgba(241,236,223,.10)" />
+      <circle cx="100" cy="100" r="54" stroke="rgba(241,236,223,.07)" />
+      <circle cx="100" cy="100" r="26" stroke="rgba(241,236,223,.12)" />
+      <ellipse cx="100" cy="100" rx="82" ry="34" stroke="rgba(236,87,30,.35)" transform="rotate(-22 100 100)" />
       <circle cx="100" cy="100" r="6" fill="var(--ink)" />
-      <circle cx="100" cy="22" r="7" fill="var(--ignite)" />
+      <circle cx="34" cy="120" r="8" fill="var(--ignite)" />
     </svg>
   );
 }
 
-/** Wordmark GRAVITY — la "I" lleva el acento lima eléctrico. */
+/** Wordmark GRAVITY — Saira Condensed itálica; la "I" lleva el acento brasa. */
 export function Wordmark({
   className = '',
   animateRing = false,

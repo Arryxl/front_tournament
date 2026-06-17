@@ -446,7 +446,7 @@ export default function Register() {
                   type="checkbox"
                   checked={accepted}
                   onChange={(e) => setAccepted(e.target.checked)}
-                  className="accent-[#CCFF33] mt-0.5"
+                  className="accent-[#EC571E] mt-0.5"
                 />
                 <span>
                   Confirmo que los datos son correctos, que cada jugador está dentro del rango permitido

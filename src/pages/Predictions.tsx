@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
-import { Spinner, StatusBadge } from '../components/ui';
+import { Spinner, StatusBadge, Coin, BackButton } from '../components/ui';
 import type { Match } from '../types';
 
 type ScoreState = Record<string, { home: string; away: string }>;
@@ -63,13 +63,14 @@ export default function Predictions() {
 
   return (
     <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-16">
+      <BackButton className="mb-5" />
       <span className="kicker">Juega con nosotros</span>
-      <h1 className="font-display font-black uppercase text-[clamp(40px,8vw,96px)] tracking-tight leading-[0.88] mt-3 mb-3">
+      <h1 className="font-display font-black italic uppercase text-[clamp(40px,8vw,96px)] tracking-tight leading-[0.85] mt-3 mb-3">
         Predice<br />y gana
       </h1>
-      <p className="font-display text-mute text-base max-w-[52ch] mb-10 leading-[1.6]">
-        Acierta el ganador y suma <b className="text-ink">+10 GRV</b>. Si clavas el marcador exacto,
-        <b className="text-ignite"> +25 GRV</b>. Las monedas se reparten al cerrar cada partido.
+      <p className="font-display text-mute text-base max-w-[54ch] mb-10 leading-[1.6] inline-flex flex-wrap items-center gap-x-1.5">
+        Acierta el ganador y suma <b className="text-ink inline-flex items-center gap-1"><Coin size={15} />+10</b> grats. Si clavas el marcador exacto,
+        <b className="text-ignite inline-flex items-center gap-1"><Coin size={15} />+25</b> grats. Se reparten al cerrar cada partido.
       </p>
 
       {msg && <div className="font-mono text-xs text-ignite mb-6">{msg}</div>}
@@ -179,7 +180,10 @@ export default function Predictions() {
                     </span>
                     <span className="flex-1 truncate font-display font-semibold text-sm">{p.username}</span>
                     <span className="font-mono text-[10px] text-mute">{p.correct}/{p.total}</span>
-                    <span className="font-display font-black text-ignite w-14 text-right">{p.coins}</span>
+                    <span className="flex items-center gap-1 w-16 justify-end">
+                      <Coin size={13} />
+                      <span className="font-display font-black italic text-ignite tabular-nums">{p.coins}</span>
+                    </span>
                   </div>
                 ))}
               </div>

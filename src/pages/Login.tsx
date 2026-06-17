@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/auth';
+import { BrandLogo } from '../components/brand';
+import { BackButton } from '../components/ui';
 
 export default function Login() {
   const { login, register } = useAuth();
@@ -30,14 +32,22 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-sm">
-        <Link to="/" className="font-mono tracking-[0.35em] text-sm font-bold block mb-2">
-          GRAVITY
-        </Link>
-        <h1 className="font-display font-black uppercase text-4xl tracking-tight mb-8">
+    <div className="min-h-screen flex items-center justify-center px-6 relative">
+      <div className="cover-halo" />
+      <div className="w-full max-w-sm relative z-[2]">
+        <BackButton to="/" label="Volver al inicio" className="mb-7" />
+        <div className="flex items-center gap-3 mb-6">
+          <BrandLogo size={48} />
+          <span className="font-display font-black italic uppercase tracking-tight text-2xl leading-none">
+            GRAV<span className="text-ignite">I</span>TY
+          </span>
+        </div>
+        <h1 className="font-display font-black italic uppercase text-5xl tracking-tight mb-2 leading-[0.85]">
           {mode === 'login' ? 'Entrar' : 'Crear cuenta'}
         </h1>
+        <p className="font-mono text-[11px] tracking-[0.2em] uppercase text-mute mb-8">
+          {mode === 'login' ? 'Vuelve a la pista' : 'Únete a la liga'}
+        </p>
         <form onSubmit={submit} className="flex flex-col gap-4">
           <div>
             <label className="label">Usuario</label>

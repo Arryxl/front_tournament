@@ -167,12 +167,12 @@ const FEATURES = [
   {
     n: '02',
     title: 'Predice',
-    text: 'Acierta los ganadores de cada partido y gana monedas GRV. Mientras más arriesgas, más sumas.',
+    text: 'Acierta los ganadores de cada partido y gana grats. Mientras más arriesgas, más sumas.',
   },
   {
     n: '03',
     title: 'Canjea',
-    text: 'Cambia tus monedas por recompensas: roles, merch y premios dentro de la liga.',
+    text: 'Cambia tus grats por recompensas: roles, merch y premios dentro de la liga.',
   },
 ];
 

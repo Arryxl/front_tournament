@@ -56,7 +56,7 @@ export default function AdminRewards() {
           <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
         </div>
         <div>
-          <label className="label">Costo (GRV)</label>
+          <label className="label">Costo (grats)</label>
           <input type="number" className="input" value={form.costCoins} onChange={(e) => setForm({ ...form, costCoins: +e.target.value })} required />
         </div>
         <div>
@@ -79,7 +79,7 @@ export default function AdminRewards() {
                 <div>
                   <div className="font-display font-semibold">{r.name}</div>
                   <div className="font-mono text-[10px] text-mute">
-                    {r.costCoins} GRV · stock {r.stock ?? '∞'}
+                    {r.costCoins} grats · stock {r.stock ?? '∞'}
                   </div>
                 </div>
                 <button className="btn" onClick={() => remove(r.id)}>

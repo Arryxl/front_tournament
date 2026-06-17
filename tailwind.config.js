@@ -4,20 +4,25 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Estadio nocturno — near-black frío + acento lima eléctrico.
+        // Velocidad de Escape (GRV-03) — negro pista + brasa naranja + marfil.
         // Se conservan los nombres de token; cambian los valores.
-        void: '#07080A',
-        'void-2': '#0E1014',
-        ink: '#F2F5F7',
-        mute: '#7A7F88',
-        ignite: '#CCFF33', // acento de marca (scoreboard / live / acción)
-        green: '#5FE3A1', // estado positivo (aprobado / ganador)
-        cyan: '#46E8FF', // secundario raro (en vivo / enlaces destacados)
-        line: 'rgba(242,245,247,.10)',
-        'line-2': 'rgba(242,245,247,.05)',
+        void: '#0A0A0B', // fondo base, asfalto nocturno
+        'void-2': '#121214', // superficies elevadas / cards
+        'void-3': '#1A1A1D', // hover de superficie
+        ink: '#F1ECDF', // texto principal / marca (el marfil de la G)
+        mute: '#84847E', // texto secundario
+        ignite: '#EC571E', // acento de marca (scoreboard / acción / estela)
+        'ignite-h': '#FF6A2B', // brillo / hover del naranja
+        ember: '#B23E12', // naranja profundo (sombras del acento)
+        green: '#5FE3A1', // estado positivo (aprobado / gratis)
+        cyan: '#46E8FF', // secundario raro (en vivo)
+        line: 'rgba(241,236,223,.12)',
+        'line-2': 'rgba(241,236,223,.06)',
       },
       fontFamily: {
-        display: ['"Archivo"', 'system-ui', 'sans-serif'],
+        // Display condensada itálica (velocidad racing) + grotesque de apoyo.
+        display: ['"Saira Condensed"', '"Archivo"', 'system-ui', 'sans-serif'],
+        grotesk: ['"Archivo"', 'system-ui', 'sans-serif'],
         serif: ['"Archivo"', 'system-ui', 'sans-serif'],
         mono: ['"Space Mono"', 'ui-monospace', 'monospace'],
       },

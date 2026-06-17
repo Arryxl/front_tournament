@@ -33,7 +33,7 @@ const adminLinks = [
   { to: '/admin/stats', label: 'Estadísticas' },
   { to: '/admin/predictions', label: 'Predicciones' },
   { to: '/admin/rewards', label: 'Recompensas' },
-  { to: '/admin/coins', label: 'Monedas' },
+  { to: '/admin/coins', label: 'Grats' },
   { to: '/admin/users', label: 'Usuarios' },
 ];
 

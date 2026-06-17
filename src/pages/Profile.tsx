@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, fileBase } from '../lib/api';
 import { useAuth } from '../store/auth';
-import { Spinner } from '../components/ui';
+import { Spinner, Coin, BackButton, gratsLabel } from '../components/ui';
 import type { Team } from '../types';
 
 const RANK_LABEL: Record<string, string> = {
@@ -56,15 +56,22 @@ export default function Profile() {
   return (
     <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-16">
       {/* header */}
+      <BackButton className="mb-5" />
       <span className="kicker">Mi perfil</span>
       <div className="flex items-end justify-between flex-wrap gap-4 mt-3 mb-12">
-        <h1 className="font-display font-black uppercase text-[clamp(36px,7vw,84px)] tracking-tight leading-[0.88]">
+        <h1 className="font-display font-black italic uppercase text-[clamp(36px,7vw,84px)] tracking-tight leading-[0.85]">
           {user?.username}
         </h1>
-        <div className="flex items-center gap-3 font-mono">
-          <span className="text-mute text-xs tracking-[0.2em] uppercase">Saldo</span>
-          <span className="font-display font-black text-ignite text-3xl">{user?.coins ?? 0}</span>
-          <span className="text-mute text-xs">GRV</span>
+        <div className="flex items-center gap-3 bg-void-2 border border-line rounded-lg px-4 py-3">
+          <Coin size={32} />
+          <div className="leading-none">
+            <div className="font-display font-black italic text-ignite text-3xl tabular-nums">
+              {(user?.coins ?? 0).toLocaleString('es')}
+            </div>
+            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mt-1">
+              {gratsLabel(user?.coins ?? 0)} · saldo
+            </div>
+          </div>
         </div>
       </div>
 
@@ -169,10 +176,10 @@ export default function Profile() {
         </>
       )}
 
-      {/* ===== historial de monedas (todos) ===== */}
+      {/* ===== historial de grats (todos) ===== */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display font-black uppercase tracking-tight text-2xl">Historial de monedas</h2>
+          <h2 className="font-display font-black italic uppercase tracking-tight text-2xl">Historial de grats</h2>
           <Link to="/rewards" className="font-mono text-[11px] tracking-[0.2em] uppercase text-mute hover:text-ignite">
             Ir a la tienda →
           </Link>
@@ -182,11 +189,14 @@ export default function Profile() {
             <div className="p-4 font-mono text-xs text-mute">Sin movimientos todavía.</div>
           )}
           {history.map((h) => (
-            <div key={h.id} className="flex items-center justify-between p-3">
+            <div key={h.id} className="flex items-center justify-between p-3 gap-4">
               <span className="font-mono text-xs text-mute">{h.concept}</span>
-              <span className={`font-display font-black ${h.amount >= 0 ? 'text-green' : 'text-mute'}`}>
-                {h.amount >= 0 ? '+' : ''}
-                {h.amount}
+              <span className="flex items-center gap-1.5 shrink-0">
+                <Coin size={15} />
+                <span className={`font-display font-black italic tabular-nums ${h.amount >= 0 ? 'text-green' : 'text-mute'}`}>
+                  {h.amount >= 0 ? '+' : ''}
+                  {h.amount}
+                </span>
               </span>
             </div>
           ))}

@@ -10,7 +10,7 @@ const TABS = [
   { key: 'asistencias', label: 'Asistencias', unit: 'asist.' },
   { key: 'salvadas', label: 'Salvadas', unit: 'salv.' },
   { key: 'score', label: 'Score', unit: 'pts' },
-  { key: 'predictores', label: 'Predictores', unit: 'GRV' },
+  { key: 'predictores', label: 'Predictores', unit: 'grats' },
 ] as const;
 
 type TabKey = (typeof TABS)[number]['key'];
@@ -105,7 +105,7 @@ export default function Stats() {
   return (
     <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-16">
       <span className="kicker">Temporada 01 · en vivo</span>
-      <h1 className="font-display font-black uppercase text-[clamp(40px,9vw,120px)] tracking-tight leading-[0.85] mt-3 mb-8">
+      <h1 className="font-display font-black italic uppercase text-[clamp(40px,9vw,120px)] tracking-tight leading-[0.82] mt-3 mb-8">
         Quién<br />manda
       </h1>
 

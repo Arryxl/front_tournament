@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../store/auth';
-import { CoinBalance } from './ui';
+import { CoinBalance, Grats } from './ui';
 import { Atmosphere } from './Atmosphere';
-import { GravityMark, Wordmark } from './brand';
+import { BrandLogo, Wordmark } from './brand';
 import { SocialRow } from './Socials';
 import { NavMenu, NAV_LINKS } from './NavMenu';
 import type { Role } from '../types';
@@ -13,11 +13,13 @@ export function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col relative">
       <Atmosphere />
-      <header className="sticky top-0 z-50 mix-blend-difference">
-        <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-5 flex items-center justify-between gap-6">
-          <Link to="/" className="flex items-center gap-2.5 shrink-0">
-            <GravityMark size={26} />
-            <span className="font-mono tracking-[0.32em] text-xs font-bold text-white">GRAVITY</span>
+      <header className="sticky top-0 z-50 border-b border-line-2 bg-void/70 backdrop-blur-md">
+        <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-3.5 flex items-center justify-between gap-6">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0" aria-label="Inicio">
+            <BrandLogo size={36} />
+            <span className="font-display font-black italic uppercase tracking-tight text-lg text-ink leading-none">
+              GRAV<span className="text-ignite">I</span>TY
+            </span>
           </Link>
           <nav className="hidden lg:flex items-center gap-6">
             {NAV_LINKS.map((l) => (
@@ -25,8 +27,8 @@ export function PublicLayout() {
                 key={l.to}
                 to={l.to}
                 className={({ isActive }) =>
-                  `font-mono text-[11px] tracking-[0.2em] uppercase transition-opacity ${
-                    isActive ? 'text-white opacity-100' : 'text-white opacity-60 hover:opacity-100'
+                  `font-mono text-[11px] tracking-[0.2em] uppercase transition-colors ${
+                    isActive ? 'text-ignite' : 'text-mute hover:text-ink'
                   }`
                 }
                 end={l.to === '/'}
@@ -39,26 +41,26 @@ export function PublicLayout() {
           <div className="hidden lg:flex items-center gap-4 shrink-0">
             {user ? (
               <>
-                <span className="hidden sm:inline font-mono text-[11px] tracking-[0.2em] text-white">
-                  {user.coins} GRV
+                <span className="hidden sm:inline-flex">
+                  <Grats amount={user.coins} size={16} />
                 </span>
                 {user.role === 'admin' && (
                   <Link
                     to="/admin"
-                    className="font-mono text-[11px] tracking-[0.2em] uppercase text-white opacity-70 hover:opacity-100"
+                    className="font-mono text-[11px] tracking-[0.2em] uppercase text-mute hover:text-ink"
                   >
                     Panel
                   </Link>
                 )}
                 <Link
                   to="/me"
-                  className="font-mono text-[11px] tracking-[0.2em] uppercase text-white hover:opacity-70"
+                  className="font-mono text-[11px] tracking-[0.2em] uppercase text-ink hover:text-ignite"
                 >
                   Mi perfil
                 </Link>
                 <button
                   onClick={logout}
-                  className="font-mono text-[11px] tracking-[0.2em] uppercase text-white opacity-60 hover:opacity-100"
+                  className="font-mono text-[11px] tracking-[0.2em] uppercase text-mute hover:text-ink"
                 >
                   Salir
                 </button>
@@ -66,7 +68,7 @@ export function PublicLayout() {
             ) : (
               <Link
                 to="/login"
-                className="font-mono text-[11px] tracking-[0.2em] uppercase text-white hover:opacity-70"
+                className="btn btn-ignite !py-2 !px-4"
               >
                 Entrar
               </Link>
@@ -83,7 +85,7 @@ export function PublicLayout() {
           <div>
             <Wordmark className="text-5xl" />
             <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mt-4">
-              Rocket League 3v3 · Temporada 01 · GRV-02
+              Rocket League 3v3 · Temporada 01 · GRV-03
             </p>
           </div>
           <div className="flex flex-col gap-4 md:items-end">
@@ -113,9 +115,18 @@ export function DashboardLayout({
   return (
     <div className="min-h-screen flex">
       <aside className="w-60 border-r border-line-2 p-6 flex flex-col gap-6 sticky top-0 h-screen">
-        <Link to="/" className="flex items-center gap-2">
-          <GravityMark size={20} />
-          <span className="font-mono tracking-[0.3em] text-sm font-bold">GRAVITY</span>
+        <Link to="/" className="flex items-center gap-2.5">
+          <BrandLogo size={30} />
+          <span className="font-display font-black italic uppercase tracking-tight text-base leading-none">
+            GRAV<span className="text-ignite">I</span>TY
+          </span>
+        </Link>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] uppercase text-mute hover:text-ignite transition-colors group -mt-2"
+        >
+          <span className="text-base leading-none transition-transform group-hover:-translate-x-1">←</span>
+          Volver al sitio
         </Link>
         <div className="font-mono text-[10px] tracking-[0.25em] uppercase text-ignite">{title}</div>
         <nav className="flex flex-col gap-1">

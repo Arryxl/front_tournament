@@ -327,7 +327,7 @@ export default function AdminMatches() {
                                       disabled={noAccount}
                                       checked={!!uid && mvp === uid}
                                       onChange={() => uid && setMvp(uid)}
-                                      className="accent-[#CCFF33] disabled:opacity-30"
+                                      className="accent-[#EC571E] disabled:opacity-30"
                                     />
                                   </div>
                                 </div>

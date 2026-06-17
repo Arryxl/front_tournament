@@ -77,9 +77,9 @@ export default function AdminUsers() {
               {!u.isActive && <span className="font-mono text-[10px] text-ignite">inactivo</span>}
             </div>
             <div className="flex items-center gap-3">
-              <span className="font-display font-black text-ignite">{u.coins} GRV</span>
+              <span className="font-display font-black italic text-ignite tabular-nums">{u.coins} grats</span>
               <button className="btn" onClick={() => grant(u.id)}>
-                Monedas
+                Grats
               </button>
               <button className="btn" onClick={() => toggle(u.id, u.isActive)}>
                 {u.isActive ? 'Desactivar' : 'Activar'}

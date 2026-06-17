@@ -1,21 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Saira+Condensed:ital,wght@0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* === GRAVITY · Estadio Nocturno (brand book GRV-02) === */
-  --void: #07080a; /* fondo base, near-black frío */
-  --void-2: #0e1014; /* superficies elevadas */
-  --ink: #f2f5f7; /* texto principal, blanco frío */
-  --mute: #7a7f88; /* texto secundario */
-  --ignite: #ccff33; /* acento único: lima eléctrico (scoreboard) */
-  --ignite-soft: rgba(204, 255, 51, 0.1);
+  /* === GRAVITY · Velocidad de Escape (brand book GRV-03) === */
+  --void: #0a0a0b; /* fondo base, asfalto nocturno */
+  --void-2: #121214; /* superficies elevadas / cards */
+  --void-3: #1a1a1d; /* hover de superficie */
+  --ink: #f1ecdf; /* texto / marca, el marfil de la G */
+  --mute: #84847e; /* texto secundario */
+  --ignite: #ec571e; /* acento único: brasa naranja (scoreboard / acción) */
+  --ignite-h: #ff6a2b; /* brillo / hover del naranja */
+  --ignite-soft: rgba(236, 87, 30, 0.16);
+  --ember: #b23e12; /* naranja profundo */
   --green: #5fe3a1; /* estado positivo */
   --cyan: #46e8ff; /* en vivo / secundario raro */
-  --line: rgba(242, 245, 247, 0.1);
-  --line-2: rgba(242, 245, 247, 0.05);
+  --line: rgba(241, 236, 223, 0.12);
+  --line-2: rgba(241, 236, 223, 0.06);
 }
 
 * {
@@ -59,7 +62,7 @@ a {
   border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(204, 255, 51, 0.3);
+  background: rgba(236, 87, 30, 0.4);
 }
 
 @layer components {
@@ -83,8 +86,9 @@ a {
     @apply bg-ignite text-void border-ignite font-bold;
   }
   .btn-ignite:hover {
-    @apply opacity-90 border-ignite;
-    box-shadow: 0 0 28px rgba(204, 255, 51, 0.35);
+    @apply border-ignite;
+    background: var(--ignite-h);
+    box-shadow: 0 0 30px rgba(236, 87, 30, 0.4);
   }
   .input {
     @apply w-full bg-void border border-line rounded-md px-4 py-3 text-ink font-mono text-sm outline-none focus:border-ignite transition-colors;

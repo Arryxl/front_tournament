@@ -4,6 +4,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../store/auth';
 import { Wordmark } from './brand';
 import { SocialRow } from './Socials';
+import { Grats } from './ui';
 
 /** Enlaces públicos — fuente única para el nav de escritorio y el overlay. */
 export const NAV_LINKS = [
@@ -53,13 +54,15 @@ export function NavMenu() {
         aria-expanded={open}
         onClick={() => setOpen(true)}
       >
-        <svg width="30" height="20" viewBox="0 0 30 20" fill="none" aria-hidden="true">
-          <g stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2 5 H12 V10" />
-            <path d="M2 15 H12 V10" />
-            <path d="M12 10 H22" />
-          </g>
-          <circle className="node" cx="24.5" cy="10" r="3.5" fill="var(--ignite)" />
+        <svg width="26" height="22" viewBox="0 0 26 22" fill="none" aria-hidden="true">
+          <path
+            d="M18.5 7 A7.5 7.5 0 1 0 20 13 H13.5"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle className="node" cx="5.5" cy="16.5" r="2.6" fill="var(--ignite)" />
         </svg>
         <span className="nav-trig-label">Menú</span>
       </button>
@@ -111,9 +114,7 @@ export function NavMenu() {
           <div className="nav-foot-links">
             {user ? (
               <>
-                <span className="font-mono text-[11px] tracking-[0.2em] text-ignite">
-                  {user.coins} GRV
-                </span>
+                <Grats amount={user.coins} size={16} tone="ignite" />
                 {user.role === 'admin' && (
                   <Link
                     to="/admin"

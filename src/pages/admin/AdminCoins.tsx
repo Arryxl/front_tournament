@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
-import { Spinner } from '../../components/ui';
+import { Spinner, Coin, gratsLabel } from '../../components/ui';
 
 export default function AdminCoins() {
   const [board, setBoard] = useState<any[]>([]);
@@ -29,7 +29,7 @@ export default function AdminCoins() {
         amount: Number(form.amount),
         concept: form.concept || 'Ajuste manual admin',
       });
-      setMsg('Monedas actualizadas');
+      setMsg('Grats actualizados');
       setForm({ userId: '', amount: '', concept: '' });
       load();
     } catch (err: any) {
@@ -42,7 +42,9 @@ export default function AdminCoins() {
   return (
     <div>
       <span className="kicker">Economía</span>
-      <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3 mb-6">Monedas</h1>
+      <h1 className="font-display font-black italic uppercase text-4xl tracking-tight mt-3 mb-6 flex items-center gap-3">
+        <Coin size={34} /> Grats
+      </h1>
 
       <form onSubmit={grant} className="card p-5 mb-8 grid md:grid-cols-[1fr_120px_1fr_auto] gap-3 items-end">
         <div>
@@ -56,7 +58,7 @@ export default function AdminCoins() {
             <option value="">— Seleccionar —</option>
             {users.map((u) => (
               <option key={u.id} value={u.id}>
-                {u.username} ({u.coins} GRV)
+                {u.username} ({u.coins} {gratsLabel(u.coins)})
               </option>
             ))}
           </select>
@@ -91,7 +93,10 @@ export default function AdminCoins() {
           <div key={u.userId || u.id} className="flex items-center gap-3 p-3">
             <span className="font-mono text-mute w-6">{i + 1}</span>
             <span className="flex-1 truncate font-display font-semibold">{u.username}</span>
-            <span className="font-display font-black text-ignite">{u.coins} GRV</span>
+            <span className="flex items-center gap-1.5">
+              <Coin size={15} />
+              <span className="font-display font-black italic text-ignite tabular-nums">{u.coins}</span>
+            </span>
           </div>
         ))}
       </div>

@@ -1,6 +1,6 @@
 /* ============================================================
-   GRAVITY — Capa de marca · Estadio Nocturno (brand book GRV-02)
-   Oscuro, data-forward, un acento lima eléctrico.
+   GRAVITY — Capa de marca · Velocidad de Escape (brand book GRV-03)
+   Negro pista, marfil y un único acento: brasa naranja. Racing / broadcast.
    ============================================================ */
 
 :root {
@@ -118,14 +118,14 @@
 
 /* ---------- WORDMARK ---------- */
 .wordmark {
-  font-family: 'Archivo', system-ui, sans-serif;
+  font-family: 'Saira Condensed', 'Archivo', system-ui, sans-serif;
   font-weight: 900;
+  font-style: italic; /* inclinación racing, como el banner y el logo */
   text-transform: uppercase;
   line-height: 0.84;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.01em;
   position: relative;
   display: inline-block;
-  font-stretch: expanded;
 }
 /* la "I" lleva el acento: una barra lima eléctrica */
 .wordmark .o {
@@ -191,7 +191,7 @@
 
 /* ---------- HOVER LIFT ---------- */
 .lift { transition: transform 0.4s var(--ease), border-color 0.4s, background 0.4s; }
-.lift:hover { transform: translateY(-5px); border-color: rgba(204, 255, 51, 0.4); }
+.lift:hover { transform: translateY(-5px); border-color: rgba(236, 87, 30, 0.4); }
 
 /* ---------- GRID PAPER ---------- */
 .grid-paper {
@@ -270,8 +270,8 @@
   overflow: hidden;
   transition: border-color 0.3s var(--ease), transform 0.3s var(--ease);
 }
-.bk-match:hover { border-color: rgba(204, 255, 51, 0.45); transform: translateY(-2px); }
-.bk-match.is-final { width: 230px; border-color: rgba(204, 255, 51, 0.4); }
+.bk-match:hover { border-color: rgba(236, 87, 30, 0.45); transform: translateY(-2px); }
+.bk-match.is-final { width: 230px; border-color: rgba(236, 87, 30, 0.4); }
 .bk-row {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -372,7 +372,7 @@
   flex-direction: column;
   gap: clamp(18px, 3.5vh, 40px);
   padding: clamp(20px, 5vw, 60px) var(--pad);
-  background: rgba(7, 8, 10, 0.965);
+  background: rgba(10, 10, 11, 0.965);
   backdrop-filter: blur(16px) saturate(120%);
   -webkit-backdrop-filter: blur(16px) saturate(120%);
   opacity: 0;
@@ -599,7 +599,7 @@
 }
 .draw-col.is-hot {
   border-color: var(--ignite);
-  box-shadow: 0 0 44px rgba(204, 255, 51, 0.25);
+  box-shadow: 0 0 44px rgba(236, 87, 30, 0.25);
   transform: translateY(-4px);
 }
 .draw-col-head {
@@ -655,18 +655,18 @@
   min-height: clamp(200px, 26vh, 300px);
   padding: 40px;
   border-radius: 20px;
-  background: rgba(14, 16, 20, 0.88);
+  background: rgba(18, 18, 20, 0.88);
   border: 1px solid var(--line);
   backdrop-filter: blur(8px);
   animation: orbIn 0.35s var(--ease) both;
 }
-.draw-orb.is-locked { border-color: var(--ignite); box-shadow: 0 0 60px rgba(204, 255, 51, 0.3); }
+.draw-orb.is-locked { border-color: var(--ignite); box-shadow: 0 0 60px rgba(236, 87, 30, 0.3); }
 @keyframes orbIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: none; } }
 .draw-orb-ring {
   position: absolute;
   inset: -2px;
   border-radius: 22px;
-  border: 1px dashed rgba(204, 255, 51, 0.4);
+  border: 1px dashed rgba(236, 87, 30, 0.4);
   animation: orbSpin 3s linear infinite;
 }
 .draw-orb.is-locked .draw-orb-ring { animation-play-state: paused; opacity: 0.2; }
