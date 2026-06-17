@@ -1,10 +1,18 @@
 // Canal de sincronización del sorteo en vivo entre el Control Deck (admin)
 // y el Escenario (ventana de stream / OBS). Misma PC → BroadcastChannel.
 
+export interface PlayerLite {
+  name: string;
+  rank: string | null;
+  isCaptain?: boolean;
+  sub?: boolean;
+}
+
 export interface TeamLite {
   id: string;
   name: string;
   shieldUrl: string | null;
+  players?: PlayerLite[];
 }
 
 export const GROUPS = ['A', 'B', 'C', 'D'] as const;

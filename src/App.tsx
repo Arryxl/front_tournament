@@ -12,6 +12,9 @@ import Profile from './pages/Profile';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import DrawStage from './pages/DrawStage';
+import OverlayVersus from './pages/overlay/OverlayVersus';
+import OverlayStats from './pages/overlay/OverlayStats';
+import OverlayPredictions from './pages/overlay/OverlayPredictions';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminRegistrations from './pages/admin/AdminRegistrations';
@@ -23,6 +26,7 @@ import AdminPredictions from './pages/admin/AdminPredictions';
 import AdminCoins from './pages/admin/AdminCoins';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminRewards from './pages/admin/AdminRewards';
+import AdminOverlays from './pages/admin/AdminOverlays';
 
 const adminLinks = [
   { to: '/admin', label: 'Dashboard' },
@@ -35,6 +39,7 @@ const adminLinks = [
   { to: '/admin/rewards', label: 'Recompensas' },
   { to: '/admin/coins', label: 'Grats' },
   { to: '/admin/users', label: 'Usuarios' },
+  { to: '/admin/overlays', label: 'Overlays' },
 ];
 
 // Cualquier usuario autenticado (fan, jugador o admin).
@@ -88,6 +93,11 @@ export default function App() {
         {/* Escenario del sorteo en vivo — ventana de stream / OBS (sin layout) */}
         <Route path="/draw/stage" element={<DrawStage />} />
 
+        {/* Overlays de partido para OBS (Browser Source, fondo transparente) */}
+        <Route path="/overlay/match/:id/versus" element={<OverlayVersus />} />
+        <Route path="/overlay/match/:id/stats" element={<OverlayStats />} />
+        <Route path="/overlay/match/:id/predictions" element={<OverlayPredictions />} />
+
         {/* Redirecciones de las rutas antiguas del panel de jugador */}
         <Route path="/player" element={<Navigate to="/me" replace />} />
         <Route path="/player/team" element={<Navigate to="/me" replace />} />
@@ -113,6 +123,7 @@ export default function App() {
           <Route path="/admin/rewards" element={<AdminRewards />} />
           <Route path="/admin/coins" element={<AdminCoins />} />
           <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/overlays" element={<AdminOverlays />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -672,9 +672,70 @@
 .draw-orb.is-locked .draw-orb-ring { animation-play-state: paused; opacity: 0.2; }
 @keyframes orbSpin { to { transform: rotate(360deg); } }
 .draw-arrow { animation: drawPop 0.4s var(--ease) both; }
+.draw-orb-cue { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); }
+
+/* ---------- PANEL DE REVELACIÓN (equipo + alineación) ---------- */
+.draw-reveal {
+  position: relative;
+  width: clamp(340px, 42vw, 600px);
+  max-width: 92vw;
+  padding: clamp(22px, 2.4vw, 36px);
+  border-radius: 22px;
+  background: rgba(18, 18, 20, 0.92);
+  border: 1px solid var(--ignite);
+  box-shadow: 0 30px 90px -20px rgba(236, 87, 30, 0.4), 0 0 0 1px rgba(236, 87, 30, 0.15);
+  backdrop-filter: blur(10px);
+  animation: revealIn 0.5s var(--ease) both;
+}
+@keyframes revealIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+.draw-reveal-head {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.6vw, 22px);
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line-2);
+}
+.draw-reveal-lore { animation: drawPop 0.5s var(--ease) 0.25s both; }
+
+.draw-roster { margin-top: 16px; display: flex; flex-direction: column; gap: 7px; }
+.draw-roster-row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--void);
+  opacity: 0;
+  transform: translateX(-14px);
+  transition: opacity 0.55s var(--ease), transform 0.55s var(--ease), border-color 0.55s;
+}
+.draw-roster-row.in { opacity: 1; transform: none; }
+.draw-roster-row.in:not(.is-sub) { border-color: rgba(236, 87, 30, 0.4); }
+.draw-roster-row.is-sub { opacity: 0; }
+.draw-roster-row.is-sub.in { opacity: 0.62; }
+.draw-roster-num {
+  display: grid; place-items: center; width: 22px; height: 22px;
+  border-radius: 6px; background: var(--void-2); border: 1px solid var(--line);
+}
+.draw-roster-name { min-width: 0; font-size: clamp(14px, 1.5vw, 19px); }
+.draw-roster-rank { letter-spacing: 0.12em; }
+
+.draw-reveal-dest {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line-2);
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+}
+.draw-reveal-dest.in { opacity: 1; transform: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .draw-title, .draw-pop, .draw-parade-card, .draw-chip, .draw-finale,
-  .draw-orb, .draw-orb-ring, .draw-flash { animation: none; }
+  .draw-orb, .draw-orb-ring, .draw-flash, .draw-reveal, .draw-reveal-lore { animation: none; }
+  .draw-roster-row, .draw-reveal-dest { transition: none; }
   .draw-title { clip-path: none; }
 }

@@ -58,7 +58,20 @@ export default function AdminGroups() {
         setApproved(
           (t.data as Team[])
             .filter((x) => x.status === 'approved')
-            .map((x) => ({ id: x.id, name: x.name, shieldUrl: x.shieldUrl })),
+            .map((x) => ({
+              id: x.id,
+              name: x.name,
+              shieldUrl: x.shieldUrl,
+              players: (x.members ?? [])
+                .slice()
+                .sort((a, b) => (a.playerNumber ?? 99) - (b.playerNumber ?? 99))
+                .map((m) => ({
+                  name: m.epicUsername || m.steamUsername || m.user?.username || '—',
+                  rank: m.rank ?? null,
+                  isCaptain: m.isCaptain,
+                  sub: (m.playerNumber ?? 0) > 3,
+                })),
+            })),
         );
       })
       .finally(() => setLoading(false));

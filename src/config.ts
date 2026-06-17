@@ -42,3 +42,7 @@ export const SOCIALS = {
   discord: 'https://discord.gg/4AB4tm4zmW',
   twitch: 'https://www.twitch.tv/arryxl',
 };
+
+// Canal de Twitch por defecto para el overlay de predicciones (votación por chat).
+// Se puede sobreescribir por overlay con ?channel=otro_canal en la URL.
+export const TWITCH_CHANNEL = 'arryxl';
