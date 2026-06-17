@@ -257,6 +257,10 @@
   background: var(--bk-line);
 }
 
+/* anchos de los encabezados de columna (alineados con las cartas) */
+.bk-colw { width: 210px; }
+.bk-colw-final { width: 230px; }
+
 /* tarjeta de partido del bracket */
 .bk-match {
   width: 210px;
@@ -312,5 +316,365 @@
 .bk-scroll {
   overflow-x: auto;
   padding-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
 }
 .bk-scroll::-webkit-scrollbar { height: 8px; }
+
+/* En móvil/tablet: cartas y canal de conectores más compactos para que la
+   llave se lea sin desbordes raros (sigue habiendo scroll horizontal). */
+@media (max-width: 768px) {
+  :root { --bk-ch: 22px; }
+  .bk-match { width: 168px; }
+  .bk-match.is-final { width: 180px; }
+  .bk-colw { width: 168px; }
+  .bk-colw-final { width: 180px; }
+  .bk-team { font-size: 12px; }
+  .bk-score { font-size: 13px; }
+  .bk-cap { font-size: 8px; padding: 4px 10px; }
+  .bk-row { padding: 7px 10px; }
+}
+
+/* ============================================================
+   NAV MÓVIL — disparador "nodo de gravedad" + overlay scoreboard
+   No es una hamburguesa: reusa el lenguaje de la marca (bracket→nodo)
+   y abre un panel de transmisión a pantalla completa.
+   ============================================================ */
+.nav-trig {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 2px;
+  background: none;
+  border: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+.nav-trig svg { overflow: visible; }
+.nav-trig .node {
+  transition: transform 0.45s var(--ease), filter 0.45s;
+}
+.nav-trig:hover .node {
+  transform: translateX(4px);
+  filter: drop-shadow(0 0 8px var(--ignite));
+}
+.nav-trig-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.nav-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 3.5vh, 40px);
+  padding: clamp(20px, 5vw, 60px) var(--pad);
+  background: rgba(7, 8, 10, 0.965);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  opacity: 0;
+  visibility: hidden;
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 0.55s var(--ease), opacity 0.35s ease,
+    visibility 0s linear 0.55s;
+}
+.nav-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 0.6s var(--ease), opacity 0.3s ease, visibility 0s;
+}
+/* halo lima tenue en la esquina, atmósfera broadcast */
+.nav-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 82% -10%, var(--ignite-soft), transparent 55%);
+}
+
+.nav-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--mute);
+  transition: color 0.25s;
+}
+.nav-close:hover { color: var(--ignite); }
+.nav-close .x { font-size: 17px; line-height: 1; }
+
+.nav-list {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-bottom: 1px solid var(--line-2);
+}
+.nav-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: clamp(14px, 4vw, 30px);
+  padding: clamp(9px, 1.5vh, 16px) 8px;
+  border-top: 1px solid var(--line-2);
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.nav-overlay.open .nav-item {
+  animation: navIn 0.55s var(--ease) forwards;
+  animation-delay: var(--d, 0s);
+}
+@keyframes navIn { to { opacity: 1; transform: none; } }
+/* barrido lima de fondo al hover / activo */
+.nav-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--ignite-soft);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s var(--ease);
+}
+.nav-item:hover::before,
+.nav-item.active::before { transform: scaleX(1); }
+.nav-idx {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--mute);
+  transition: color 0.25s;
+}
+.nav-item:hover .nav-idx,
+.nav-item.active .nav-idx { color: var(--ignite); }
+.nav-label {
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: clamp(30px, 8.5vw, 58px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  transition: color 0.25s, transform 0.35s var(--ease);
+}
+.nav-item:hover .nav-label { color: var(--ignite); transform: translateX(6px); }
+.nav-arrow {
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-size: clamp(18px, 4vw, 26px);
+  color: var(--ignite);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.3s, transform 0.3s var(--ease);
+}
+.nav-item:hover .nav-arrow,
+.nav-item.active .nav-arrow { opacity: 1; transform: none; }
+
+.nav-foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.nav-foot-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-overlay,
+  .nav-item,
+  .nav-item::before,
+  .nav-label,
+  .nav-trig .node { transition: none; animation: none; }
+  .nav-overlay.open { clip-path: inset(0 0 0 0); }
+  .nav-item { opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   SORTEO EN VIVO — Escenario (ventana de stream / OBS)
+   "Pozo de gravedad": cada equipo cae a su grupo.
+   ============================================================ */
+.draw-stage {
+  position: fixed;
+  inset: 0;
+  background: var(--void);
+  color: var(--ink);
+  overflow: hidden;
+  padding: clamp(24px, 4vw, 64px);
+  display: flex;
+  flex-direction: column;
+}
+.draw-topbar {
+  position: absolute;
+  top: clamp(20px, 3vh, 36px);
+  left: clamp(24px, 4vw, 64px);
+  right: clamp(24px, 4vw, 64px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 5;
+}
+
+.draw-center { margin: auto; text-align: center; position: relative; z-index: 2; }
+.draw-bigword { font-size: clamp(72px, 16vw, 240px); display: inline-block; margin-top: 14px; }
+.draw-title {
+  font-size: clamp(64px, 14vw, 200px);
+  line-height: 0.85;
+  margin-top: 12px;
+  animation: drawTitle 0.9s var(--ease) both;
+}
+@keyframes drawTitle {
+  from { opacity: 0; clip-path: inset(0 0 100% 0); transform: translateY(20px); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); transform: none; }
+}
+.draw-pop { animation: drawPop 0.7s var(--ease) 0.25s both; }
+@keyframes drawPop {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+.draw-body {
+  margin: auto;
+  width: 100%;
+  max-width: 1480px;
+  position: relative;
+  z-index: 2;
+  padding-top: clamp(48px, 8vh, 90px);
+}
+
+.draw-parade-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+}
+.draw-parade-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--void-2);
+  min-width: 0;
+  animation: drawPop 0.5s var(--ease) both;
+}
+
+.draw-groups {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(12px, 1.5vw, 22px);
+}
+.draw-col {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--void-2);
+  overflow: hidden;
+  transition: border-color 0.4s, box-shadow 0.4s, transform 0.4s;
+}
+.draw-col.is-hot {
+  border-color: var(--ignite);
+  box-shadow: 0 0 44px rgba(204, 255, 51, 0.25);
+  transform: translateY(-4px);
+}
+.draw-col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line-2);
+  background: var(--void);
+}
+.draw-col-body { display: flex; flex-direction: column; gap: 10px; padding: 14px; min-height: 0; }
+.draw-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--void);
+  min-width: 0;
+  animation: chipDrop 0.5s var(--ease) both;
+}
+.draw-chip.is-empty {
+  justify-content: center;
+  border-style: dashed;
+  opacity: 0.35;
+  animation: none;
+}
+@keyframes chipDrop {
+  from { opacity: 0; transform: translateY(-28px) scale(0.96); }
+  60% { transform: translateY(4px) scale(1.01); }
+  to { opacity: 1; transform: none; }
+}
+
+.draw-finale { text-align: center; margin-top: clamp(24px, 4vh, 48px); animation: drawPop 0.6s var(--ease) both; }
+
+.draw-flash {
+  position: fixed;
+  inset: 0;
+  background: var(--ignite);
+  z-index: 40;
+  pointer-events: none;
+  animation: drawFlash 0.26s ease;
+}
+@keyframes drawFlash { 0% { opacity: 0; } 40% { opacity: 0.22; } 100% { opacity: 0; } }
+
+.draw-orb-layer { position: fixed; inset: 0; display: grid; place-items: center; z-index: 30; pointer-events: none; }
+.draw-orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: clamp(280px, 30vw, 460px);
+  min-height: clamp(200px, 26vh, 300px);
+  padding: 40px;
+  border-radius: 20px;
+  background: rgba(14, 16, 20, 0.88);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+  animation: orbIn 0.35s var(--ease) both;
+}
+.draw-orb.is-locked { border-color: var(--ignite); box-shadow: 0 0 60px rgba(204, 255, 51, 0.3); }
+@keyframes orbIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: none; } }
+.draw-orb-ring {
+  position: absolute;
+  inset: -2px;
+  border-radius: 22px;
+  border: 1px dashed rgba(204, 255, 51, 0.4);
+  animation: orbSpin 3s linear infinite;
+}
+.draw-orb.is-locked .draw-orb-ring { animation-play-state: paused; opacity: 0.2; }
+@keyframes orbSpin { to { transform: rotate(360deg); } }
+.draw-arrow { animation: drawPop 0.4s var(--ease) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .draw-title, .draw-pop, .draw-parade-card, .draw-chip, .draw-finale,
+  .draw-orb, .draw-orb-ring, .draw-flash { animation: none; }
+  .draw-title { clip-path: none; }
+}

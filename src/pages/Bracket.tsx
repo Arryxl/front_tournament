@@ -86,11 +86,10 @@ function BracketNode({ node }: { node: Node }) {
   );
 }
 
-function ColHead({ w, children }: { w: number; children: string }) {
+function ColHead({ final, children }: { final?: boolean; children: string }) {
   return (
     <div
-      style={{ width: w }}
-      className="font-mono text-[10px] tracking-[0.25em] uppercase text-mute text-center"
+      className={`${final ? 'bk-colw-final' : 'bk-colw'} font-mono text-[10px] tracking-[0.25em] uppercase text-mute text-center`}
     >
       {children}
     </div>
@@ -132,14 +131,18 @@ function placeholderRows(): Row[] {
   }));
 }
 
+// Plantilla compacta: en móvil se ocultan G/E/P para evitar scroll horizontal.
+const COLS =
+  'grid-cols-[18px_1fr_26px_30px_34px] sm:grid-cols-[22px_1fr_28px_26px_26px_26px_34px_36px]';
+
 function GroupTable({ name, rows, started }: { name: string; rows: Row[]; started: boolean }) {
   const isPlaceholder = rows.every((r) => r.placeholder);
   return (
     <div className="card overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-line-2 bg-void-2">
-        <span className="font-display font-black uppercase tracking-tight text-2xl">Grupo {name}</span>
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-line-2 bg-void-2">
+        <span className="font-display font-black uppercase tracking-tight text-lg">Grupo {name}</span>
         <span
-          className={`font-mono text-[9px] tracking-[0.2em] uppercase px-2 py-1 rounded ${
+          className={`font-mono text-[9px] tracking-[0.18em] uppercase px-2 py-0.5 rounded ${
             isPlaceholder ? 'text-mute border border-line' : 'text-ignite border border-ignite/40'
           }`}
         >
@@ -147,13 +150,15 @@ function GroupTable({ name, rows, started }: { name: string; rows: Row[]; starte
         </span>
       </div>
 
-      <div className="grid grid-cols-[28px_1fr_34px_34px_34px_34px_44px_44px] gap-x-2 px-5 py-2.5 font-mono text-[10px] tracking-[0.12em] uppercase text-mute border-b border-line-2">
+      <div
+        className={`grid ${COLS} gap-x-1.5 px-4 py-2 font-mono text-[9px] tracking-[0.1em] uppercase text-mute border-b border-line-2`}
+      >
         <span>#</span>
         <span>Equipo</span>
         <span className="text-center">PJ</span>
-        <span className="text-center">G</span>
-        <span className="text-center">E</span>
-        <span className="text-center">P</span>
+        <span className="hidden sm:block text-center">G</span>
+        <span className="hidden sm:block text-center">E</span>
+        <span className="hidden sm:block text-center">P</span>
         <span className="text-center">DG</span>
         <span className="text-right">Pts</span>
       </div>
@@ -164,38 +169,38 @@ function GroupTable({ name, rows, started }: { name: string; rows: Row[]; starte
         return (
           <div
             key={`${name}-${r.pos}`}
-            className={`grid grid-cols-[28px_1fr_34px_34px_34px_34px_44px_44px] gap-x-2 px-5 py-3 items-center border-b border-line-2 last:border-0 ${
+            className={`grid ${COLS} gap-x-1.5 px-4 py-2 items-center border-b border-line-2 last:border-0 ${
               top2 && !r.placeholder ? 'bg-ignite/[0.04]' : ''
             }`}
           >
             <span
-              className={`font-display font-black text-base tabular-nums ${
+              className={`font-display font-black text-sm tabular-nums ${
                 top2 ? 'text-ignite' : 'text-mute'
               }`}
             >
               {r.pos}
             </span>
             <span
-              className={`font-display font-bold text-[15px] truncate ${
+              className={`font-display font-bold text-[13px] sm:text-[15px] truncate ${
                 r.placeholder ? 'italic text-mute' : 'text-ink'
               }`}
             >
               {r.placeholder ? `“${r.name}”` : r.name}
             </span>
-            <span className="text-center font-mono text-sm text-mute tabular-nums">{r.pj}</span>
-            <span className="text-center font-mono text-sm tabular-nums">{r.g}</span>
-            <span className="text-center font-mono text-sm tabular-nums">{r.e}</span>
-            <span className="text-center font-mono text-sm tabular-nums">{r.p}</span>
-            <span className="text-center font-mono text-sm tabular-nums">
+            <span className="text-center font-mono text-[13px] text-mute tabular-nums">{r.pj}</span>
+            <span className="hidden sm:block text-center font-mono text-[13px] tabular-nums">{r.g}</span>
+            <span className="hidden sm:block text-center font-mono text-[13px] tabular-nums">{r.e}</span>
+            <span className="hidden sm:block text-center font-mono text-[13px] tabular-nums">{r.p}</span>
+            <span className="text-center font-mono text-[13px] tabular-nums">
               {dg > 0 ? '+' : ''}
               {dg}
             </span>
-            <span className="text-right font-display font-black text-lg tabular-nums">{r.pts}</span>
+            <span className="text-right font-display font-black text-base tabular-nums">{r.pts}</span>
           </div>
         );
       })}
 
-      <div className="px-5 py-2.5 font-mono text-[9px] tracking-[0.15em] uppercase text-mute bg-void/40">
+      <div className="px-4 py-2 font-mono text-[9px] tracking-[0.15em] uppercase text-mute bg-void/40">
         <span className="text-ignite">1° · 2°</span> clasifican a cuartos
       </div>
     </div>
@@ -333,21 +338,21 @@ export default function Bracket() {
       <StatusBanner settings={settings} />
 
       {/* ---------- FASE DE GRUPOS ---------- */}
-      <section className="mb-24">
-        <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
+      <section className="mb-16">
+        <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
           <div>
             <span className="kicker">Fase 1</span>
-            <h1 className="font-display font-black uppercase tracking-tight text-4xl md:text-6xl mt-3 leading-none">
+            <h1 className="font-display font-black uppercase tracking-tight text-3xl md:text-5xl mt-3 leading-none">
               Fase de grupos
             </h1>
           </div>
-          <p className="font-mono text-[11px] tracking-[0.15em] uppercase text-mute max-w-[34ch] leading-[1.9]">
+          <p className="font-mono text-[11px] tracking-[0.15em] uppercase text-mute max-w-[34ch] leading-[1.8]">
             {tournamentStarted
               ? 'Tablas en tiempo real. Los dos primeros de cada grupo avanzan a la llave.'
               : 'Las tablas se llenan tras el sorteo. Hasta entonces verás «Por confirmar».'}
           </p>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {groups.map((g) => (
             <GroupTable key={g.name} name={g.name} rows={g.rows} started={tournamentStarted} />
           ))}
@@ -356,24 +361,32 @@ export default function Bracket() {
 
       {/* ---------- LLAVE ELIMINATORIA ---------- */}
       <section>
-        <div className="mb-8">
-          <span className="kicker">Fase 2</span>
-          <h2 className="font-display font-black uppercase tracking-tight text-4xl md:text-6xl mt-3 leading-none">
-            La llave
-          </h2>
+        <div className="mb-6 flex items-end justify-between flex-wrap gap-3">
+          <div>
+            <span className="kicker">Fase 2</span>
+            <h2 className="font-display font-black uppercase tracking-tight text-3xl md:text-5xl mt-3 leading-none">
+              La llave
+            </h2>
+          </div>
+          <span className="lg:hidden font-mono text-[10px] tracking-[0.2em] uppercase text-mute">
+            Desliza para ver →
+          </span>
         </div>
 
         <div className="bk-scroll">
-          <div className="inline-flex flex-row-reverse gap-[34px] mb-4 min-w-full">
-            <ColHead w={230}>Gran Final</ColHead>
-            <ColHead w={210}>Semifinales</ColHead>
-            <ColHead w={210}>Cuartos de Final</ColHead>
+          {/* envoltura que escala al contenido: encabezados y árbol comparten ancho */}
+          <div className="inline-block min-w-full">
+            <div className="flex flex-row-reverse gap-[var(--bk-ch)] mb-4">
+              <ColHead final>Gran Final</ColHead>
+              <ColHead>Semifinales</ColHead>
+              <ColHead>Cuartos de Final</ColHead>
+            </div>
+            <BracketNode node={tree} />
           </div>
-          <BracketNode node={tree} />
         </div>
 
         {/* Tercer lugar */}
-        <div className="mt-12">
+        <div className="mt-10">
           <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-mute">
             Tercer lugar · BO7
           </span>

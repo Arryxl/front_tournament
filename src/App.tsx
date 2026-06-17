@@ -11,6 +11,7 @@ import Rewards from './pages/Rewards';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
 import Login from './pages/Login';
+import DrawStage from './pages/DrawStage';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminRegistrations from './pages/admin/AdminRegistrations';
@@ -83,6 +84,9 @@ export default function App() {
         </Route>
 
         <Route path="/login" element={<Login />} />
+
+        {/* Escenario del sorteo en vivo — ventana de stream / OBS (sin layout) */}
+        <Route path="/draw/stage" element={<DrawStage />} />
 
         {/* Redirecciones de las rutas antiguas del panel de jugador */}
         <Route path="/player" element={<Navigate to="/me" replace />} />

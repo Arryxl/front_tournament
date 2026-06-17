@@ -5,16 +5,8 @@ import { CoinBalance } from './ui';
 import { Atmosphere } from './Atmosphere';
 import { GravityMark, Wordmark } from './brand';
 import { SocialRow } from './Socials';
+import { NavMenu, NAV_LINKS } from './NavMenu';
 import type { Role } from '../types';
-
-const PUBLIC_LINKS = [
-  { to: '/', label: 'Inicio' },
-  { to: '/bracket', label: 'Llave' },
-  { to: '/stats', label: 'Estadísticas' },
-  { to: '/predictions', label: 'Predicciones' },
-  { to: '/rewards', label: 'Tienda' },
-  { to: '/register', label: 'Inscripción' },
-];
 
 export function PublicLayout() {
   const { user, logout } = useAuth();
@@ -28,7 +20,7 @@ export function PublicLayout() {
             <span className="font-mono tracking-[0.32em] text-xs font-bold text-white">GRAVITY</span>
           </Link>
           <nav className="hidden lg:flex items-center gap-6">
-            {PUBLIC_LINKS.map((l) => (
+            {NAV_LINKS.map((l) => (
               <NavLink
                 key={l.to}
                 to={l.to}
@@ -43,7 +35,8 @@ export function PublicLayout() {
               </NavLink>
             ))}
           </nav>
-          <div className="flex items-center gap-4 shrink-0">
+          {/* Sesión — solo escritorio; en móvil/tablet vive dentro del overlay */}
+          <div className="hidden lg:flex items-center gap-4 shrink-0">
             {user ? (
               <>
                 <span className="hidden sm:inline font-mono text-[11px] tracking-[0.2em] text-white">
@@ -79,6 +72,7 @@ export function PublicLayout() {
               </Link>
             )}
           </div>
+          <NavMenu />
         </div>
       </header>
       <main className="flex-1 w-full">

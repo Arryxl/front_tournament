@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, fileBase } from '../lib/api';
 
+// Rango elegible: Platino 3 → Champion 3 (sin Platino 4).
 const RANKS = [
   ['plat3', 'Platino 3'],
-  ['plat4', 'Platino 4'],
   ['dia1', 'Diamante 1'],
   ['dia2', 'Diamante 2'],
   ['dia3', 'Diamante 3'],
@@ -22,6 +22,10 @@ interface PlayerData {
 }
 const emptyPlayer = (): PlayerData => ({ epic: '', steam: '', rank: 'plat3', screenshot: '' });
 
+// 3 titulares + 2 suplentes (mismos requisitos).
+const STARTERS = 3;
+const TOTAL_PLAYERS = 5;
+
 const fileUrl = (u: string) => (u.startsWith('http') ? u : `${fileBase}${u}`);
 
 const STEPS = ['Equipo', 'Jugadores', 'Confirmar'];
@@ -33,12 +37,14 @@ function UploadField({
   value,
   onChange,
   thumb,
+  required,
 }: {
   label: string;
   endpoint: 'shield' | 'screenshot';
   value: string;
   onChange: (url: string) => void;
   thumb?: boolean;
+  required?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const upload = async (file: File) => {
@@ -56,7 +62,9 @@ function UploadField({
   };
   return (
     <div>
-      <label className="label">{label}</label>
+      <label className="label">
+        {label} {required && <span className="text-ignite">*</span>}
+      </label>
       <div className="flex items-center gap-3">
         {thumb && value && (
           <img src={fileUrl(value)} alt="" className="w-12 h-12 rounded-md object-cover border border-line" />
@@ -72,6 +80,9 @@ function UploadField({
         </label>
         {busy && <span className="font-mono text-xs text-ignite">subiendo…</span>}
         {value && !busy && <span className="font-mono text-xs text-green">✓ listo</span>}
+        {!value && !busy && required && (
+          <span className="font-mono text-xs text-mute">obligatoria</span>
+        )}
       </div>
     </div>
   );
@@ -82,19 +93,21 @@ function PlayerForm({
   index,
   data,
   update,
+  substitute,
 }: {
   index: number;
   data: PlayerData;
   update: (d: Partial<PlayerData>) => void;
+  substitute?: boolean;
 }) {
   return (
     <div className="card p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="font-display font-black uppercase tracking-tight text-xl">
-          Jugador <span className="text-ignite">{index + 1}</span>
+          {substitute ? 'Suplente' : 'Jugador'} <span className="text-ignite">{index + 1}</span>
         </div>
         <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">
-          {rankLabel(data.rank)}
+          {substitute ? 'Suplente' : 'Titular'} · {rankLabel(data.rank)}
         </span>
       </div>
       <div className="grid md:grid-cols-2 gap-4">
@@ -119,11 +132,12 @@ function PlayerForm({
           </select>
         </div>
         <UploadField
-          label="Captura del rango"
+          label="Captura de pantalla principal (nivel y usuario)"
           endpoint="screenshot"
           value={data.screenshot}
           onChange={(url) => update({ screenshot: url })}
           thumb
+          required
         />
       </div>
     </div>
@@ -135,7 +149,9 @@ export default function Register() {
   const [step, setStep] = useState(0);
   const [teamName, setTeamName] = useState('');
   const [shieldUrl, setShieldUrl] = useState('');
-  const [players, setPlayers] = useState<PlayerData[]>([emptyPlayer(), emptyPlayer(), emptyPlayer()]);
+  const [players, setPlayers] = useState<PlayerData[]>(
+    Array.from({ length: TOTAL_PLAYERS }, emptyPlayer),
+  );
   const [captain, setCaptain] = useState(1);
   const [accepted, setAccepted] = useState(false);
   const [done, setDone] = useState(false);
@@ -159,9 +175,15 @@ export default function Register() {
       setError('Ponle un nombre a tu equipo.');
       return false;
     }
-    if (step === 1 && players.some((p) => !p.epic && !p.steam)) {
-      setError('Cada jugador necesita al menos un usuario (Epic o Steam).');
-      return false;
+    if (step === 1) {
+      if (players.some((p) => !p.epic && !p.steam)) {
+        setError('Cada jugador (titulares y suplentes) necesita al menos un usuario (Epic o Steam).');
+        return false;
+      }
+      if (players.some((p) => !p.screenshot)) {
+        setError('La captura de pantalla principal es obligatoria para los 5 jugadores.');
+        return false;
+      }
     }
     return true;
   };
@@ -237,7 +259,7 @@ export default function Register() {
         </h1>
         <p className="font-display text-mute text-lg mt-6 max-w-[46ch] mx-auto leading-[1.5]">
           Recibimos la inscripción de <b className="text-ink">{teamName}</b>. El admin revisará las
-          capturas de rango y te enviará las credenciales de cada jugador por Discord.
+          capturas y te enviará las credenciales de cada jugador por Discord.
         </p>
         <div className="flex justify-center gap-3 mt-10">
           <Link to="/" className="btn">Volver al inicio</Link>
@@ -256,9 +278,9 @@ export default function Register() {
       <h1 className="font-display font-black uppercase text-[clamp(40px,8vw,96px)] tracking-tight leading-[0.88] mt-3 mb-3">
         Inscribe<br />tu equipo
       </h1>
-      <p className="font-display text-mute text-base max-w-[52ch] mb-10 leading-[1.6]">
-        Tres jugadores, un escudo y tus rangos. Te tomará menos de 3 minutos. Rango elegible:
-        <b className="text-ink"> Platino 3 a Champion 3</b>.
+      <p className="font-display text-mute text-base max-w-[58ch] mb-10 leading-[1.6]">
+        Cinco jugadores (3 titulares + 2 suplentes), un escudo y la captura de pantalla principal de
+        cada uno. Rango elegible: <b className="text-ink">Platino 3 a Champion 3</b>.
       </p>
 
       {/* stepper */}
@@ -310,16 +332,34 @@ export default function Register() {
             </div>
           )}
 
-          {step === 1 &&
-            players.map((p, i) => (
-              <PlayerForm key={i} index={i} data={p} update={(d) => updatePlayer(i, d)} />
-            ))}
+          {step === 1 && (
+            <>
+              <div className="font-mono text-[11px] tracking-[0.25em] uppercase text-mute">
+                Titulares
+              </div>
+              {players.slice(0, STARTERS).map((p, i) => (
+                <PlayerForm key={i} index={i} data={p} update={(d) => updatePlayer(i, d)} />
+              ))}
+              <div className="font-mono text-[11px] tracking-[0.25em] uppercase text-mute mt-2">
+                Suplentes
+              </div>
+              {players.slice(STARTERS).map((p, i) => (
+                <PlayerForm
+                  key={STARTERS + i}
+                  index={i}
+                  data={p}
+                  update={(d) => updatePlayer(STARTERS + i, d)}
+                  substitute
+                />
+              ))}
+            </>
+          )}
 
           {step === 2 && (
             <div className="card p-6 flex flex-col gap-6">
               <div className="font-display font-black uppercase tracking-tight text-2xl">Capitán y bases</div>
               <div>
-                <label className="label">¿Quién es el capitán?</label>
+                <label className="label">¿Quién es el capitán? (titulares)</label>
                 <div className="grid grid-cols-3 gap-2 mt-1">
                   {[1, 2, 3].map((n) => (
                     <button
@@ -394,11 +434,13 @@ export default function Register() {
           <div className="flex flex-col divide-y divide-line-2 border-t border-line-2">
             {players.map((p, i) => {
               const named = p.epic || p.steam;
+              const sub = i >= STARTERS;
               return (
                 <div key={i} className="flex items-center justify-between py-2.5">
                   <span className={`font-display text-sm ${named ? '' : 'text-mute'}`}>
                     {captain === i + 1 && <span className="text-ignite">★ </span>}
-                    {named || `Jugador ${i + 1}`}
+                    {named || (sub ? `Suplente ${i - STARTERS + 1}` : `Jugador ${i + 1}`)}
+                    {sub && <span className="font-mono text-[9px] text-mute"> · SUP</span>}
                   </span>
                   <span className="font-mono text-[10px] text-mute">{rankLabel(p.rank)}</span>
                 </div>
@@ -412,8 +454,10 @@ export default function Register() {
               <span className={shieldUrl ? 'text-green' : ''}>{shieldUrl ? '✓' : 'pendiente'}</span>
             </div>
             <div className="flex justify-between">
-              <span>Capturas de rango</span>
-              <span className="text-ink">{players.filter((p) => p.screenshot).length}/3</span>
+              <span>Capturas principales</span>
+              <span className={players.every((p) => p.screenshot) ? 'text-green' : 'text-ink'}>
+                {players.filter((p) => p.screenshot).length}/{TOTAL_PLAYERS}
+              </span>
             </div>
           </div>
         </aside>

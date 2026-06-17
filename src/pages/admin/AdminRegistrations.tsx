@@ -108,25 +108,34 @@ export default function AdminRegistrations() {
               </div>
               {selected?.id === r.id && (
                 <div className="grid md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-line-2">
-                  {[1, 2, 3].map((n) => (
-                    <div key={n} className="font-mono text-xs text-mute">
-                      <div className="text-ink font-bold mb-1">
-                        Jugador {n} {r.captainPlayer === n && '(C)'}
+                  {[1, 2, 3, 4, 5].map((n) => {
+                    const epic = (r as any)[`player${n}Epic`];
+                    const steam = (r as any)[`player${n}Steam`];
+                    if (n > 3 && !epic && !steam) return null; // suplente sin datos
+                    const sub = n > 3;
+                    return (
+                      <div key={n} className="font-mono text-xs text-mute">
+                        <div className="text-ink font-bold mb-1">
+                          {sub ? `Suplente ${n - 3}` : `Jugador ${n}`} {r.captainPlayer === n && '(C)'}
+                          {sub && <span className="text-mute"> · SUP</span>}
+                        </div>
+                        <div>Epic: {epic || '—'}</div>
+                        <div>Steam: {steam || '—'}</div>
+                        <div>Rango: {(r as any)[`player${n}Rank`] || '—'}</div>
+                        {(r as any)[`player${n}Screenshot`] ? (
+                          <a
+                            href={`${fileBase}${(r as any)[`player${n}Screenshot`]}`}
+                            target="_blank"
+                            className="text-ignite"
+                          >
+                            ver captura ↗
+                          </a>
+                        ) : (
+                          <span className="text-ignite">⚠ sin captura</span>
+                        )}
                       </div>
-                      <div>Epic: {(r as any)[`player${n}Epic`] || '—'}</div>
-                      <div>Steam: {(r as any)[`player${n}Steam`] || '—'}</div>
-                      <div>Rango: {(r as any)[`player${n}Rank`] || '—'}</div>
-                      {(r as any)[`player${n}Screenshot`] && (
-                        <a
-                          href={`${fileBase}${(r as any)[`player${n}Screenshot`]}`}
-                          target="_blank"
-                          className="text-ignite"
-                        >
-                          ver captura ↗
-                        </a>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -6,6 +6,13 @@ export interface AuthUser {
   email: string | null;
   role: Role;
   coins: number;
+  isActive?: boolean;
+}
+
+export interface TeamCount {
+  approved: number;
+  pending: number;
+  capacity: number;
 }
 
 export interface Team {
