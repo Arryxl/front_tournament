@@ -5,6 +5,7 @@ import { OrbitMark, Wordmark } from '../components/brand';
 import { SocialRow } from '../components/Socials';
 import { SCHEDULE, SOCIALS, TOURNAMENT } from '../config';
 import { useSettings } from '../lib/useSettings';
+import { matchLabel } from '../lib/tournament';
 import type { Match, TeamCount } from '../types';
 
 /* ---------------- Countdown ---------------- */
@@ -47,7 +48,7 @@ function CountdownBox({ target }: { target: string }) {
           key={l}
           className="bg-void px-2.5 py-2 sm:px-3.5 sm:py-2.5 text-center min-w-[48px] sm:min-w-[58px]"
         >
-          <div className="font-display font-black text-xl sm:text-2xl md:text-3xl tabular-nums leading-none">
+          <div className="font-display font-black italic text-xl sm:text-2xl md:text-3xl tabular-nums leading-none">
             {v}
           </div>
           <div className="font-mono text-[9px] tracking-[0.18em] uppercase text-mute mt-1">{l}</div>
@@ -64,8 +65,8 @@ function LiveMatch({ match }: { match: Match }) {
     : 'Por definir';
   return (
     <div className="border border-line rounded-lg overflow-hidden bg-void-2 lift">
-      <div className="px-4 py-2.5 flex justify-between items-center border-b border-line font-mono text-[10px] tracking-[0.18em] uppercase text-mute">
-        <span>{match.matchCode} · {match.format.toUpperCase()}</span>
+      <div className="px-4 py-2.5 flex justify-between items-center gap-2 border-b border-line font-mono text-[10px] tracking-[0.15em] uppercase text-mute">
+        <span className="truncate">{matchLabel(match)}</span>
         {match.status === 'live' ? (
           <span className="text-cyan flex items-center gap-2 live-dot">EN VIVO</span>
         ) : (
@@ -74,12 +75,12 @@ function LiveMatch({ match }: { match: Match }) {
       </div>
       <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 py-4 sm:py-5">
         <div className="flex flex-col gap-1">
-          <span className="font-display font-black uppercase text-base sm:text-lg md:text-xl leading-none tracking-tight">
+          <span className="font-display font-black italic uppercase text-base sm:text-lg md:text-xl leading-none tracking-tight">
             {match.teamHome?.name || 'Por definir'}
           </span>
           <span className="font-mono text-[10px] text-mute tracking-[0.14em]">LOCAL</span>
         </div>
-        <div className="font-display font-black text-2xl sm:text-3xl md:text-4xl px-3 sm:px-4 flex gap-2 tabular-nums">
+        <div className="font-display font-black italic text-2xl sm:text-3xl md:text-4xl px-3 sm:px-4 flex gap-2 tabular-nums">
           <span className={match.winnerId && match.winnerId === match.teamHomeId ? 'text-ignite' : ''}>
             {match.homeScore ?? '–'}
           </span>
@@ -89,7 +90,7 @@ function LiveMatch({ match }: { match: Match }) {
           </span>
         </div>
         <div className="flex flex-col gap-1 items-end text-right">
-          <span className="font-display font-black uppercase text-base sm:text-lg md:text-xl leading-none tracking-tight">
+          <span className="font-display font-black italic uppercase text-base sm:text-lg md:text-xl leading-none tracking-tight">
             {match.teamAway?.name || 'Por definir'}
           </span>
           <span className="font-mono text-[10px] text-mute tracking-[0.14em]">VISITA</span>
@@ -114,10 +115,10 @@ function RegistrationMeter({ count }: { count: TeamCount }) {
             <div>
               <span className="kicker">{full ? 'Cupo completo' : 'Inscripciones abiertas'}</span>
               <div className="flex items-end gap-3 mt-3">
-                <span className="font-display font-black text-[clamp(48px,9vw,96px)] leading-[0.8] tracking-tight tabular-nums text-ignite">
+                <span className="font-display font-black italic text-[clamp(48px,9vw,96px)] leading-[0.8] tracking-tight tabular-nums text-ignite">
                   {String(approved).padStart(2, '0')}
                 </span>
-                <span className="font-display font-black text-[clamp(24px,4vw,44px)] leading-none tracking-tight tabular-nums text-mute mb-1">
+                <span className="font-display font-black italic text-[clamp(24px,4vw,44px)] leading-none tracking-tight tabular-nums text-mute mb-1">
                   / {capacity}
                 </span>
               </div>
@@ -188,9 +189,22 @@ export default function Landing() {
   }, []);
 
   const upcoming = useMemo(() => {
-    const live = matches.filter((m) => m.status === 'live');
-    const next = matches.filter((m) => m.status === 'scheduled');
-    return [...live, ...next].slice(0, 4);
+    // Solo partidos con AMBOS equipos definidos y que no han terminado: así no
+    // aparecen tarjetas "Por definir" del cuadro eliminatorio o de grupos sin
+    // sortear. Prioriza los que están en vivo, luego por fecha (los que tengan).
+    const playable = matches.filter(
+      (m) => m.teamHomeId && m.teamAwayId && m.status !== 'finished',
+    );
+    const live = playable.filter((m) => m.status === 'live');
+    const rest = playable
+      .filter((m) => m.status !== 'live')
+      .sort((a, b) => {
+        if (a.scheduledAt && b.scheduledAt) return a.scheduledAt.localeCompare(b.scheduledAt);
+        if (a.scheduledAt) return -1;
+        if (b.scheduledAt) return 1;
+        return 0;
+      });
+    return [...live, ...rest].slice(0, 4);
   }, [matches]);
 
   return (
@@ -253,7 +267,7 @@ export default function Landing() {
       <section className="px-[var(--pad)] py-[clamp(56px,8vh,104px)] border-t border-line-2">
         <div className="max-w-[1240px] mx-auto">
           <span className="kicker reveal">01 / La plataforma</span>
-          <h2 className="reveal font-display font-black uppercase text-[clamp(34px,6.5vw,82px)] leading-[0.92] tracking-tight mt-3 max-w-[14ch]">
+          <h2 className="reveal font-display font-black italic uppercase text-[clamp(34px,6.5vw,82px)] leading-[0.92] tracking-tight mt-3 max-w-[14ch]">
             Juega, predice<br />y gana
           </h2>
           <p className="reveal font-display text-mute text-[clamp(15px,1.8vw,20px)] leading-[1.45] max-w-[46ch] mt-5 mb-10">
@@ -269,7 +283,7 @@ export default function Landing() {
               >
                 <span className="font-mono text-[11px] tracking-[0.2em] text-ignite">[ {f.n} ]</span>
                 <div>
-                  <h3 className="font-display font-black uppercase text-[clamp(26px,3vw,42px)] leading-none tracking-tight">
+                  <h3 className="font-display font-black italic uppercase text-[clamp(26px,3vw,42px)] leading-none tracking-tight">
                     {f.title}
                   </h3>
                   <p className="text-mute text-sm max-w-[34ch] mt-3 leading-[1.55]">{f.text}</p>
@@ -284,7 +298,7 @@ export default function Landing() {
       <section className="px-[var(--pad)] py-[clamp(56px,8vh,104px)] border-t border-line-2 grid-paper">
         <div className="max-w-[1240px] mx-auto">
           <span className="kicker reveal">02 / El formato</span>
-          <h2 className="reveal font-display font-black uppercase text-[clamp(34px,6.5vw,82px)] leading-[0.92] tracking-tight mt-3 mb-10">
+          <h2 className="reveal font-display font-black italic uppercase text-[clamp(34px,6.5vw,82px)] leading-[0.92] tracking-tight mt-3 mb-10">
             {s.teamCount} equipos.<br />Una final.
           </h2>
 
@@ -296,7 +310,7 @@ export default function Landing() {
               [s.formatLabel, 'En cancha'],
             ].map(([num, label]) => (
               <div key={label} className="reveal bg-void p-5 sm:p-6 lift">
-                <div className="font-display font-black text-[clamp(40px,6.5vw,76px)] leading-none tracking-tight tabular-nums">
+                <div className="font-display font-black italic text-[clamp(40px,6.5vw,76px)] leading-none tracking-tight tabular-nums">
                   {num}
                 </div>
                 <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mt-2.5">
@@ -313,7 +327,7 @@ export default function Landing() {
               ['Gran final', 'Best of 7. Un solo campeón levanta la copa Gravity y se lleva el premio en efectivo.'],
             ].map(([t, d]) => (
               <div key={t} className="reveal bg-void p-5 sm:p-6">
-                <h4 className="font-display font-black uppercase text-lg tracking-tight">{t}</h4>
+                <h4 className="font-display font-black italic uppercase text-lg tracking-tight">{t}</h4>
                 <p className="text-mute text-sm mt-2 leading-[1.55]">{d}</p>
               </div>
             ))}
@@ -335,7 +349,7 @@ export default function Landing() {
           <div className="reveal font-mono text-[11px] tracking-[0.25em] uppercase text-mute mt-5">
             {TOURNAMENT.prize.label}
           </div>
-          <div className="reveal font-display font-black uppercase text-[clamp(44px,12vw,150px)] leading-[0.85] tracking-tight mt-2 text-ignite">
+          <div className="reveal font-display font-black italic uppercase text-[clamp(44px,12vw,150px)] leading-[0.85] tracking-tight mt-2 text-ignite">
             {TOURNAMENT.prize.amount}
           </div>
           <p className="reveal font-display text-[clamp(15px,2vw,24px)] text-mute mt-6 max-w-[30ch] mx-auto leading-[1.3]">
@@ -351,7 +365,7 @@ export default function Landing() {
       <section className="px-[var(--pad)] py-[clamp(56px,8vh,104px)] border-t border-line-2">
         <div className="max-w-[1240px] mx-auto">
           <span className="kicker reveal">04 / La ruta</span>
-          <h2 className="reveal font-display font-black uppercase text-[clamp(34px,6.5vw,82px)] leading-[0.92] tracking-tight mt-3 mb-10">
+          <h2 className="reveal font-display font-black italic uppercase text-[clamp(34px,6.5vw,82px)] leading-[0.92] tracking-tight mt-3 mb-10">
             Hasta la<br />final
           </h2>
           <div className="border-t border-line">
@@ -360,7 +374,7 @@ export default function Landing() {
                 key={s.label}
                 className="reveal grid grid-cols-[78px_1fr] md:grid-cols-[140px_120px_1fr] gap-4 items-center py-4 border-b border-line group"
               >
-                <span className="font-display font-black text-lg md:text-2xl tracking-tight group-hover:text-ignite transition-colors">
+                <span className="font-display font-black italic text-lg md:text-2xl tracking-tight group-hover:text-ignite transition-colors">
                   {s.date}
                 </span>
                 <span className="hidden md:inline font-mono text-[10px] tracking-[0.2em] uppercase text-ignite">
@@ -380,7 +394,7 @@ export default function Landing() {
             <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
               <div>
                 <span className="kicker reveal">05 / En cancha</span>
-                <h2 className="reveal font-display font-black uppercase text-[clamp(30px,5.5vw,64px)] leading-none tracking-tight mt-3">
+                <h2 className="reveal font-display font-black italic uppercase text-[clamp(30px,5.5vw,64px)] leading-none tracking-tight mt-3">
                   Próximos partidos
                 </h2>
               </div>
@@ -407,7 +421,7 @@ export default function Landing() {
       {/* ============ CTA FINAL ============ */}
       <section className="px-[var(--pad)] py-[clamp(56px,9vh,120px)] border-t border-line text-center">
         <div className="max-w-[1240px] mx-auto">
-          <h2 className="reveal font-display font-black uppercase text-[clamp(38px,10vw,128px)] leading-[0.85] tracking-tight">
+          <h2 className="reveal font-display font-black italic uppercase text-[clamp(38px,10vw,128px)] leading-[0.85] tracking-tight">
             Entra en<br />órbita
           </h2>
           <p className="reveal font-display text-[clamp(15px,2vw,24px)] text-mute mt-6">

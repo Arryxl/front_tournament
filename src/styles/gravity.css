@@ -29,49 +29,6 @@
   100% { transform: translate(0, 0); }
 }
 
-/* ---------- CURSOR ---------- */
-.g-cursor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 70;
-  pointer-events: none;
-  width: 26px;
-  height: 26px;
-  margin: -13px 0 0 -13px;
-  border-radius: 50%;
-  border: 1px solid var(--ink);
-  mix-blend-mode: difference;
-  transition: width 0.25s var(--ease), height 0.25s var(--ease), margin 0.25s var(--ease),
-    border-color 0.25s, opacity 0.3s;
-}
-.g-cursor.is-hot {
-  width: 50px;
-  height: 50px;
-  margin: -25px 0 0 -25px;
-  border-color: var(--ignite);
-  mix-blend-mode: normal;
-}
-.g-cursor-dot {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 70;
-  pointer-events: none;
-  width: 4px;
-  height: 4px;
-  margin: -2px 0 0 -2px;
-  border-radius: 50%;
-  background: var(--ignite);
-  mix-blend-mode: difference;
-}
-@media (hover: none) {
-  .g-cursor,
-  .g-cursor-dot { display: none; }
-}
-.cursor-host { cursor: none; }
-@media (hover: none) { .cursor-host { cursor: auto; } }
-
 /* ---------- PROGRESO ---------- */
 .g-progress {
   position: fixed;
@@ -96,7 +53,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1; transform: none; }
-  .grain, .g-cursor, .g-cursor-dot { animation: none; }
+  .grain { animation: none; }
 }
 
 /* ---------- HALO ---------- */
@@ -154,7 +111,7 @@
 
 /* ---------- SCROLLCUE ---------- */
 .scrollcue {
-  font-family: 'Space Mono', monospace;
+  font-family: 'Chakra Petch', ui-monospace, monospace;
   font-size: 10px;
   letter-spacing: 0.3em;
   color: var(--mute);
@@ -305,7 +262,7 @@
   align-items: center;
   padding: 5px 12px;
   border-bottom: 1px solid var(--line-2);
-  font-family: 'Space Mono', monospace;
+  font-family: 'Chakra Petch', ui-monospace, monospace;
   font-size: 9px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -358,7 +315,7 @@
   filter: drop-shadow(0 0 8px var(--ignite));
 }
 .nav-trig-label {
-  font-family: 'Space Mono', monospace;
+  font-family: 'Chakra Petch', ui-monospace, monospace;
   font-size: 11px;
   letter-spacing: 0.28em;
   text-transform: uppercase;
@@ -410,7 +367,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-family: 'Space Mono', monospace;
+  font-family: 'Chakra Petch', ui-monospace, monospace;
   font-size: 11px;
   letter-spacing: 0.28em;
   text-transform: uppercase;
@@ -460,7 +417,7 @@
 .nav-item:hover::before,
 .nav-item.active::before { transform: scaleX(1); }
 .nav-idx {
-  font-family: 'Space Mono', monospace;
+  font-family: 'Chakra Petch', ui-monospace, monospace;
   font-size: 11px;
   letter-spacing: 0.2em;
   color: var(--mute);

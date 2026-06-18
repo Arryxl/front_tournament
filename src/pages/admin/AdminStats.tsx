@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { Spinner } from '../../components/ui';
-import { StatEditor } from '../../components/StatEditor';
 import { FilterBar, SearchBox, ChipGroup, ResultCount } from '../../components/admin/Filters';
 import type { Match, TopStat } from '../../types';
 
@@ -29,7 +29,7 @@ function MiniRanking({ title, data }: { title: string; data: TopStat[] }) {
             <div key={s.userId} className="flex items-center gap-2 p-2.5">
               <span className="font-mono text-mute w-4 text-xs">{i + 1}</span>
               <span className="flex-1 truncate font-display font-semibold text-sm">{s.username}</span>
-              <span className="font-display font-black text-ignite">{s.total}</span>
+              <span className="font-display font-black italic text-ignite">{s.total}</span>
             </div>
           ))}
         </div>
@@ -42,7 +42,6 @@ export default function AdminStats() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [rankings, setRankings] = useState<Record<string, TopStat[]>>({});
   const [loading, setLoading] = useState(true);
-  const [openId, setOpenId] = useState<string | null>(null);
   const [phase, setPhase] = useState('');
   const [q, setQ] = useState('');
   const [done, setDone] = useState<'all' | 'finished' | 'pending'>('all');
@@ -83,7 +82,7 @@ export default function AdminStats() {
   return (
     <div>
       <span className="kicker">Rendimiento</span>
-      <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3 mb-2">
+      <h1 className="font-display font-black italic uppercase text-4xl tracking-tight mt-3 mb-2">
         Estadísticas
       </h1>
       <p className="font-mono text-[11px] text-mute mb-8 max-w-[60ch] leading-[1.8]">
@@ -99,9 +98,13 @@ export default function AdminStats() {
         <MiniRanking title="Score" data={rankings.score || []} />
       </div>
 
-      <h2 className="font-display font-black uppercase tracking-tight text-2xl mb-4">
+      <h2 className="font-display font-black italic uppercase tracking-tight text-2xl mb-1">
         Cargar stats por partido
       </h2>
+      <p className="font-mono text-[11px] text-mute mb-4 leading-[1.7] max-w-[60ch]">
+        Elige un partido para abrir su página de resultado: ahí cargas el marcador
+        y las estadísticas (o las autocompletas desde el replay).
+      </p>
 
       <FilterBar>
         <SearchBox value={q} onChange={setQ} placeholder="Buscar por código o equipo…" />
@@ -140,26 +143,21 @@ export default function AdminStats() {
         {filtered.map((m) => (
           <div key={m.id} className="card p-4">
             <div className="flex items-center justify-between flex-wrap gap-3">
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-[11px] text-mute tracking-[0.2em] w-12">{m.matchCode}</span>
-                <span className="font-display font-semibold text-sm">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="font-mono text-[11px] text-mute tracking-[0.2em] w-12 shrink-0">{m.matchCode}</span>
+                <span className="font-display font-semibold text-sm truncate">
                   {m.teamHome?.name} <span className="text-mute">vs</span> {m.teamAway?.name}
                 </span>
+                {m.status === 'finished' && (
+                  <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-green border border-green/40 rounded-sm px-1.5 py-0.5 shrink-0">
+                    {m.homeScore}–{m.awayScore}
+                  </span>
+                )}
               </div>
-              <button className="btn" onClick={() => setOpenId(openId === m.id ? null : m.id)}>
-                {openId === m.id ? 'Cerrar' : 'Editar stats'}
-              </button>
+              <Link to={`/admin/matches/${m.id}`} className="btn shrink-0">
+                {m.status === 'finished' ? 'Ver / editar' : 'Cargar resultado'}
+              </Link>
             </div>
-            {openId === m.id && (
-              <div className="mt-4 pt-4 border-t border-line-2">
-                <StatEditor
-                  matchId={m.id}
-                  homeId={m.teamHomeId}
-                  awayId={m.teamAwayId}
-                  onSaved={loadRankings}
-                />
-              </div>
-            )}
           </div>
         ))}
       </div>

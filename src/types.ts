@@ -37,6 +37,38 @@ export interface TeamMember {
   user?: AuthUser | null;
 }
 
+export type LinkedPlatform = 'steam' | 'epic';
+
+export interface LinkedAccountInfo {
+  platform: LinkedPlatform;
+  platformId: string;
+  displayName: string | null;
+  verifiedAt: string;
+}
+
+export interface LinkStatus {
+  accounts: LinkedAccountInfo[];
+  expected: LinkedPlatform[];
+  isPlayer: boolean;
+  complete: boolean;
+}
+
+export interface TeamReadinessPlayer {
+  memberId: string;
+  playerNumber: number;
+  username: string | null;
+  expected: LinkedPlatform[];
+  linked: LinkedPlatform[];
+  missing: LinkedPlatform[];
+  ready: boolean;
+}
+
+export interface TeamReadiness {
+  teamId: string;
+  players: TeamReadinessPlayer[];
+  ready: boolean;
+}
+
 export interface Group {
   id: string;
   name: string;
@@ -71,9 +103,12 @@ export interface Match {
   awayScore: number | null;
   winnerId: string | null;
   scheduledAt: string | null;
+  playedAt: string | null;
   status: 'scheduled' | 'live' | 'finished';
-  format: 'bo3' | 'bo5' | 'bo7';
+  format: 'single' | 'bo3' | 'bo5' | 'bo7';
   groupId: string | null;
+  group?: Group | null;
+  roundNumber?: number | null;
   predictionsOpen: boolean;
 }
 
@@ -84,6 +119,85 @@ export interface TopStat {
   teamName: string | null;
   total: string;
   matchesPlayed: string;
+}
+
+export interface PlayerExtraStats {
+  boost: {
+    bpm: number;
+    avgAmount: number;
+    amountCollected: number;
+    amountStolen: number;
+    timeZeroBoost: number;
+    timeFullBoost: number;
+  };
+  movement: {
+    avgSpeed: number;
+    totalDistance: number;
+    timeSupersonic: number;
+    timeGround: number;
+    timeLowAir: number;
+    timeHighAir: number;
+    percentGround: number;
+    percentLowAir: number;
+    percentHighAir: number;
+  };
+  positioning: {
+    avgDistanceToBall: number;
+    timeDefensiveThird: number;
+    timeNeutralThird: number;
+    timeOffensiveThird: number;
+    timeBehindBall: number;
+    timeInfrontBall: number;
+    percentDefensiveThird: number;
+    percentOffensiveThird: number;
+    percentBehindBall: number;
+    percentInfrontBall: number;
+  };
+}
+
+export type ReplayStatus = 'processing' | 'imported' | 'needs_review' | 'failed';
+
+export interface ReplayPlayer {
+  name: string;
+  platform: string;
+  platformId: string;
+  color: 'blue' | 'orange';
+  userId: string | null;
+  teamId: string | null;
+  goals: number;
+  assists: number;
+  saves: number;
+  shots: number;
+  score: number;
+  demos: number;
+  mvp: boolean;
+}
+
+export interface ReplayRaw {
+  blueGoals: number;
+  orangeGoals: number;
+  players: ReplayPlayer[];
+  resolution?: {
+    blueTeam: string | null;
+    orangeTeam: string | null;
+    unresolved: string[];
+  };
+}
+
+export interface Replay {
+  id: string;
+  matchId: string | null;
+  ballchasingId: string | null;
+  status: ReplayStatus;
+  homeScore: number | null;
+  awayScore: number | null;
+  reviewReason: string | null;
+  originalName: string | null;
+  rawStats: ReplayRaw | null;
+  createdAt: string;
+  processedAt: string | null;
+  match?: Match | null;
+  uploadedBy?: AuthUser | null;
 }
 
 export interface Reward {
@@ -104,6 +218,11 @@ export interface TournamentSettings {
   playersPerSide: number;
   substitutes: number;
   registrationDeadline: string | null;
+  formatRound16: string;
+  formatQuarters: string;
+  formatSemis: string;
+  formatThird: string;
+  formatFinal: string;
   updatedAt: string;
 }
 

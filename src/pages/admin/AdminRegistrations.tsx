@@ -56,7 +56,7 @@ export default function AdminRegistrations() {
   return (
     <div>
       <span className="kicker">Gestión</span>
-      <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3 mb-6">
+      <h1 className="font-display font-black italic uppercase text-4xl tracking-tight mt-3 mb-6">
         Inscripciones
       </h1>
 

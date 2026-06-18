@@ -62,7 +62,7 @@ export default function AdminDashboard() {
   return (
     <div>
       <span className="kicker">Administración</span>
-      <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3 mb-8">
+      <h1 className="font-display font-black italic uppercase text-4xl tracking-tight mt-3 mb-8">
         Dashboard
       </h1>
 
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
 
       {/* Estado del torneo — solo lectura. Se edita en Configuración. */}
       <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
-        <h2 className="font-display font-black uppercase tracking-tight text-xl">Estado del torneo</h2>
+        <h2 className="font-display font-black italic uppercase tracking-tight text-xl">Estado del torneo</h2>
         <Link to="/admin/settings" className="btn btn-ignite">
           Configurar torneo →
         </Link>
@@ -105,13 +105,13 @@ export default function AdminDashboard() {
           </div>
           <div>
             <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mb-2">Formato</div>
-            <div className="font-display font-black uppercase tracking-tight text-2xl text-ink">
+            <div className="font-display font-black italic uppercase tracking-tight text-2xl text-ink">
               {settings.formatLabel}
             </div>
           </div>
           <div>
             <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mb-2">Equipos · Grupos</div>
-            <div className="font-display font-black uppercase tracking-tight text-2xl text-ink">
+            <div className="font-display font-black italic uppercase tracking-tight text-2xl text-ink">
               {settings.teamCount} <span className="text-mute text-base">/ {settings.groups}g</span>
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <h2 className="font-display font-black uppercase tracking-tight text-xl mb-4">Acciones rápidas</h2>
+      <h2 className="font-display font-black italic uppercase tracking-tight text-xl mb-4">Acciones rápidas</h2>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {actions.map((a) => (
           <Link key={a.to} to={a.to} className="card p-5 lift flex flex-col gap-2 group">

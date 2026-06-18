@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
 import { Spinner } from '../components/ui';
 import { useSettings } from '../lib/useSettings';
+import { seriesLabel } from '../lib/tournament';
+import { MatchCard } from '../components/ui';
 import type { Match, Standing, TournamentSettings } from '../types';
 
 /* ============================================================
@@ -17,8 +19,6 @@ type Slot = {
   home: string; // nombre real o seed ("1° Grupo A", "Ganador Q01")
   away: string;
 };
-
-const FORMAT_LABEL: Record<string, string> = { bo3: 'BO3', bo5: 'BO5', bo7: 'BO7' };
 
 type ResolvedSlot = Slot & {
   homeScore: number | null;
@@ -36,11 +36,11 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
 
 /* ---------------- Tarjeta de partido del bracket ---------------- */
 function BracketMatch({ slot, live, isFinal }: { slot: ResolvedSlot; live?: boolean; isFinal?: boolean }) {
-  const { code, format, home, away, homeScore, awayScore, homeWin, awayWin, status } = slot;
+  const { format, home, away, homeScore, awayScore, homeWin, awayWin, status } = slot;
   return (
     <div className={`bk-match ${isFinal ? 'is-final' : ''}`}>
       <div className="bk-cap">
-        <span>{code} · {FORMAT_LABEL[format]}</span>
+        <span>{seriesLabel(format)}</span>
         {status === 'live' || live ? (
           <span className="text-cyan live-dot" style={{ paddingLeft: 14 }}>EN VIVO</span>
         ) : status === 'finished' ? (
@@ -126,10 +126,10 @@ function GroupTable({ name, rows, started }: { name: string; rows: Row[]; starte
   const isPlaceholder = rows.every((r) => r.placeholder);
   return (
     <div className="card overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-line-2 bg-void-2">
-        <span className="font-display font-black uppercase tracking-tight text-lg">Grupo {name}</span>
+      <div className="flex items-center justify-between px-3 py-2 border-b border-line-2 bg-void-2">
+        <span className="font-display font-black italic uppercase tracking-tight text-base">Grupo {name}</span>
         <span
-          className={`font-mono text-[9px] tracking-[0.18em] uppercase px-2 py-0.5 rounded ${
+          className={`font-mono text-[8px] tracking-[0.18em] uppercase px-1.5 py-0.5 rounded ${
             isPlaceholder ? 'text-mute border border-line' : 'text-ignite border border-ignite/40'
           }`}
         >
@@ -138,7 +138,7 @@ function GroupTable({ name, rows, started }: { name: string; rows: Row[]; starte
       </div>
 
       <div
-        className={`grid ${COLS} gap-x-1.5 px-4 py-2 font-mono text-[9px] tracking-[0.1em] uppercase text-mute border-b border-line-2`}
+        className={`grid ${COLS} gap-x-1.5 px-3 py-1.5 font-mono text-[9px] tracking-[0.1em] uppercase text-mute border-b border-line-2`}
       >
         <span>#</span>
         <span>Equipo</span>
@@ -156,12 +156,12 @@ function GroupTable({ name, rows, started }: { name: string; rows: Row[]; starte
         return (
           <div
             key={`${name}-${r.pos}`}
-            className={`grid ${COLS} gap-x-1.5 px-4 py-2 items-center border-b border-line-2 last:border-0 ${
+            className={`grid ${COLS} gap-x-1.5 px-3 py-1 items-center border-b border-line-2 last:border-0 ${
               top2 && !r.placeholder ? 'bg-ignite/[0.04]' : ''
             }`}
           >
             <span
-              className={`font-display font-black text-sm tabular-nums ${
+              className={`font-display font-black italic text-sm tabular-nums ${
                 top2 ? 'text-ignite' : 'text-mute'
               }`}
             >
@@ -182,12 +182,12 @@ function GroupTable({ name, rows, started }: { name: string; rows: Row[]; starte
               {dg > 0 ? '+' : ''}
               {dg}
             </span>
-            <span className="text-right font-display font-black text-base tabular-nums">{r.pts}</span>
+            <span className="text-right font-display font-black italic text-base tabular-nums">{r.pts}</span>
           </div>
         );
       })}
 
-      <div className="px-4 py-2 font-mono text-[9px] tracking-[0.15em] uppercase text-mute bg-void/40">
+      <div className="px-3 py-1.5 font-mono text-[8px] tracking-[0.15em] uppercase text-mute bg-void/40">
         <span className="text-ignite">1° · 2°</span> clasifican a la llave
       </div>
     </div>
@@ -220,7 +220,7 @@ function StatusBanner({ settings }: { settings: TournamentSettings | null }) {
     <div className={`card border ${tone} px-5 py-4 mb-10 flex items-center gap-4`}>
       <span className={`w-2.5 h-2.5 rounded-full ${dot} ${tournamentStarted ? 'live-dot' : ''}`} />
       <div className="min-w-0">
-        <div className="font-display font-black uppercase tracking-tight text-base leading-none">
+        <div className="font-display font-black italic uppercase tracking-tight text-base leading-none">
           {title}
         </div>
         <div className="font-mono text-[11px] text-mute mt-1.5 leading-snug">{detail}</div>
@@ -235,6 +235,7 @@ export default function Bracket() {
   const letters = settings.groupLetters;
 
   const [matches, setMatches] = useState<Match[]>([]);
+  const [allMatches, setAllMatches] = useState<Match[]>([]);
   const [standings, setStandings] = useState<Standing[]>([]);
   const [loading, setLoading] = useState(true);
   const settingsRaw: TournamentSettings | null = settings.raw;
@@ -243,13 +244,32 @@ export default function Bracket() {
     Promise.all([
       api.get('/matches/bracket').catch(() => ({ data: [] })),
       api.get('/groups/standings').catch(() => ({ data: [] })),
+      api.get('/matches').catch(() => ({ data: [] })),
     ])
-      .then(([m, s]) => {
+      .then(([m, s, all]) => {
         setMatches(m.data);
         setStandings(s.data);
+        setAllMatches(all.data);
       })
       .finally(() => setLoading(false));
   }, []);
+
+  // Próximos partidos: con ambos equipos definidos y sin terminar, por fecha.
+  const upcoming = useMemo(() => {
+    const playable = allMatches.filter(
+      (m) => m.teamHomeId && m.teamAwayId && m.status !== 'finished',
+    );
+    const live = playable.filter((m) => m.status === 'live');
+    const rest = playable
+      .filter((m) => m.status !== 'live')
+      .sort((a, b) => {
+        if (a.scheduledAt && b.scheduledAt) return a.scheduledAt.localeCompare(b.scheduledAt);
+        if (a.scheduledAt) return -1;
+        if (b.scheduledAt) return 1;
+        return 0;
+      });
+    return [...live, ...rest].slice(0, 3);
+  }, [allMatches]);
 
   // Tablas de cada grupo a partir de los standings reales.
   const groups = useMemo(() => {
@@ -361,12 +381,29 @@ export default function Bracket() {
     <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-16">
       <StatusBanner settings={settingsRaw} />
 
+      {/* ---------- PRÓXIMOS PARTIDOS ---------- */}
+      {upcoming.length > 0 && (
+        <section className="mb-12">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="kicker">Agenda</span>
+            <h2 className="font-display font-black italic uppercase tracking-tight text-xl">
+              Próximos partidos
+            </h2>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {upcoming.map((m) => (
+              <MatchCard key={m.id} match={m} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ---------- FASE DE GRUPOS ---------- */}
-      <section className="mb-16">
-        <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
+      <section className="mb-12">
+        <div className="flex items-end justify-between flex-wrap gap-4 mb-5">
           <div>
             <span className="kicker">Fase 1</span>
-            <h1 className="font-display font-black uppercase tracking-tight text-3xl md:text-5xl mt-3 leading-none">
+            <h1 className="font-display font-black italic uppercase tracking-tight text-3xl md:text-5xl mt-3 leading-none">
               Fase de grupos
             </h1>
           </div>
@@ -376,7 +413,7 @@ export default function Bracket() {
               : 'Las tablas se llenan tras el sorteo. Hasta entonces verás «Por confirmar».'}
           </p>
         </div>
-        <div className={`grid grid-cols-1 sm:grid-cols-2 ${groupCols} gap-4`}>
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${groupCols} gap-3`}>
           {groups.map((g) => (
             <GroupTable key={g.name} name={g.name} rows={g.rows} started={tournamentStarted} />
           ))}
@@ -388,7 +425,7 @@ export default function Bracket() {
         <div className="mb-6 flex items-end justify-between flex-wrap gap-3">
           <div>
             <span className="kicker">Fase 2</span>
-            <h2 className="font-display font-black uppercase tracking-tight text-3xl md:text-5xl mt-3 leading-none">
+            <h2 className="font-display font-black italic uppercase tracking-tight text-3xl md:text-5xl mt-3 leading-none">
               La llave
             </h2>
           </div>
@@ -413,7 +450,7 @@ export default function Bracket() {
         {/* Tercer lugar */}
         <div className="mt-10">
           <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-mute">
-            Tercer lugar · {FORMAT_LABEL[thirdSlot.format]}
+            Tercer puesto · {seriesLabel(thirdSlot.format)}
           </span>
           <div className="mt-3 max-w-[230px]">
             <BracketMatch slot={thirdSlot} />

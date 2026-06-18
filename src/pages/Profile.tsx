@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { api, fileBase } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { Spinner, Coin, BackButton, gratsLabel } from '../components/ui';
+import LinkedAccounts from '../components/LinkedAccounts';
+import AdvancedStats from '../components/AdvancedStats';
 import type { Team } from '../types';
 
 const RANK_LABEL: Record<string, string> = {
@@ -81,17 +83,17 @@ export default function Profile() {
           {/* equipo */}
           {team ? (
             <section className="mb-12">
-              <h2 className="font-display font-black uppercase tracking-tight text-2xl mb-4">Mi equipo</h2>
+              <h2 className="font-display font-black italic uppercase tracking-tight text-2xl mb-4">Mi equipo</h2>
               <div className="card p-5 flex items-center gap-5 mb-4">
                 {shield ? (
                   <img src={shield} alt="" className="w-16 h-16 rounded-lg object-cover border border-line" />
                 ) : (
-                  <div className="w-16 h-16 rounded-lg bg-void border border-line grid place-items-center font-display font-black text-xl">
+                  <div className="w-16 h-16 rounded-lg bg-void border border-line grid place-items-center font-display font-black italic text-xl">
                     {team.name.slice(0, 2).toUpperCase()}
                   </div>
                 )}
                 <div>
-                  <div className="font-display font-black uppercase text-2xl tracking-tight leading-none">
+                  <div className="font-display font-black italic uppercase text-2xl tracking-tight leading-none">
                     {team.name}
                   </div>
                   <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mt-1.5">
@@ -122,9 +124,12 @@ export default function Profile() {
             </p>
           )}
 
+          {/* vinculación de cuentas (Steam/Epic) para el tracking de stats */}
+          <LinkedAccounts />
+
           {/* stats */}
           <section className="mb-12">
-            <h2 className="font-display font-black uppercase tracking-tight text-2xl mb-4">Mis estadísticas</h2>
+            <h2 className="font-display font-black italic uppercase tracking-tight text-2xl mb-4">Mis estadísticas</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
               {[
                 ['Partidos', stats?.matchesPlayed ?? 0],
@@ -173,6 +178,9 @@ export default function Profile() {
               </p>
             )}
           </section>
+
+          {/* stats avanzadas del replay (boost / movimiento / posicionamiento) */}
+          {stats?.extraAvg && <AdvancedStats extra={stats.extraAvg} />}
         </>
       )}
 

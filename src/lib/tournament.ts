@@ -29,3 +29,46 @@ export function expectedMatchCount(teamCount: number): number {
 export function formatLabel(playersPerSide: number): string {
   return `${playersPerSide}v${playersPerSide}`;
 }
+
+/**
+ * Nombre legible de un partido según su fase, en vez del código interno
+ * (GA-1, R01, SF1, GF…). Para grupos incluye la jornada si está disponible.
+ */
+export function matchLabel(m: {
+  phase: string;
+  roundNumber?: number | null;
+  group?: { name: string } | null;
+}): string {
+  switch (m.phase) {
+    case 'groups':
+      return m.group?.name
+        ? `Grupo ${m.group.name}${m.roundNumber ? ` · Jornada ${m.roundNumber}` : ''}`
+        : 'Fase de grupos';
+    case 'round16':
+      return 'Octavos de final';
+    case 'quarters':
+      return 'Cuartos de final';
+    case 'semis':
+      return 'Semifinal';
+    case 'third':
+      return 'Tercer puesto';
+    case 'final':
+      return 'Gran final';
+    default:
+      return '';
+  }
+}
+
+/** Formato de serie legible: bo3 → "Al mejor de 3". */
+export function seriesLabel(format: string): string {
+  const n = format === 'bo7' ? 7 : format === 'bo5' ? 5 : 3;
+  return `Al mejor de ${n}`;
+}
+
+/**
+ * Formato legible según la fase: la fase de grupos es a partido único, las
+ * eliminatorias son series al mejor de N.
+ */
+export function matchFormatLabel(m: { phase: string; format: string }): string {
+  return m.phase === 'groups' ? 'Partido único' : seriesLabel(m.format);
+}

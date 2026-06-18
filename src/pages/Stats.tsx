@@ -9,7 +9,10 @@ const TABS = [
   { key: 'goleadores', label: 'Goleadores', unit: 'goles' },
   { key: 'asistencias', label: 'Asistencias', unit: 'asist.' },
   { key: 'salvadas', label: 'Salvadas', unit: 'salv.' },
+  { key: 'tiros', label: 'Tiros', unit: 'tiros' },
+  { key: 'demos', label: 'Demoliciones', unit: 'demos' },
   { key: 'score', label: 'Score', unit: 'pts' },
+  { key: 'mvp', label: 'MVP', unit: 'mvp' },
   { key: 'predictores', label: 'Predictores', unit: 'grats' },
 ] as const;
 
@@ -26,11 +29,11 @@ function Podium({ rows, unit }: { rows: Row[]; unit: string }) {
         r ? (
           <div key={r.id} className="flex flex-col items-center">
             <div className="text-center mb-3">
-              <div className="font-display font-black uppercase tracking-tight text-lg leading-none truncate max-w-[16ch]">
+              <div className="font-display font-black italic uppercase tracking-tight text-lg leading-none truncate max-w-[16ch]">
                 {r.name}
               </div>
               {r.team && <div className="font-mono text-[10px] text-mute mt-1 truncate">{r.team}</div>}
-              <div className={`font-display font-black text-3xl mt-1 ${i === 1 ? 'text-ignite' : ''}`}>
+              <div className={`font-display font-black italic text-3xl mt-1 ${i === 1 ? 'text-ignite' : ''}`}>
                 {r.value}
                 <span className="text-mute text-xs font-mono ml-1">{unit}</span>
               </div>
@@ -38,7 +41,7 @@ function Podium({ rows, unit }: { rows: Row[]; unit: string }) {
             <div
               className={`w-full ${heights[i]} rounded-t-md border-t-2 ${accents[i]} bg-void-2 grid place-items-start justify-center pt-3`}
             >
-              <span className={`font-display font-black text-3xl ${i === 1 ? 'text-ignite' : 'text-mute'}`}>
+              <span className={`font-display font-black italic text-3xl ${i === 1 ? 'text-ignite' : 'text-mute'}`}>
                 {place[i]}
               </span>
             </div>
@@ -69,15 +72,21 @@ export default function Stats() {
       api.get('/stats/top-scorers'),
       api.get('/stats/top-assists'),
       api.get('/stats/top-saves'),
+      api.get('/stats/top-shots'),
+      api.get('/stats/top-demos'),
       api.get('/stats/top-score'),
+      api.get('/stats/top-mvp'),
       api.get('/predictions/leaderboard').catch(() => ({ data: [] })),
     ])
-      .then(([g, a, s, sc, p]) =>
+      .then(([g, a, s, sh, d, sc, mvp, p]) =>
         setData({
           goleadores: toRows(g.data),
           asistencias: toRows(a.data),
           salvadas: toRows(s.data),
+          tiros: toRows(sh.data),
+          demos: toRows(d.data),
           score: toRows(sc.data),
+          mvp: toRows(mvp.data),
           predictores: (p.data || []).map((r: any) => ({
             id: r.userId,
             name: r.username,
@@ -150,7 +159,7 @@ export default function Stats() {
                 <div className="divide-y divide-line-2">
                   {rest.map((r, i) => (
                     <div key={r.id} className="flex items-center gap-3 p-3.5 hover:bg-void-2 transition-colors">
-                      <span className="font-display font-black text-mute w-6 tabular-nums">{i + 4}</span>
+                      <span className="font-display font-black italic text-mute w-6 tabular-nums">{i + 4}</span>
                       <div className="flex-1 min-w-0">
                         <div className="font-display font-bold truncate">{r.name}</div>
                         {(r.team || r.sub) && (
@@ -160,7 +169,7 @@ export default function Stats() {
                           </div>
                         )}
                       </div>
-                      <span className="font-display font-black text-ignite text-xl tabular-nums">{r.value}</span>
+                      <span className="font-display font-black italic text-ignite text-xl tabular-nums">{r.value}</span>
                     </div>
                   ))}
                 </div>

@@ -6,6 +6,7 @@ import { DashboardLayout, ProtectedRoute, PublicLayout } from './components/Layo
 import Landing from './pages/Landing';
 import Bracket from './pages/Bracket';
 import Stats from './pages/Stats';
+import MatchSummary from './pages/MatchSummary';
 import Predictions from './pages/Predictions';
 import Rewards from './pages/Rewards';
 import Profile from './pages/Profile';
@@ -21,9 +22,12 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminRegistrations from './pages/admin/AdminRegistrations';
 import AdminTeams from './pages/admin/AdminTeams';
+import AdminTeamDetail from './pages/admin/AdminTeamDetail';
 import AdminGroups from './pages/admin/AdminGroups';
 import AdminMatches from './pages/admin/AdminMatches';
+import AdminMatchResult from './pages/admin/AdminMatchResult';
 import AdminStats from './pages/admin/AdminStats';
+import AdminReplays from './pages/admin/AdminReplays';
 import AdminPredictions from './pages/admin/AdminPredictions';
 import AdminCoins from './pages/admin/AdminCoins';
 import AdminUsers from './pages/admin/AdminUsers';
@@ -38,6 +42,7 @@ const adminLinks = [
   { to: '/admin/groups', label: 'Grupos' },
   { to: '/admin/matches', label: 'Partidos' },
   { to: '/admin/stats', label: 'Estadísticas' },
+  { to: '/admin/replays', label: 'Replays' },
   { to: '/admin/predictions', label: 'Predicciones' },
   { to: '/admin/rewards', label: 'Recompensas' },
   { to: '/admin/coins', label: 'Grats' },
@@ -61,6 +66,7 @@ export default function App() {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Landing />} />
           <Route path="/bracket" element={<Bracket />} />
+          <Route path="/resultados" element={<MatchSummary />} />
           <Route path="/stats" element={<Stats />} />
           <Route path="/register" element={<Register />} />
 
@@ -121,9 +127,12 @@ export default function App() {
           <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/admin/registrations" element={<AdminRegistrations />} />
           <Route path="/admin/teams" element={<AdminTeams />} />
+          <Route path="/admin/teams/:id" element={<AdminTeamDetail />} />
           <Route path="/admin/groups" element={<AdminGroups />} />
           <Route path="/admin/matches" element={<AdminMatches />} />
+          <Route path="/admin/matches/:id" element={<AdminMatchResult />} />
           <Route path="/admin/stats" element={<AdminStats />} />
+          <Route path="/admin/replays" element={<AdminReplays />} />
           <Route path="/admin/predictions" element={<AdminPredictions />} />
           <Route path="/admin/rewards" element={<AdminRewards />} />
           <Route path="/admin/coins" element={<AdminCoins />} />

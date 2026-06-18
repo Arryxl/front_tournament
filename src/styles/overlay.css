@@ -250,7 +250,7 @@
   text-align: center;
 }
 .ov-sb-meta {
-  font-family: 'Space Mono', monospace;
+  font-family: 'Chakra Petch', ui-monospace, monospace;
   font-size: clamp(9px, 0.8vw, 11px);
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -342,7 +342,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-family: 'Space Mono', monospace;
+  font-family: 'Chakra Petch', ui-monospace, monospace;
   font-size: clamp(9px, 0.85vw, 12px);
   letter-spacing: 0.18em;
   text-transform: uppercase;

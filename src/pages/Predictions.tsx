@@ -78,7 +78,7 @@ export default function Predictions() {
       <div className="grid lg:grid-cols-[1fr_360px] gap-10 items-start">
         {/* abiertas + mis predicciones */}
         <div>
-          <h2 className="font-display font-black uppercase tracking-tight text-2xl mb-4">Abiertas ahora</h2>
+          <h2 className="font-display font-black italic uppercase tracking-tight text-2xl mb-4">Abiertas ahora</h2>
           {open.length === 0 && (
             <p className="font-mono text-xs text-mute mb-10">
               No hay predicciones abiertas en este momento. Vuelve cuando empiece el próximo partido.
@@ -137,7 +137,7 @@ export default function Predictions() {
             })}
           </div>
 
-          <h2 className="font-display font-black uppercase tracking-tight text-2xl mb-4">Mis predicciones</h2>
+          <h2 className="font-display font-black italic uppercase tracking-tight text-2xl mb-4">Mis predicciones</h2>
           <div className="card divide-y divide-line-2">
             {mine.length === 0 && (
               <div className="p-4 font-mono text-xs text-mute">Aún no has predicho ningún partido.</div>
@@ -156,7 +156,7 @@ export default function Predictions() {
                 {p.isCorrect === null ? (
                   <StatusBadge status="scheduled" />
                 ) : (
-                  <span className={`font-display font-black ${p.isCorrect ? 'text-green' : 'text-mute'}`}>
+                  <span className={`font-display font-black italic ${p.isCorrect ? 'text-green' : 'text-mute'}`}>
                     {p.isCorrect ? `✓ +${p.coinsEarned}` : '✗'}
                   </span>
                 )}
@@ -167,7 +167,7 @@ export default function Predictions() {
 
         {/* leaderboard de predictores */}
         <aside className="lg:sticky lg:top-24">
-          <h2 className="font-display font-black uppercase tracking-tight text-xl mb-4">Top predictores</h2>
+          <h2 className="font-display font-black italic uppercase tracking-tight text-xl mb-4">Top predictores</h2>
           <div className="card overflow-hidden">
             {board.length === 0 ? (
               <div className="p-4 font-mono text-xs text-mute">Sin datos todavía.</div>
@@ -175,7 +175,7 @@ export default function Predictions() {
               <div className="divide-y divide-line-2">
                 {board.slice(0, 10).map((p, i) => (
                   <div key={p.userId} className="flex items-center gap-3 p-3">
-                    <span className={`font-display font-black w-6 ${i < 3 ? 'text-ignite' : 'text-mute'}`}>
+                    <span className={`font-display font-black italic w-6 ${i < 3 ? 'text-ignite' : 'text-mute'}`}>
                       {i + 1}
                     </span>
                     <span className="flex-1 truncate font-display font-semibold text-sm">{p.username}</span>

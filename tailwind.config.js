@@ -25,7 +25,8 @@ export default {
         display: ['"Saira Condensed"', '"Archivo"', 'system-ui', 'sans-serif'],
         grotesk: ['"Archivo"', 'system-ui', 'sans-serif'],
         serif: ['"Archivo"', 'system-ui', 'sans-serif'],
-        mono: ['"Space Mono"', 'ui-monospace', 'monospace'],
+        // UI técnica (nav, kickers, etiquetas, datos, scoreboard): HUD tecno robusto.
+        mono: ['"Chakra Petch"', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
         sm: '3px',

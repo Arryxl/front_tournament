@@ -10,6 +10,7 @@ import { Grats } from './ui';
 export const NAV_LINKS = [
   { to: '/', label: 'Inicio' },
   { to: '/bracket', label: 'Llave' },
+  { to: '/resultados', label: 'Resultados' },
   { to: '/stats', label: 'Estadísticas' },
   { to: '/predictions', label: 'Predicciones' },
   { to: '/rewards', label: 'Tienda' },

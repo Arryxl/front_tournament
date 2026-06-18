@@ -60,7 +60,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           >
             <div className={`h-1 w-full ${opts.danger ? 'bg-ignite' : 'bg-line'}`} />
             <div className="p-6">
-              <h3 className="font-display font-black uppercase tracking-tight text-2xl leading-none">
+              <h3 className="font-display font-black italic uppercase tracking-tight text-2xl leading-none">
                 {opts.title}
               </h3>
               {opts.body && (

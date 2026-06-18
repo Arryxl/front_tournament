@@ -1,11 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Saira+Condensed:ital,wght@0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Saira:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Saira+Condensed:ital,wght@0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Chakra+Petch:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* === GRAVITY · Velocidad de Escape (brand book GRV-03) === */
+  /* === GRAVITY · Velocidad de Escape (brand book GRV-07) ===
+     Display (títulos / wordmark): Saira Condensed itálica (sello racing).
+     UI técnica (nav, kickers, etiquetas, datos, scoreboard): Chakra Petch
+     (tecno-industrial HUD, trazo robusto; reemplaza a Geist/Space Mono).
+     Cuerpo: Archivo. */
   --void: #0a0a0b; /* fondo base, asfalto nocturno */
   --void-2: #121214; /* superficies elevadas / cards */
   --void-3: #1a1a1d; /* hover de superficie */
@@ -98,7 +102,7 @@ a {
     @apply block font-mono text-[11px] tracking-[0.2em] uppercase text-mute mb-2;
   }
   .stat-num {
-    @apply font-display font-black tracking-tight tabular-nums;
+    @apply font-display font-black italic tracking-tight tabular-nums;
   }
 }
 

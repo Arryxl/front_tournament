@@ -1,18 +1,12 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { Spinner, StatusBadge } from '../../components/ui';
 import { useSettings } from '../../lib/useSettings';
 import { useToast } from '../../components/Toast';
 import { useConfirm } from '../../components/Confirm';
 import { FilterBar, SearchBox, ChipGroup, ResultCount } from '../../components/admin/Filters';
-import type { Group, Match, Team, TeamMember } from '../../types';
-
-type StatVals = { goals: string; assists: string; saves: string; score: string };
-const EMPTY: StatVals = { goals: '', assists: '', saves: '', score: '' };
-
-function memberLabel(m: TeamMember) {
-  return m.user?.username || m.epicUsername || `Jugador ${m.playerNumber}`;
-}
+import type { Group, Match, Team } from '../../types';
 
 /** Convierte una fecha ISO a valor para <input type="datetime-local">. */
 function toLocalInput(iso: string | null): string {
@@ -49,8 +43,6 @@ export default function AdminMatches() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
-  const [edit, setEdit] = useState<string | null>(null);
-  const [form, setForm] = useState<any>({});
 
   // -------- generación / relleno de partidos --------
   const [generating, setGenerating] = useState(false);
@@ -210,33 +202,28 @@ export default function AdminMatches() {
     }
   };
 
-  // Rellena los partidos de grupo con los cruces del sorteo actual.
-  const assignGroupMatches = async () => {
+  // Sincroniza la fase de grupos con el sorteo actual: rellena los cruces de
+  // los partidos y reconstruye las tablas de posiciones en un solo paso.
+  const syncGroups = async () => {
     setAssigning(true);
     try {
-      const { data } = await api.post('/groups/assign-matches', {});
-      if (data.assigned > 0) {
+      const { data } = await api.post('/groups/sync', {});
+      if (data.assigned > 0 || data.standingsCreated > 0) {
         toast.success(
-          'Partidos de grupo rellenados',
-          `${data.assigned} cruces asignados desde el sorteo.` +
+          'Grupos sincronizados',
+          `${data.assigned} cruces y ${data.standingsCreated} filas de tabla generados desde el sorteo.` +
             (data.pendingGroups ? ` ${data.pendingGroups} grupo(s) aún incompletos.` : ''),
         );
       } else {
-        toast.info('Nada que rellenar', 'Haz el sorteo de grupos primero (en «Grupos»).');
+        toast.info('Nada que sincronizar', 'Haz el sorteo de grupos primero (en «Grupos»).');
       }
       load();
     } catch (e: any) {
-      toast.error('No se pudo rellenar', e.response?.data?.message);
+      toast.error('No se pudo sincronizar', e.response?.data?.message);
     } finally {
       setAssigning(false);
     }
   };
-
-  // rosters + stats del partido en edición
-  const [rosters, setRosters] = useState<{ home?: Team | null; away?: Team | null }>({});
-  const [stats, setStats] = useState<Record<string, StatVals>>({});
-  const [mvp, setMvp] = useState('');
-  const [saving, setSaving] = useState(false);
 
   const load = () => {
     Promise.all([api.get('/matches'), api.get('/teams'), api.get('/groups')])
@@ -248,100 +235,6 @@ export default function AdminMatches() {
       .finally(() => setLoading(false));
   };
   useEffect(load, []);
-
-  const loadRosters = async (homeId?: string | null, awayId?: string | null) => {
-    const [home, away] = await Promise.all([
-      homeId ? api.get(`/teams/${homeId}`).then((r) => r.data as Team) : Promise.resolve(null),
-      awayId ? api.get(`/teams/${awayId}`).then((r) => r.data as Team) : Promise.resolve(null),
-    ]);
-    setRosters({ home, away });
-  };
-
-  const openEdit = async (m: Match) => {
-    if (edit === m.id) {
-      setEdit(null);
-      return;
-    }
-    setEdit(m.id);
-    setForm({
-      teamHomeId: m.teamHomeId || '',
-      teamAwayId: m.teamAwayId || '',
-      homeScore: m.homeScore ?? '',
-      awayScore: m.awayScore ?? '',
-    });
-    setRosters({});
-    setStats({});
-    setMvp('');
-    // prefill stats existentes
-    try {
-      const detail = await api.get(`/matches/${m.id}`).then((r) => r.data);
-      const existing: any[] = detail.playerStats || [];
-      const map: Record<string, StatVals> = {};
-      let foundMvp = '';
-      existing.forEach((s) => {
-        map[s.userId] = {
-          goals: String(s.goals),
-          assists: String(s.assists),
-          saves: String(s.saves),
-          score: String(s.score),
-        };
-        if (s.mvp) foundMvp = s.userId;
-      });
-      setStats(map);
-      setMvp(foundMvp);
-    } catch {
-      /* sin detalle todavía */
-    }
-    loadRosters(m.teamHomeId, m.teamAwayId);
-  };
-
-  const setStat = (uid: string, key: keyof StatVals, val: string) =>
-    setStats((s) => ({ ...s, [uid]: { ...(s[uid] || EMPTY), [key]: val } }));
-
-  const submitResult = async (id: string) => {
-    setSaving(true);
-    try {
-      await api.patch(`/matches/${id}/teams`, {
-        teamHomeId: form.teamHomeId || null,
-        teamAwayId: form.teamAwayId || null,
-      });
-
-      const statsArr: any[] = [];
-      [rosters.home, rosters.away].forEach((team) => {
-        if (!team) return;
-        (team.members || []).forEach((mem) => {
-          if (!mem.user?.id) return;
-          const v = stats[mem.user.id] || EMPTY;
-          statsArr.push({
-            userId: mem.user.id,
-            teamId: team.id,
-            goals: Number(v.goals) || 0,
-            assists: Number(v.assists) || 0,
-            saves: Number(v.saves) || 0,
-            score: Number(v.score) || 0,
-            mvp: mvp === mem.user.id,
-          });
-        });
-      });
-
-      if (form.homeScore !== '' && form.awayScore !== '') {
-        await api.patch(`/matches/${id}/result`, {
-          homeScore: Number(form.homeScore),
-          awayScore: Number(form.awayScore),
-          stats: statsArr.length ? statsArr : undefined,
-        });
-        toast.success('Resultado guardado', `${form.homeScore} : ${form.awayScore} · stats y predicciones actualizadas.`);
-      } else {
-        toast.success('Equipos asignados', 'Carga el marcador para finalizar el partido.');
-      }
-      setEdit(null);
-      load();
-    } catch (e: any) {
-      toast.error('No se pudo guardar el resultado', e.response?.data?.message);
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const markLive = async (id: string, code: string, live: boolean) => {
     try {
@@ -442,9 +335,8 @@ export default function AdminMatches() {
 
   /* ---------------- Tarjeta de un partido ---------------- */
   const renderMatch = (m: Match) => {
-    const open = edit === m.id;
     return (
-      <div key={m.id} className={`card p-4 ${open ? 'border-ignite/50' : ''}`}>
+      <div key={m.id} className="card p-4">
         <div className="flex flex-col gap-3">
           {/* fila de info: código + equipos + marcador + estado */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -455,13 +347,13 @@ export default function AdminMatches() {
               {m.format.toUpperCase()}
             </span>
             <div className="flex items-center gap-2 font-display text-sm min-w-0 flex-1">
-              <span className={`font-semibold truncate text-right flex-1 min-w-0 ${!m.teamHome ? 'text-mute italic' : ''}`}>
+              <span className={`font-semibold truncate text-right flex-1 min-w-0 ${!m.teamHome ? 'text-mute' : ''}`}>
                 {m.teamHome?.name || 'Por confirmar'}
               </span>
-              <span className="font-black tabular-nums text-base px-1 shrink-0">
+              <span className="font-black italic tabular-nums text-base px-1 shrink-0">
                 {m.homeScore ?? '–'} <span className="text-mute">:</span> {m.awayScore ?? '–'}
               </span>
-              <span className={`font-semibold truncate flex-1 min-w-0 ${!m.teamAway ? 'text-mute italic' : ''}`}>
+              <span className={`font-semibold truncate flex-1 min-w-0 ${!m.teamAway ? 'text-mute' : ''}`}>
                 {m.teamAway?.name || 'Por confirmar'}
               </span>
             </div>
@@ -471,9 +363,9 @@ export default function AdminMatches() {
           </div>
           {/* fila de acciones — compacta, envuelve en móvil */}
           <div className="flex items-center gap-2 flex-wrap">
-            <button className={`btn !px-3 !py-2 text-[11px] ${open ? 'btn-ignite' : ''}`} onClick={() => openEdit(m)}>
-              {open ? 'Cerrar' : 'Resultado'}
-            </button>
+            <Link to={`/admin/matches/${m.id}`} className="btn !px-3 !py-2 text-[11px]">
+              Resultado
+            </Link>
             <button
               className={`btn !px-3 !py-2 text-[11px] ${m.status === 'live' ? 'btn-ignite' : ''}`}
               disabled={m.status === 'finished'}
@@ -501,167 +393,6 @@ export default function AdminMatches() {
           )}
         </div>
 
-        {open && (
-          <div className="mt-4 pt-4 border-t border-line-2">
-            {/* equipos + marcador */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="label">Equipo local</label>
-                <select
-                  className="input"
-                  value={form.teamHomeId}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setForm({ ...form, teamHomeId: v });
-                    loadRosters(v, form.teamAwayId);
-                  }}
-                >
-                  <option value="">— Seleccionar —</option>
-                  {teams.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="label">Equipo visitante</label>
-                <select
-                  className="input"
-                  value={form.teamAwayId}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setForm({ ...form, teamAwayId: v });
-                    loadRosters(form.teamHomeId, v);
-                  }}
-                >
-                  <option value="">— Seleccionar —</option>
-                  {teams.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="label">Marcador local</label>
-                <input
-                  type="number"
-                  className="input"
-                  value={form.homeScore}
-                  onChange={(e) => setForm({ ...form, homeScore: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="label">Marcador visitante</label>
-                <input
-                  type="number"
-                  className="input"
-                  value={form.awayScore}
-                  onChange={(e) => setForm({ ...form, awayScore: e.target.value })}
-                />
-              </div>
-            </div>
-
-            {/* estadísticas por jugador */}
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-3">
-                <span className="label mb-0">Estadísticas por jugador</span>
-                <span className="font-mono text-[10px] text-mute">
-                  MVP = punto · se guardan junto al resultado
-                </span>
-              </div>
-              {!rosters.home && !rosters.away ? (
-                <p className="font-mono text-xs text-mute">
-                  Selecciona ambos equipos para cargar la alineación.
-                </p>
-              ) : (
-                <div className="grid lg:grid-cols-2 gap-5">
-                  {([rosters.home, rosters.away] as (Team | null | undefined)[]).map((team, idx) =>
-                    team ? (
-                      <div key={team.id} className="card p-3">
-                        <div className="font-display font-bold text-sm mb-3 flex items-center gap-2">
-                          <span className="font-mono text-[10px] text-mute">
-                            {idx === 0 ? 'LOCAL' : 'VISITA'}
-                          </span>
-                          {team.name}
-                        </div>
-                        <div className="grid grid-cols-[1fr_repeat(4,40px)_28px] gap-1.5 font-mono text-[9px] tracking-[0.1em] uppercase text-mute mb-1 items-end">
-                          <span>Jugador</span>
-                          <span className="text-center">Gol</span>
-                          <span className="text-center">Asi</span>
-                          <span className="text-center">Salv</span>
-                          <span className="text-center">Score</span>
-                          <span className="text-center">MVP</span>
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                          {(team.members || [])
-                            .slice()
-                            .sort((a, b) => a.playerNumber - b.playerNumber)
-                            .map((mem) => {
-                              const uid = mem.user?.id;
-                              const v = (uid && stats[uid]) || EMPTY;
-                              const noAccount = !uid;
-                              return (
-                                <div
-                                  key={mem.id}
-                                  className="grid grid-cols-[1fr_repeat(4,40px)_28px] gap-1.5 items-center"
-                                >
-                                  <span className="text-sm truncate font-display font-semibold">
-                                    {memberLabel(mem)}
-                                    {noAccount && (
-                                      <span className="block font-mono text-[8px] text-ignite/70 tracking-[0.1em]">
-                                        SIN CUENTA
-                                      </span>
-                                    )}
-                                  </span>
-                                  {(['goals', 'assists', 'saves', 'score'] as (keyof StatVals)[]).map(
-                                    (k) => (
-                                      <input
-                                        key={k}
-                                        type="number"
-                                        disabled={noAccount}
-                                        className="input px-1 py-1.5 text-center text-xs disabled:opacity-30"
-                                        value={uid ? v[k] : ''}
-                                        onChange={(e) => uid && setStat(uid, k, e.target.value)}
-                                      />
-                                    ),
-                                  )}
-                                  <div className="flex justify-center">
-                                    <input
-                                      type="radio"
-                                      name="mvp"
-                                      disabled={noAccount}
-                                      checked={!!uid && mvp === uid}
-                                      onChange={() => uid && setMvp(uid)}
-                                      className="accent-[#EC571E] disabled:opacity-30"
-                                    />
-                                  </div>
-                                </div>
-                              );
-                            })}
-                        </div>
-                      </div>
-                    ) : null,
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-2 mt-5">
-              <button className="btn btn-ignite" disabled={saving} onClick={() => submitResult(m.id)}>
-                {saving ? 'Guardando…' : 'Guardar resultado y stats'}
-              </button>
-              <button className="btn" onClick={() => setEdit(null)}>
-                Cancelar
-              </button>
-            </div>
-            <p className="font-mono text-[10px] text-mute mt-2">
-              El marcador es obligatorio para guardar (finaliza el partido y reparte monedas de
-              predicciones).
-            </p>
-          </div>
-        )}
       </div>
     );
   };
@@ -669,7 +400,7 @@ export default function AdminMatches() {
   /* ---------------- Encabezado de sección ---------------- */
   const SectionHead = ({ kicker, title, count }: { kicker: string; title: string; count: number }) => (
     <div className="flex items-center gap-3 mb-3">
-      <span className="font-display font-black uppercase tracking-tight text-xl">{title}</span>
+      <span className="font-display font-black italic uppercase tracking-tight text-xl">{title}</span>
       <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">
         {kicker} · {count} {count === 1 ? 'partido' : 'partidos'}
       </span>
@@ -679,7 +410,7 @@ export default function AdminMatches() {
   return (
     <div>
       <span className="kicker">Torneo</span>
-      <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3 mb-2">Partidos</h1>
+      <h1 className="font-display font-black italic uppercase text-4xl tracking-tight mt-3 mb-2">Partidos</h1>
       <p className="font-mono text-[11px] text-mute mb-6 max-w-[60ch] leading-relaxed">
         Organizado por fase de grupos y por llave eliminatoria. Pulsa «Resultado» en cualquier
         partido para cargar el marcador y las estadísticas.
@@ -721,7 +452,7 @@ export default function AdminMatches() {
       <div className="card p-5 mb-6 border-ignite/30">
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
-            <div className="font-display font-black uppercase tracking-tight text-xl">
+            <div className="font-display font-black italic uppercase tracking-tight text-xl">
               Estructura del torneo
             </div>
             <p className="font-mono text-[11px] text-mute mt-1.5 leading-[1.7] max-w-[62ch]">
@@ -754,15 +485,15 @@ export default function AdminMatches() {
         </div>
 
         <div className="mt-4 pt-4 border-t border-line-2 flex items-center gap-3 flex-wrap">
-          <button className="btn" onClick={assignGroupMatches} disabled={assigning || totalMatches === 0}>
-            {assigning ? 'Rellenando…' : 'Rellenar partidos de grupo'}
+          <button className="btn" onClick={syncGroups} disabled={assigning || totalMatches === 0}>
+            {assigning ? 'Sincronizando…' : 'Sincronizar grupos'}
           </button>
           <button className="btn" onClick={() => setBulkOpen((o) => !o)} disabled={totalMatches === 0}>
             {bulkOpen ? 'Cerrar programación masiva' : 'Programación masiva por fase'}
           </button>
           <span className="font-mono text-[10px] text-mute">
-            «Rellenar» asigna los cruces de grupo desde el sorteo (se hace solo al sortear). La llave
-            se completa con los resultados.
+            «Sincronizar» rellena los cruces de grupo y reconstruye las tablas desde el sorteo (se
+            hace solo al sortear). La llave se completa con los resultados.
           </span>
         </div>
       </div>
@@ -770,7 +501,7 @@ export default function AdminMatches() {
       {/* ===== Programación masiva por fase ===== */}
       {bulkOpen && (
         <div className="card p-5 mb-10">
-          <div className="font-display font-black uppercase tracking-tight text-lg mb-1">
+          <div className="font-display font-black italic uppercase tracking-tight text-lg mb-1">
             Programación masiva por fase
           </div>
           <p className="font-mono text-[11px] text-mute mb-5 leading-[1.7] max-w-[70ch]">
@@ -793,7 +524,7 @@ export default function AdminMatches() {
                         onChange={(e) => setCfg(key, { enabled: e.target.checked })}
                         className="accent-[#EC571E]"
                       />
-                      <span className="font-display font-black uppercase tracking-tight text-base">
+                      <span className="font-display font-black italic uppercase tracking-tight text-base">
                         {PHASE_LABELS[key]}
                       </span>
                       <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">
@@ -935,7 +666,7 @@ export default function AdminMatches() {
       <div className="mb-14">
         <div className="flex items-center gap-3 mb-6">
           <span className="kicker mb-0">Fase 1</span>
-          <h2 className="font-display font-black uppercase tracking-tight text-2xl">Fase de grupos</h2>
+          <h2 className="font-display font-black italic uppercase tracking-tight text-2xl">Fase de grupos</h2>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-x-8 gap-y-10">
@@ -944,7 +675,7 @@ export default function AdminMatches() {
             return (
               <div key={letter}>
                 <div className="flex items-center gap-3 mb-3 border-b border-line-2 pb-2">
-                  <span className="font-display font-black uppercase tracking-tight text-2xl text-ignite">
+                  <span className="font-display font-black italic uppercase tracking-tight text-2xl text-ignite">
                     Grupo {letter}
                   </span>
                   <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">
@@ -980,7 +711,7 @@ export default function AdminMatches() {
       <div>
         <div className="flex items-center gap-3 mb-6">
           <span className="kicker mb-0">Fase 2</span>
-          <h2 className="font-display font-black uppercase tracking-tight text-2xl">La llave</h2>
+          <h2 className="font-display font-black italic uppercase tracking-tight text-2xl">La llave</h2>
         </div>
 
         <div className="flex flex-col gap-10">

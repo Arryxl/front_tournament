@@ -81,7 +81,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   >
                     {meta.label}
                   </span>
-                  <span className="font-display font-black uppercase tracking-tight text-sm text-ink truncate">
+                  <span className="font-display font-black italic uppercase tracking-tight text-sm text-ink truncate">
                     {t.title}
                   </span>
                 </div>

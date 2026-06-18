@@ -118,7 +118,7 @@ export default function AdminUsers() {
   return (
     <div>
       <span className="kicker">Sistema</span>
-      <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3 mb-6">Usuarios</h1>
+      <h1 className="font-display font-black italic uppercase text-4xl tracking-tight mt-3 mb-6">Usuarios</h1>
 
       {/* alta de candidato */}
       <form onSubmit={create} className="card p-4 sm:p-5 mb-6 grid sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">

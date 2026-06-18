@@ -94,7 +94,7 @@ export default function AdminCoins() {
       </form>
 
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-        <h2 className="font-display font-black uppercase tracking-tight text-2xl">Ranking</h2>
+        <h2 className="font-display font-black italic uppercase tracking-tight text-2xl">Ranking</h2>
         <div className="w-full sm:w-64">
           <SearchBox value={q} onChange={setQ} placeholder="Buscar en el ranking…" />
         </div>
@@ -108,7 +108,7 @@ export default function AdminCoins() {
           const podium = pos <= 3 && !q;
           return (
             <div key={u.userId || u.id} className={`flex items-center gap-3 p-3 ${podium ? 'bg-ignite/[0.04]' : ''}`}>
-              <span className={`font-display font-black tabular-nums w-7 text-center ${podium ? 'text-ignite' : 'text-mute'}`}>
+              <span className={`font-display font-black italic tabular-nums w-7 text-center ${podium ? 'text-ignite' : 'text-mute'}`}>
                 {pos}
               </span>
               <span className="flex-1 truncate font-display font-semibold">{u.username}</span>

@@ -82,7 +82,7 @@ export default function Rewards() {
                 )}
               </div>
               <div className="p-5 flex flex-col flex-1">
-                <div className="font-display font-black text-lg uppercase tracking-tight">{r.name}</div>
+                <div className="font-display font-black italic text-lg uppercase tracking-tight">{r.name}</div>
                 <p className="font-mono text-[11px] text-mute mt-2 mb-4 flex-1 leading-[1.6]">
                   {r.description}
                 </p>

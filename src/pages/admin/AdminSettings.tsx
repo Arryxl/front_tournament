@@ -5,7 +5,7 @@ import { Spinner } from '../../components/ui';
 import { useToast } from '../../components/Toast';
 import { useConfirm } from '../../components/Confirm';
 import { useSettings } from '../../lib/useSettings';
-import { expectedMatchCount, formatLabel, groupCountFor } from '../../lib/tournament';
+import { expectedMatchCount, formatLabel, groupCountFor, hasRound16 } from '../../lib/tournament';
 import type { TournamentSettings } from '../../types';
 
 /** Campos editables de la configuración del torneo (borrador local). */
@@ -16,6 +16,11 @@ interface Draft {
   substitutes: number;
   teamCapacity: number;
   registrationDeadline: string | null;
+  formatRound16: string;
+  formatQuarters: string;
+  formatSemis: string;
+  formatThird: string;
+  formatFinal: string;
 }
 
 const toDraft = (s: TournamentSettings): Draft => ({
@@ -25,7 +30,18 @@ const toDraft = (s: TournamentSettings): Draft => ({
   substitutes: s.substitutes,
   teamCapacity: s.teamCapacity,
   registrationDeadline: s.registrationDeadline,
+  formatRound16: s.formatRound16,
+  formatQuarters: s.formatQuarters,
+  formatSemis: s.formatSemis,
+  formatThird: s.formatThird,
+  formatFinal: s.formatFinal,
 });
+
+const SERIES_OPTS = [
+  { value: 'bo3', label: 'Al mejor de 3' },
+  { value: 'bo5', label: 'Al mejor de 5' },
+  { value: 'bo7', label: 'Al mejor de 7' },
+];
 
 /** ISO → valor para <input type="datetime-local">. */
 function toLocalInput(iso: string | null): string {
@@ -115,7 +131,7 @@ export default function AdminSettings() {
       <div className="flex items-start justify-between flex-wrap gap-4 mb-2">
         <div>
           <span className="kicker">Administración</span>
-          <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3">
+          <h1 className="font-display font-black italic uppercase text-4xl tracking-tight mt-3">
             Configuración del torneo
           </h1>
         </div>
@@ -156,7 +172,7 @@ export default function AdminSettings() {
           }`}
         >
           <div className="flex items-center gap-2">
-            <span className="font-display font-black uppercase tracking-tight text-lg">
+            <span className="font-display font-black italic uppercase tracking-tight text-lg">
               Cierre de inscripciones (countdown)
             </span>
             {draft.registrationDeadline !== saved.registrationDeadline && (
@@ -238,10 +254,51 @@ export default function AdminSettings() {
         </div>
       </div>
 
+      {/* ===== Series por fase ===== */}
+      <SectionTitle>Series por fase</SectionTitle>
+      <p className="font-mono text-[11px] text-mute mb-4 max-w-[64ch] leading-relaxed">
+        La <b className="text-ink">fase de grupos es a partido único</b>. En las eliminatorias
+        elige el formato de cada ronda.
+      </p>
+      <div className="grid sm:grid-cols-2 gap-4 mb-2">
+        {hasRound16(draft.teamCapacity) && (
+          <SeriesPickerRow
+            label="Octavos de final"
+            value={draft.formatRound16}
+            changed={draft.formatRound16 !== saved.formatRound16}
+            onPick={(v) => set('formatRound16', v)}
+          />
+        )}
+        <SeriesPickerRow
+          label="Cuartos de final"
+          value={draft.formatQuarters}
+          changed={draft.formatQuarters !== saved.formatQuarters}
+          onPick={(v) => set('formatQuarters', v)}
+        />
+        <SeriesPickerRow
+          label="Semifinales"
+          value={draft.formatSemis}
+          changed={draft.formatSemis !== saved.formatSemis}
+          onPick={(v) => set('formatSemis', v)}
+        />
+        <SeriesPickerRow
+          label="Tercer puesto"
+          value={draft.formatThird}
+          changed={draft.formatThird !== saved.formatThird}
+          onPick={(v) => set('formatThird', v)}
+        />
+        <SeriesPickerRow
+          label="Gran final"
+          value={draft.formatFinal}
+          changed={draft.formatFinal !== saved.formatFinal}
+          onPick={(v) => set('formatFinal', v)}
+        />
+      </div>
+
       <p className="font-mono text-[10px] text-mute mt-4 mb-8 leading-relaxed max-w-[64ch]">
-        Tras guardar un cambio de nº de equipos, ve a{' '}
+        Tras cambiar el nº de equipos o el formato de las series, ve a{' '}
         <Link to="/admin/matches" className="text-ignite hover:underline">Partidos</Link> y pulsa
-        «Generar partidos» para recrear la estructura.
+        «Generar partidos» para que la estructura se recree con los nuevos formatos.
       </p>
 
       {/* ===== Barra de guardado ===== */}
@@ -262,7 +319,7 @@ export default function AdminSettings() {
 
 function SectionTitle({ children }: { children: string }) {
   return (
-    <h2 className="font-display font-black uppercase tracking-tight text-xl mb-4">{children}</h2>
+    <h2 className="font-display font-black italic uppercase tracking-tight text-xl mb-4">{children}</h2>
   );
 }
 
@@ -289,7 +346,7 @@ function ToggleRow({
     >
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <span className="font-display font-black uppercase tracking-tight text-lg">{label}</span>
+          <span className="font-display font-black italic uppercase tracking-tight text-lg">{label}</span>
           <span
             className={`font-mono text-[9px] tracking-[0.2em] uppercase px-2 py-0.5 rounded ${
               on ? 'bg-ignite text-void' : 'border border-line text-mute'
@@ -319,6 +376,39 @@ function ToggleRow({
   );
 }
 
+function SeriesPickerRow({
+  label,
+  value,
+  changed,
+  onPick,
+}: {
+  label: string;
+  value: string;
+  changed: boolean;
+  onPick: (v: string) => void;
+}) {
+  return (
+    <div className={`card p-5 ${changed ? 'border-ignite/50' : ''}`}>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="font-display font-black italic uppercase tracking-tight text-lg">{label}</span>
+        {changed && <span className="font-mono text-[9px] text-ignite">●</span>}
+      </div>
+      <div className="flex gap-2 flex-wrap">
+        {SERIES_OPTS.map((o) => (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => onPick(o.value)}
+            className={`btn ${value === o.value ? 'btn-ignite' : ''}`}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function PickerRow({
   label,
   hint,
@@ -337,7 +427,7 @@ function PickerRow({
   return (
     <div className={`card p-5 ${changed ? 'border-ignite/50' : ''}`}>
       <div className="flex items-center gap-2">
-        <span className="font-display font-black uppercase tracking-tight text-lg">{label}</span>
+        <span className="font-display font-black italic uppercase tracking-tight text-lg">{label}</span>
         {changed && <span className="font-mono text-[9px] text-ignite">●</span>}
       </div>
       <div className="font-mono text-[11px] text-mute mt-1.5 mb-4 leading-snug">{hint}</div>

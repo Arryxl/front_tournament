@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fileBase } from '../lib/api';
+import { matchLabel, matchFormatLabel } from '../lib/tournament';
 import type { Match, Team } from '../types';
 
 export function Kicker({ children }: { children: ReactNode }) {
@@ -126,7 +127,7 @@ export function TeamBadge({ team, fallback }: { team: Team | null; fallback?: st
           className="w-8 h-8 rounded-sm object-cover border border-line"
         />
       ) : (
-        <div className="w-8 h-8 rounded-sm bg-void border border-line flex items-center justify-center font-display font-black text-xs">
+        <div className="w-8 h-8 rounded-sm bg-void border border-line flex items-center justify-center font-display font-black italic text-xs">
           {team.name.slice(0, 2).toUpperCase()}
         </div>
       )}
@@ -151,8 +152,6 @@ export function CoinBalance({ coins }: { coins: number }) {
   );
 }
 
-const FORMAT_LABEL: Record<string, string> = { bo3: 'BO3', bo5: 'BO5', bo7: 'BO7' };
-
 export function MatchCard({ match }: { match: Match }) {
   const date = match.scheduledAt
     ? new Date(match.scheduledAt).toLocaleDateString('es', {
@@ -162,15 +161,15 @@ export function MatchCard({ match }: { match: Match }) {
     : '—';
   return (
     <div className="card p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <span className="font-mono text-[11px] text-mute tracking-[0.2em]">
-          {match.matchCode} · {FORMAT_LABEL[match.format]}
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-[11px] text-mute tracking-[0.15em] truncate">
+          {matchLabel(match)}
         </span>
         <StatusBadge status={match.status} />
       </div>
       <div className="flex items-center justify-between gap-2">
         <TeamBadge team={match.teamHome} fallback="Por definir" />
-        <span className="font-display font-black text-xl tabular-nums">
+        <span className="font-display font-black italic text-xl tabular-nums">
           {match.homeScore ?? '-'}
           <span className="text-mute mx-1">:</span>
           {match.awayScore ?? '-'}
@@ -179,7 +178,10 @@ export function MatchCard({ match }: { match: Match }) {
           <TeamBadge team={match.teamAway} fallback="Por definir" />
         </div>
       </div>
-      <div className="font-mono text-[10px] text-mute tracking-[0.2em] uppercase">{date}</div>
+      <div className="flex items-center justify-between gap-2 font-mono text-[10px] text-mute tracking-[0.15em] uppercase">
+        <span className="truncate">{matchFormatLabel(match)}</span>
+        <span className="shrink-0">{date}</span>
+      </div>
     </div>
   );
 }
@@ -197,7 +199,7 @@ export function Section({
     <section className="mb-16">
       {kicker && <Kicker>{kicker}</Kicker>}
       {title && (
-        <h2 className="font-display font-black uppercase tracking-tight text-3xl md:text-5xl mt-3 mb-8 leading-none">
+        <h2 className="font-display font-black italic uppercase tracking-tight text-3xl md:text-5xl mt-3 mb-8 leading-none">
           {title}
         </h2>
       )}

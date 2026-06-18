@@ -54,7 +54,7 @@ function Crest({ team, size }: { team: TeamLite; size: number }) {
   ) : (
     <div
       style={{ width: size, height: size }}
-      className="rounded-lg bg-void-2 border border-line grid place-items-center font-display font-black text-mute shrink-0"
+      className="rounded-lg bg-void-2 border border-line grid place-items-center font-display font-black italic text-mute shrink-0"
     >
       {initials(team.name)}
     </div>
@@ -194,7 +194,7 @@ export default function DrawStage() {
   const rosterDone = !!orb && orb.shown >= orbPlayers.length;
 
   return (
-    <div className="draw-stage cursor-host">
+    <div className="draw-stage">
       <div className="grain" />
       <div className="cover-halo" />
       {flash && <div className="draw-flash" />}
@@ -357,7 +357,7 @@ export default function DrawStage() {
                   <div className="font-display font-black italic uppercase tracking-tight text-[clamp(30px,4.4vw,60px)] leading-[0.9]">
                     {orb.team.name}
                   </div>
-                  <div className="draw-reveal-lore font-display text-[clamp(14px,1.6vw,20px)] text-mute mt-2 italic">
+                  <div className="draw-reveal-lore font-display text-[clamp(14px,1.6vw,20px)] text-mute mt-2">
                     “{orb.lore}”
                   </div>
                 </div>

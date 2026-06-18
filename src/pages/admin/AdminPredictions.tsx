@@ -99,7 +99,7 @@ export default function AdminPredictions() {
   return (
     <div>
       <span className="kicker">Engagement</span>
-      <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3 mb-2">Predicciones</h1>
+      <h1 className="font-display font-black italic uppercase text-4xl tracking-tight mt-3 mb-2">Predicciones</h1>
       <p className="font-mono text-[11px] text-mute mb-6 max-w-[60ch] leading-[1.8]">
         Abre la ventana de predicciones de un partido. Mientras esté abierta, los usuarios predicen el
         ganador (y el marcador para ganar más). Al cargar el resultado se reparten las monedas.

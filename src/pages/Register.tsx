@@ -106,7 +106,7 @@ function PlayerForm({
   return (
     <div className="card p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <div className="font-display font-black uppercase tracking-tight text-xl">
+        <div className="font-display font-black italic uppercase tracking-tight text-xl">
           {substitute ? 'Suplente' : 'Jugador'} <span className="text-ignite">{index + 1}</span>
         </div>
         <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">
@@ -263,7 +263,7 @@ export default function Register() {
         <span className="kicker justify-center" style={{ display: 'inline-flex' }}>
           Temporada 01
         </span>
-        <h1 className="font-display font-black uppercase text-5xl md:text-7xl tracking-tight mt-5 leading-[0.9]">
+        <h1 className="font-display font-black italic uppercase text-5xl md:text-7xl tracking-tight mt-5 leading-[0.9]">
           Inscripciones<br />cerradas
         </h1>
         <p className="font-display text-mute text-lg mt-6 max-w-[46ch] mx-auto leading-[1.5]">
@@ -286,7 +286,7 @@ export default function Register() {
         <span className="kicker justify-center" style={{ display: 'inline-flex' }}>
           Recibido
         </span>
-        <h1 className="font-display font-black uppercase text-5xl md:text-7xl tracking-tight mt-5 leading-[0.9]">
+        <h1 className="font-display font-black italic uppercase text-5xl md:text-7xl tracking-tight mt-5 leading-[0.9]">
           ¡Equipo<br />en órbita!
         </h1>
         <p className="font-display text-mute text-lg mt-6 max-w-[46ch] mx-auto leading-[1.5]">
@@ -309,7 +309,7 @@ export default function Register() {
     <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-16">
       {/* encabezado */}
       <span className="kicker">Únete · Temporada 01</span>
-      <h1 className="font-display font-black uppercase text-[clamp(40px,8vw,96px)] tracking-tight leading-[0.88] mt-3 mb-3">
+      <h1 className="font-display font-black italic uppercase text-[clamp(40px,8vw,96px)] tracking-tight leading-[0.88] mt-3 mb-3">
         Inscribe<br />tu equipo
       </h1>
       <p className="font-display text-mute text-base max-w-[58ch] mb-10 leading-[1.6]">
@@ -351,7 +351,7 @@ export default function Register() {
         <div className="flex flex-col gap-6">
           {step === 0 && (
             <div className="card p-6 flex flex-col gap-5">
-              <div className="font-display font-black uppercase tracking-tight text-2xl">El equipo</div>
+              <div className="font-display font-black italic uppercase tracking-tight text-2xl">El equipo</div>
               <div>
                 <label className="label">Nombre del equipo</label>
                 <input
@@ -369,7 +369,7 @@ export default function Register() {
               {/* Medio de contacto: por aquí llega la respuesta y las credenciales */}
               <div className="border-t border-line-2 pt-5 flex flex-col gap-4">
                 <div>
-                  <div className="font-display font-black uppercase tracking-tight text-lg">
+                  <div className="font-display font-black italic uppercase tracking-tight text-lg">
                     ¿Cómo te contactamos?
                   </div>
                   <p className="font-mono text-[11px] text-mute mt-1.5 leading-[1.7]">
@@ -440,7 +440,7 @@ export default function Register() {
 
           {step === 2 && (
             <div className="card p-6 flex flex-col gap-6">
-              <div className="font-display font-black uppercase tracking-tight text-2xl">Capitán y bases</div>
+              <div className="font-display font-black italic uppercase tracking-tight text-2xl">Capitán y bases</div>
               <div>
                 <label className="label">¿Quién es el capitán? (titulares)</label>
                 <div className="grid grid-cols-3 gap-2 mt-1">
@@ -502,12 +502,12 @@ export default function Register() {
             {shieldSrc ? (
               <img src={shieldSrc} alt="" className="w-14 h-14 rounded-lg object-cover border border-line" />
             ) : (
-              <div className="w-14 h-14 rounded-lg bg-void border border-line grid place-items-center font-display font-black text-lg text-mute">
+              <div className="w-14 h-14 rounded-lg bg-void border border-line grid place-items-center font-display font-black italic text-lg text-mute">
                 {teamName ? teamName.slice(0, 2).toUpperCase() : '??'}
               </div>
             )}
             <div className="min-w-0">
-              <div className="font-display font-black uppercase text-lg tracking-tight truncate">
+              <div className="font-display font-black italic uppercase text-lg tracking-tight truncate">
                 {teamName || 'Tu equipo'}
               </div>
               <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">{settings.formatLabel} · RL</div>

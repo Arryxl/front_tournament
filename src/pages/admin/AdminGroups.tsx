@@ -252,14 +252,19 @@ export default function AdminGroups() {
   const isDrawn = teamsInGroups > 0;
   const standingsMissing = isDrawn && standings.length === 0;
 
-  const rebuildStandings = async () => {
+  // Sincroniza la fase de grupos con el sorteo: reconstruye las tablas y
+  // rellena los cruces de los partidos de grupo en un solo paso.
+  const syncGroups = async () => {
     setBusy(true);
     try {
-      const { data } = await api.post('/groups/rebuild-standings', {});
-      toast.success('Tablas reconstruidas', `${data.created} filas creadas.`);
+      const { data } = await api.post('/groups/sync', {});
+      toast.success(
+        'Grupos sincronizados',
+        `${data.standingsCreated} filas de tabla y ${data.assigned} cruces generados.`,
+      );
       load();
     } catch (e: any) {
-      toast.error('No se pudieron reconstruir', e.response?.data?.message);
+      toast.error('No se pudo sincronizar', e.response?.data?.message);
     } finally {
       setBusy(false);
     }
@@ -274,7 +279,7 @@ export default function AdminGroups() {
       <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <div>
           <span className="kicker">Torneo</span>
-          <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3">Grupos</h1>
+          <h1 className="font-display font-black italic uppercase text-4xl tracking-tight mt-3">Grupos</h1>
         </div>
         <div className="flex items-center gap-2">
           {isDrawn && (
@@ -294,18 +299,18 @@ export default function AdminGroups() {
       {isDrawn && !drawOpen && (
         <div className="card p-5 mb-8 flex items-center justify-between flex-wrap gap-3">
           <div className="min-w-0">
-            <div className="font-display font-black uppercase tracking-tight text-xl">
+            <div className="font-display font-black italic uppercase tracking-tight text-xl">
               Grupos sorteados
             </div>
             <p className="font-mono text-[11px] text-mute mt-1.5 leading-relaxed">
               {teamsInGroups} equipos repartidos en {LETTERS.length} grupos. Las tablas están abajo.
-              {standingsMissing && ' Las posiciones aparecen vacías — pulsa «Reconstruir tablas».'}
+              {standingsMissing && ' Las posiciones aparecen vacías — pulsa «Sincronizar grupos».'}
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {standingsMissing && (
-              <button className="btn btn-ignite" onClick={rebuildStandings} disabled={busy}>
-                Reconstruir tablas
+              <button className="btn btn-ignite" onClick={syncGroups} disabled={busy}>
+                Sincronizar grupos
               </button>
             )}
             <button className="btn" onClick={() => setDrawOpen(true)}>
@@ -329,7 +334,7 @@ export default function AdminGroups() {
           </div>
         )}
         <div className="flex items-center justify-between flex-wrap gap-3 mb-1">
-          <div className="font-display font-black uppercase tracking-tight text-2xl">
+          <div className="font-display font-black italic uppercase tracking-tight text-2xl">
             Sorteo en vivo
           </div>
           <span className="font-mono text-[11px] tracking-[0.2em] uppercase text-mute">
@@ -392,7 +397,7 @@ export default function AdminGroups() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
                 {LETTERS.map((g) => (
                   <div key={g} className="card p-3">
-                    <div className="font-display font-black uppercase tracking-tight text-sm mb-2 flex justify-between">
+                    <div className="font-display font-black italic uppercase tracking-tight text-sm mb-2 flex justify-between">
                       <span>Grupo {g}</span>
                       <span className="font-mono text-[10px] text-mute">{board[g].length}/4</span>
                     </div>
@@ -428,7 +433,7 @@ export default function AdminGroups() {
 
       {/* ============ GRUPOS GUARDADOS ============ */}
       <div className="flex items-center gap-3 mb-4">
-        <h2 className="font-display font-black uppercase tracking-tight text-2xl">Tablas</h2>
+        <h2 className="font-display font-black italic uppercase tracking-tight text-2xl">Tablas</h2>
         <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">
           {LETTERS.length} grupos · clasifican 1° y 2°
         </span>
@@ -455,7 +460,7 @@ export default function AdminGroups() {
             return (
               <div key={g.id} className="card overflow-hidden">
                 <div className="flex items-center justify-between px-4 py-2.5 border-b border-line bg-void-2">
-                  <span className="font-display font-black uppercase tracking-tight text-xl">Grupo {g.name}</span>
+                  <span className="font-display font-black italic uppercase tracking-tight text-xl">Grupo {g.name}</span>
                   <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-mute">
                     {g.rows.length} equipos
                   </span>
@@ -487,7 +492,7 @@ export default function AdminGroups() {
                           top2 ? 'bg-ignite/[0.05]' : ''
                         }`}
                       >
-                        <span className={`font-display font-black tabular-nums ${top2 ? 'text-ignite' : 'text-mute'}`}>
+                        <span className={`font-display font-black italic tabular-nums ${top2 ? 'text-ignite' : 'text-mute'}`}>
                           {pos}
                         </span>
                         <span className="font-display font-bold text-sm truncate">{s.team?.name}</span>
@@ -499,7 +504,7 @@ export default function AdminGroups() {
                           {dg > 0 ? '+' : ''}
                           {dg}
                         </span>
-                        <span className="text-right font-display font-black text-base tabular-nums">{s.points}</span>
+                        <span className="text-right font-display font-black italic text-base tabular-nums">{s.points}</span>
                       </div>
                     );
                   })
