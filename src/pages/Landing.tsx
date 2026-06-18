@@ -4,7 +4,8 @@ import { api } from '../lib/api';
 import { OrbitMark, Wordmark } from '../components/brand';
 import { SocialRow } from '../components/Socials';
 import { SCHEDULE, SOCIALS, TOURNAMENT } from '../config';
-import type { Match, TeamCount, TournamentSettings } from '../types';
+import { useSettings } from '../lib/useSettings';
+import type { Match, TeamCount } from '../types';
 
 /* ---------------- Countdown ---------------- */
 function useCountdown(target: string) {
@@ -157,34 +158,33 @@ function RegistrationMeter({ count }: { count: TeamCount }) {
   );
 }
 
-/* ---------------- Cómo funciona la plataforma ---------------- */
-const FEATURES = [
-  {
-    n: '01',
-    title: 'Compite',
-    text: '16 equipos 3v3. Fase de grupos todos contra todos y una llave a eliminación directa hasta la gran final.',
-  },
-  {
-    n: '02',
-    title: 'Predice',
-    text: 'Acierta los ganadores de cada partido y gana grats. Mientras más arriesgas, más sumas.',
-  },
-  {
-    n: '03',
-    title: 'Canjea',
-    text: 'Cambia tus grats por recompensas: roles, merch y premios dentro de la liga.',
-  },
-];
-
 export default function Landing() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [count, setCount] = useState<TeamCount | null>(null);
-  const [settings, setSettings] = useState<TournamentSettings | null>(null);
+  const s = useSettings();
+
+  const qualified = s.groups * 2;
+  const FEATURES = [
+    {
+      n: '01',
+      title: 'Compite',
+      text: `${s.teamCount} equipos ${s.formatLabel}. Fase de grupos todos contra todos y una llave a eliminación directa hasta la gran final.`,
+    },
+    {
+      n: '02',
+      title: 'Predice',
+      text: 'Acierta los ganadores de cada partido y gana grats. Mientras más arriesgas, más sumas.',
+    },
+    {
+      n: '03',
+      title: 'Canjea',
+      text: 'Cambia tus grats por recompensas: roles, merch y premios dentro de la liga.',
+    },
+  ];
 
   useEffect(() => {
     api.get('/matches').then((r) => setMatches(r.data)).catch(() => {});
     api.get('/teams/count').then((r) => setCount(r.data)).catch(() => {});
-    api.get('/settings').then((r) => setSettings(r.data)).catch(() => {});
   }, []);
 
   const upcoming = useMemo(() => {
@@ -203,7 +203,7 @@ export default function Landing() {
         <div className="max-w-[1240px] mx-auto w-full relative z-[2]">
           <div className="reveal flex flex-wrap gap-x-5 gap-y-2 font-mono text-[10px] sm:text-[11px] tracking-[0.18em] uppercase text-mute mb-[clamp(20px,4vh,44px)]">
             <span>LIGA — <b className="text-ink font-normal">ROCKET LEAGUE</b></span>
-            <span>FORMATO · <b className="text-ink font-normal">{TOURNAMENT.format}</b></span>
+            <span>FORMATO · <b className="text-ink font-normal">{s.formatLabel.toUpperCase()} · ELIMINACIÓN</b></span>
             <span>TEMPORADA · <b className="text-ink font-normal">{TOURNAMENT.season}</b></span>
           </div>
 
@@ -229,12 +229,14 @@ export default function Landing() {
                 Únete al Discord
               </a>
             </div>
-            <div className="flex items-center gap-3 sm:ml-auto">
-              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute shrink-0">
-                Cierran en
-              </span>
-              <CountdownBox target={TOURNAMENT.registrationClose} />
-            </div>
+            {s.registrationDeadline && (
+              <div className="flex items-center gap-3 sm:ml-auto">
+                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute shrink-0">
+                  Cierran en
+                </span>
+                <CountdownBox target={s.registrationDeadline} />
+              </div>
+            )}
           </div>
         </div>
 
@@ -245,7 +247,7 @@ export default function Landing() {
       </section>
 
       {/* ============ MEDIDOR DE INSCRIPCIONES ============ */}
-      {settings?.registrationsOpen && count && <RegistrationMeter count={count} />}
+      {s.registrationsOpen && count && <RegistrationMeter count={count} />}
 
       {/* ============ QUÉ ES GRAVITY ============ */}
       <section className="px-[var(--pad)] py-[clamp(56px,8vh,104px)] border-t border-line-2">
@@ -283,15 +285,15 @@ export default function Landing() {
         <div className="max-w-[1240px] mx-auto">
           <span className="kicker reveal">02 / El formato</span>
           <h2 className="reveal font-display font-black uppercase text-[clamp(34px,6.5vw,82px)] leading-[0.92] tracking-tight mt-3 mb-10">
-            16 equipos.<br />Una final.
+            {s.teamCount} equipos.<br />Una final.
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-line border border-line mb-8">
             {[
-              ['16', 'Equipos'],
-              ['4', 'Grupos de 4'],
-              ['32', 'Partidos'],
-              ['3v3', 'En cancha'],
+              [String(s.teamCount), 'Equipos'],
+              [String(s.groups), 'Grupos de 4'],
+              [String(s.matchesTotal), 'Partidos'],
+              [s.formatLabel, 'En cancha'],
             ].map(([num, label]) => (
               <div key={label} className="reveal bg-void p-5 sm:p-6 lift">
                 <div className="font-display font-black text-[clamp(40px,6.5vw,76px)] leading-none tracking-tight tabular-nums">
@@ -306,8 +308,8 @@ export default function Landing() {
 
           <div className="grid sm:grid-cols-3 gap-px bg-line border border-line mb-8">
             {[
-              ['Fase de grupos', 'Cuatro grupos de cuatro juegan todos contra todos. Los dos mejores de cada grupo avanzan.'],
-              ['Eliminatoria', 'Ocho equipos a muerte súbita: cuartos (BO3), semifinales (BO5) y la antesala del título.'],
+              ['Fase de grupos', `${s.groups} grupos de cuatro juegan todos contra todos. Los dos mejores de cada grupo avanzan.`],
+              ['Eliminatoria', `${qualified} equipos a muerte súbita: ${s.hasRound16 ? 'octavos, cuartos' : 'cuartos'} (BO3), semifinales (BO5) y la antesala del título.`],
               ['Gran final', 'Best of 7. Un solo campeón levanta la copa Gravity y se lleva el premio en efectivo.'],
             ].map(([t, d]) => (
               <div key={t} className="reveal bg-void p-5 sm:p-6">
@@ -409,7 +411,7 @@ export default function Landing() {
             Entra en<br />órbita
           </h2>
           <p className="reveal font-display text-[clamp(15px,2vw,24px)] text-mute mt-6">
-            Reúne a tus tres. El sorteo no espera.
+            Reúne a tu escuadra {s.formatLabel}. El sorteo no espera.
           </p>
           <div className="reveal flex flex-wrap items-center justify-center gap-4 mt-8">
             <Link to="/register" className="btn btn-ignite">Inscribe tu equipo</Link>

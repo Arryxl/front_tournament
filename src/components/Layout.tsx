@@ -6,10 +6,12 @@ import { Atmosphere } from './Atmosphere';
 import { BrandLogo, Wordmark } from './brand';
 import { SocialRow } from './Socials';
 import { NavMenu, NAV_LINKS } from './NavMenu';
+import { useSettings } from '../lib/useSettings';
 import type { Role } from '../types';
 
 export function PublicLayout() {
   const { user, logout } = useAuth();
+  const s = useSettings();
   return (
     <div className="min-h-screen flex flex-col relative">
       <Atmosphere />
@@ -85,7 +87,7 @@ export function PublicLayout() {
           <div>
             <Wordmark className="text-5xl" />
             <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mt-4">
-              Rocket League 3v3 · Temporada 01 · GRV-03
+              Rocket League {s.formatLabel} · Temporada 01 · GRV-03
             </p>
           </div>
           <div className="flex flex-col gap-4 md:items-end">

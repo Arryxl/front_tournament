@@ -6,13 +6,30 @@ import { TWITCH_CHANNEL } from '../../config';
 import type { Match } from '../../types';
 
 const PHASE: Record<string, string> = {
-  groups: 'Grupos', quarters: 'Cuartos', semis: 'Semis', third: '3.º', final: 'Final',
+  groups: 'Grupos', round16: 'Octavos', quarters: 'Cuartos', semis: 'Semis', third: '3.º', final: 'Final',
 };
 
 const VIEWS = [
-  { key: 'versus', label: 'Versus (pre-partido)', desc: 'Quién vs quién: escudos, nombres, fase y hora.' },
-  { key: 'predictions', label: 'Predicciones (chat)', desc: 'Votación del chat de Twitch en vivo (!1 / !2).' },
-  { key: 'stats', label: 'Stats finales', desc: 'Marcador, MVP y estadísticas por jugador.' },
+  {
+    key: 'versus',
+    label: 'Versus (pre-partido)',
+    desc: 'Escena completa con fondo de marca: escudos, nombres, fase y hora. Para la escena de "próximo partido".',
+  },
+  {
+    key: 'scoreboard',
+    label: 'Marcador en vivo',
+    desc: 'Barra superior transparente para superponer durante la partida. El marcador se actualiza solo (2–3 s).',
+  },
+  {
+    key: 'predictions',
+    label: 'Predicciones (chat)',
+    desc: 'Módulo acotado (esquina) con la votación del chat de Twitch en vivo (!1 / !2).',
+  },
+  {
+    key: 'stats',
+    label: 'Stats finales',
+    desc: 'Escena completa de resultado: marcador, MVP y estadísticas por jugador.',
+  },
 ] as const;
 
 function CopyRow({ url }: { url: string }) {
@@ -75,11 +92,14 @@ export default function AdminOverlays() {
       <h1 className="font-display font-black italic uppercase text-4xl tracking-tight mt-3 mb-2">
         Centro de overlays
       </h1>
-      <p className="font-mono text-[11px] text-mute leading-[1.8] max-w-[70ch] mb-6">
-        URLs para cargar como <b className="text-ink">Browser Source</b> en OBS (1920×1080, fondo
-        transparente). Cada overlay <b className="text-ink">lee del API por sí solo</b>: lo que
-        cargues en el panel (marcador, stats, abrir/cerrar predicciones) se refleja en pantalla en
-        2–3 s, sin tener que reabrir nada.
+      <p className="font-mono text-[11px] text-mute leading-[1.8] max-w-[74ch] mb-6">
+        URLs para cargar como <b className="text-ink">Browser Source</b> en OBS (1920×1080). Cada
+        overlay <b className="text-ink">lee del API por sí solo</b>: lo que cargues en el panel
+        (marcador, stats, abrir/cerrar predicciones) se refleja en pantalla en 2–3 s, sin reabrir
+        nada. <b className="text-ink">Versus</b> y <b className="text-ink">Stats</b> son escenas a
+        pantalla completa con fondo de marca (úsalas en escenas de standby/resultado);{' '}
+        <b className="text-ink">Marcador</b> y <b className="text-ink">Predicciones</b> tienen fondo
+        transparente para superponerse sobre el gameplay.
       </p>
 
       {matches.length === 0 ? (

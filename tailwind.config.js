@@ -10,6 +10,7 @@ export default {
         'void-2': '#121214', // superficies elevadas / cards
         'void-3': '#1A1A1D', // hover de superficie
         ink: '#F1ECDF', // texto principal / marca (el marfil de la G)
+        'ink-d': '#C9C4B7', // marfil atenuado (cuerpo secundario suave)
         mute: '#84847E', // texto secundario
         ignite: '#EC571E', // acento de marca (scoreboard / acción / estela)
         'ignite-h': '#FF6A2B', // brillo / hover del naranja

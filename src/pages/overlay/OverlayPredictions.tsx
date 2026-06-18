@@ -82,10 +82,8 @@ export default function OverlayPredictions() {
     status === 'open' ? 'Chat conectado' : status === 'connecting' ? 'Conectando al chat…' : 'Chat desconectado';
 
   return (
-    <div className="ov-root flex flex-col justify-end" style={{ padding: 'clamp(24px,4vw,64px)' }}>
-      <span className="ov-slash thin" style={{ top: '10%', left: '-4%', width: '20%' }} />
-
-      <div className="ov-panel p-[clamp(20px,2.4vw,40px)] ov-in">
+    <div className="ov-root flex items-end" style={{ padding: 'clamp(24px,3vw,52px)' }}>
+      <div className="ov-panel ov-slide-l p-[clamp(18px,2vw,34px)] w-full max-w-[700px]">
         {/* encabezado */}
         <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
           <div className="flex items-center gap-4">

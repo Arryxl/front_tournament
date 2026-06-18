@@ -1,20 +1,87 @@
 /* ============================================================
-   GRAVITY — Overlays para OBS (versus / stats / predicciones)
-   Fondo transparente para componer sobre la captura del juego.
+   GRAVITY — Overlays de transmisión para OBS (1920×1080)
+   "Velocidad de Escape" (brand book GRV-03)
+
+   Dos altitudes:
+   · ESCENA (versus / stats) → pantalla completa, standby/resultado.
+     Llevan fondo de marca propio (.ov-scene): asfalto + halo brasa.
+   · ENCIMA DEL JUEGO (scoreboard / predicciones) → fondo transparente,
+     módulos acotados que no tapan el gameplay.
+
+   Firma visual: el "racing slash" (skewX −24°) elevado a placa
+   estructural con clip-path que converge hacia el marcador.
    ============================================================ */
 
-.overlay-mode { background: transparent !important; }
+.overlay-mode {
+  background: transparent !important;
+}
 
 .ov-root {
   position: relative;
   min-height: 100vh;
   width: 100%;
   overflow: hidden;
+  /* body de marca (Saira); los titulares usan font-display vía Tailwind */
   font-family: 'Saira', system-ui, sans-serif;
   color: var(--ink);
 }
 
-/* entradas en cascada */
+/* ============================================================
+   ESCENA de marca a pantalla completa (versus / stats)
+   ============================================================ */
+.ov-scene::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(120% 75% at 50% -12%, rgba(236, 87, 30, 0.16), transparent 55%),
+    radial-gradient(90% 90% at 50% 120%, rgba(178, 62, 18, 0.12), transparent 52%),
+    linear-gradient(180deg, #0b0b0c 0%, #0e0e11 48%, #070708 100%);
+}
+
+/* grano + estelas de velocidad diagonales muy tenues */
+.ov-scene::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    repeating-linear-gradient(
+      -24deg,
+      transparent 0 84px,
+      rgba(241, 236, 223, 0.018) 84px 85px
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  background-size: auto, 160px 160px;
+  mix-blend-mode: screen;
+}
+
+/* wordmark fantasma gigante de fondo (firma de escena) */
+.ov-ghost {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) skewX(-8deg);
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  line-height: 0.8;
+  white-space: nowrap;
+  color: var(--ink);
+  opacity: 0.03;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ============================================================
+   Entradas en cascada
+   ============================================================ */
 @keyframes ovIn {
   from { opacity: 0; transform: translateY(26px); }
   to { opacity: 1; transform: none; }
@@ -23,25 +90,111 @@
   from { opacity: 0; transform: scale(0.94); }
   to { opacity: 1; transform: none; }
 }
+@keyframes ovSlideL {
+  from { opacity: 0; transform: translateX(-44px) skewX(-8deg); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes ovSlideR {
+  from { opacity: 0; transform: translateX(44px) skewX(8deg); }
+  to { opacity: 1; transform: none; }
+}
 .ov-in { animation: ovIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .ov-pop { animation: ovPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.ov-slide-l { animation: ovSlideL 0.75s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.ov-slide-r { animation: ovSlideR 0.75s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
-/* panel base de transmisión */
+/* ============================================================
+   Panel base de transmisión (módulos sobre juego)
+   Fondo casi sólido para no depender de backdrop-filter en OBS.
+   ============================================================ */
 .ov-panel {
-  background: rgba(12, 12, 14, 0.86);
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(18, 18, 20, 0.97), rgba(10, 10, 11, 0.97));
   border: 1px solid var(--line);
-  border-radius: 20px;
-  backdrop-filter: blur(12px) saturate(120%);
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
-  box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.7);
+  border-radius: 18px;
+  box-shadow:
+    0 40px 120px -30px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(241, 236, 223, 0.05);
+}
+/* filo brasa superior del panel */
+.ov-panel::before {
+  content: '';
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--ignite), transparent);
+  opacity: 0.7;
+  border-radius: 2px;
 }
 
-/* escudo */
+/* ============================================================
+   Placa diagonal de equipo (la firma estructural)
+   ============================================================ */
+.ov-plate {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 1.2vw, 22px);
+  padding: clamp(14px, 1.4vw, 24px) clamp(20px, 2vw, 40px);
+  background: linear-gradient(180deg, rgba(20, 20, 23, 0.98), rgba(11, 11, 13, 0.98));
+  border: 1px solid var(--line);
+  overflow: hidden;
+  min-width: 0;
+}
+.ov-plate--home {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 30px) 100%, 0 100%);
+  padding-right: clamp(36px, 3vw, 60px);
+  justify-content: flex-end;
+  text-align: right;
+}
+.ov-plate--away {
+  clip-path: polygon(30px 0, 100% 0, 100% 100%, 0 100%);
+  padding-left: clamp(36px, 3vw, 60px);
+}
+/* estela brasa en el filo interior (hacia el marcador) */
+.ov-plate--home::after,
+.ov-plate--away::after {
+  content: '';
+  position: absolute;
+  top: -10%;
+  height: 120%;
+  width: 5px;
+  background: var(--ignite);
+  box-shadow: 0 0 18px var(--ignite);
+  transform: skewX(-24deg);
+  opacity: 0.85;
+}
+.ov-plate--home::after { right: 18px; }
+.ov-plate--away::after { left: 18px; }
+/* placa del equipo ganador / al frente: se enciende */
+.ov-plate.is-win {
+  background: linear-gradient(180deg, rgba(236, 87, 30, 0.22), rgba(178, 62, 18, 0.1));
+  border-color: rgba(236, 87, 30, 0.55);
+}
+
+.ov-team-name {
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.88;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
+   Escudo
+   ============================================================ */
 .ov-crest {
-  border-radius: 16px;
+  border-radius: 14px;
   object-fit: cover;
   border: 1px solid var(--line);
-  background: var(--void-2);
+  background: var(--void);
   display: grid;
   place-items: center;
   font-family: 'Saira Condensed', sans-serif;
@@ -49,9 +202,12 @@
   font-style: italic;
   color: var(--mute);
   flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(241, 236, 223, 0.04);
 }
 
-/* trazo racing decorativo */
+/* ============================================================
+   Trazo racing decorativo (atmósfera)
+   ============================================================ */
 .ov-slash {
   position: absolute;
   height: 6px;
@@ -59,15 +215,73 @@
   transform: skewX(-24deg);
   border-radius: 2px;
   opacity: 0.9;
+  z-index: 0;
 }
 .ov-slash.thin { height: 3px; opacity: 0.45; }
 .ov-slash.ivory { background: var(--ink); opacity: 0.14; }
 
-/* barra de votación en vivo */
+/* ============================================================
+   Marcador en vivo (top bar) — OverlayScoreboard
+   ============================================================ */
+.ov-sb {
+  position: fixed;
+  top: clamp(22px, 3vh, 44px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr);
+  align-items: stretch;
+  width: min(1080px, 80vw);
+  filter: drop-shadow(0 26px 60px rgba(0, 0, 0, 0.7));
+}
+.ov-sb .ov-plate { height: 100%; }
+.ov-sb-center {
+  position: relative;
+  z-index: 2;
+  margin: -6px clamp(-22px, -1.5vw, -14px) 0;
+  padding: clamp(8px, 1vh, 14px) clamp(20px, 2vw, 36px) clamp(12px, 1.2vh, 18px);
+  background: linear-gradient(180deg, #16161a, #0a0a0b);
+  border: 1px solid var(--line);
+  border-radius: 4px 4px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.ov-sb-meta {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(9px, 0.8vw, 11px);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mute);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+.ov-sb-score {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.2vw, 20px);
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(40px, 4.4vw, 72px);
+  line-height: 0.82;
+  margin-top: 4px;
+}
+.ov-sb-score .sep { color: var(--mute); font-size: 0.5em; transform: translateY(-0.12em); }
+.ov-sb-num.win { color: var(--ignite); text-shadow: 0 0 22px rgba(236, 87, 30, 0.45); }
+
+/* ============================================================
+   Barra de votación en vivo (predicciones)
+   ============================================================ */
 .ov-vote-bar {
   display: flex;
-  height: 64px;
-  border-radius: 14px;
+  height: clamp(54px, 6vh, 68px);
+  border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--line);
 }
@@ -78,8 +292,25 @@
   min-width: 0;
   position: relative;
 }
-.ov-vote-a { background: linear-gradient(90deg, var(--ember), var(--ignite)); color: var(--void); }
-.ov-vote-b { background: linear-gradient(90deg, var(--void-3), var(--void-2)); color: var(--ink); }
+.ov-vote-a {
+  background: linear-gradient(90deg, var(--ember), var(--ignite));
+  color: var(--void);
+}
+.ov-vote-b {
+  background: linear-gradient(90deg, var(--void-3), var(--void-2));
+  color: var(--ink);
+}
+/* costura central entre las dos mitades */
+.ov-vote-b::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: -10%;
+  height: 120%;
+  width: 3px;
+  background: var(--void);
+  transform: skewX(-24deg);
+}
 
 /* ticker de votantes recientes */
 @keyframes voterIn {
@@ -88,18 +319,55 @@
 }
 .ov-voter { animation: voterIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
-/* punto "en vivo" */
-@keyframes ovPulse { 50% { opacity: 0.35; } }
-.ov-live-dot {
-  width: 9px; height: 9px; border-radius: 50%;
-  background: var(--ignite); box-shadow: 0 0 12px var(--ignite);
-  animation: ovPulse 1.3s infinite; display: inline-block;
+/* ============================================================
+   "En vivo" — punto que pulsa
+   ============================================================ */
+@keyframes ovPulse {
+  0% { box-shadow: 0 0 0 0 rgba(236, 87, 30, 0.55); }
+  70% { box-shadow: 0 0 0 8px rgba(236, 87, 30, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(236, 87, 30, 0); }
 }
+.ov-live-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ignite);
+  animation: ovPulse 1.6s infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* pastilla de estado (LIVE / FINAL / etc.) */
+.ov-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(9px, 0.85vw, 12px);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.ov-tag.live { color: var(--ignite); border-color: rgba(236, 87, 30, 0.5); }
 
 /* fila de stats que entra */
 .ov-stat-row { animation: ovIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
+/* ============================================================
+   Accesibilidad
+   ============================================================ */
 @media (prefers-reduced-motion: reduce) {
-  .ov-in, .ov-pop, .ov-voter, .ov-stat-row, .ov-live-dot { animation: none; }
+  .ov-in,
+  .ov-pop,
+  .ov-slide-l,
+  .ov-slide-r,
+  .ov-voter,
+  .ov-stat-row,
+  .ov-live-dot {
+    animation: none;
+  }
   .ov-vote-fill { transition: none; }
 }

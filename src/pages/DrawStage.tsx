@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { fileBase } from '../lib/api';
+import { useSettings } from '../lib/useSettings';
 import {
-  GROUPS,
   emptyBoard,
   openDrawChannel,
   type Board,
@@ -71,8 +71,12 @@ type OrbState = {
 };
 
 export default function DrawStage() {
+  const settings = useSettings();
+  const LETTERS = settings.groupLetters;
+  const qualified = LETTERS.length * 2;
+
   const [phase, setPhase] = useState<Phase>('idle');
-  const [board, setBoard] = useState<Board>(emptyBoard());
+  const [board, setBoard] = useState<Board>(emptyBoard(LETTERS));
   const [parade, setParade] = useState<TeamLite[]>([]);
   const [counter, setCounter] = useState<{ i: number; total: number }>({ i: 0, total: 0 });
 
@@ -84,6 +88,9 @@ export default function DrawStage() {
   const queue = useRef<Extract<DrawEvent, { type: 'reveal' }>[]>([]);
   const busy = useRef(false);
   const paradeRef = useRef<TeamLite[]>([]);
+  // Letras vigentes accesibles desde el closure del canal (evita stale state).
+  const lettersRef = useRef<readonly string[]>(LETTERS);
+  lettersRef.current = LETTERS;
 
   // -------- cola de reveals (se procesan de a uno, animados) --------
   const processQueue = async () => {
@@ -122,7 +129,7 @@ export default function DrawStage() {
     await sleep(900);
 
     // 5) cae al grupo
-    setBoard((b) => ({ ...b, [next.group]: [...b[next.group], next.team] }));
+    setBoard((b) => ({ ...b, [next.group]: [...(b[next.group] ?? []), next.team] }));
     setPulse(next.group);
     setCounter({ i: next.index, total: next.total });
     await sleep(360);
@@ -141,7 +148,7 @@ export default function DrawStage() {
           queue.current = [];
           busy.current = false;
           setOrb(null);
-          setBoard(emptyBoard());
+          setBoard(emptyBoard(lettersRef.current));
           setCounter({ i: 0, total: 0 });
           setPhase('intro');
           break;
@@ -161,7 +168,7 @@ export default function DrawStage() {
           queue.current = [];
           busy.current = false;
           setOrb(null);
-          setBoard(emptyBoard());
+          setBoard(emptyBoard(lettersRef.current));
           setParade([]);
           setCounter({ i: 0, total: 0 });
           setPhase('idle');
@@ -235,7 +242,8 @@ export default function DrawStage() {
             El sorteo
           </h1>
           <p className="draw-pop font-display text-[clamp(18px,2.4vw,30px)] text-ink mt-4 max-w-[22ch] mx-auto leading-[1.2]">
-            Dieciséis equipos. Cuatro grupos. <span className="text-ignite">Una sola final.</span>
+            {settings.teamCount} equipos. {LETTERS.length} grupos.{' '}
+            <span className="text-ignite">Una sola final.</span>
           </p>
           <p className="draw-pop font-mono text-[clamp(11px,1.2vw,14px)] tracking-[0.22em] uppercase text-mute mt-6" style={{ animationDelay: '0.35s' }}>
             Hoy se decide el camino hacia la copa
@@ -254,7 +262,7 @@ export default function DrawStage() {
               {parade.length} equipos en órbita
             </h2>
             <p className="font-mono text-[clamp(11px,1.2vw,14px)] tracking-[0.2em] uppercase text-mute mt-4">
-              Solo ocho cruzarán a la fase eliminatoria
+              Solo {qualified} cruzarán a la fase eliminatoria
             </p>
           </div>
           <div className="draw-parade-grid">
@@ -279,18 +287,18 @@ export default function DrawStage() {
       {(phase === 'draw' || phase === 'complete') && (
         <div className="draw-body">
           <div className="draw-groups">
-            {GROUPS.map((g) => (
+            {LETTERS.map((g) => (
               <div key={g} className={`draw-col ${pulse === g ? 'is-hot' : ''}`}>
                 <div className="draw-col-head">
                   <span className="font-display font-black italic uppercase tracking-tight text-2xl">
                     Grupo {g}
                   </span>
                   <span className="font-mono text-[11px] text-mute tabular-nums">
-                    {board[g].length}/4
+                    {(board[g] ?? []).length}/4
                   </span>
                 </div>
                 <div className="draw-col-body">
-                  {board[g].map((t) => (
+                  {(board[g] ?? []).map((t) => (
                     <div key={t.id} className="draw-chip">
                       <Crest team={t} size={34} />
                       <span className="font-display font-bold uppercase tracking-tight truncate text-[15px]">
@@ -298,7 +306,7 @@ export default function DrawStage() {
                       </span>
                     </div>
                   ))}
-                  {Array.from({ length: Math.max(0, 4 - board[g].length) }).map((_, i) => (
+                  {Array.from({ length: Math.max(0, 4 - (board[g] ?? []).length) }).map((_, i) => (
                     <div key={`empty-${i}`} className="draw-chip is-empty">
                       <span className="font-mono text-[11px] text-mute tracking-[0.2em]">—</span>
                     </div>

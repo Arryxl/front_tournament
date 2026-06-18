@@ -62,7 +62,7 @@ export interface Standing {
 export interface Match {
   id: string;
   matchCode: string;
-  phase: 'groups' | 'quarters' | 'semis' | 'third' | 'final';
+  phase: 'groups' | 'round16' | 'quarters' | 'semis' | 'third' | 'final';
   teamHomeId: string | null;
   teamAwayId: string | null;
   teamHome: Team | null;
@@ -100,6 +100,10 @@ export interface TournamentSettings {
   id: string;
   registrationsOpen: boolean;
   tournamentStarted: boolean;
+  teamCapacity: number;
+  playersPerSide: number;
+  substitutes: number;
+  registrationDeadline: string | null;
   updatedAt: string;
 }
 

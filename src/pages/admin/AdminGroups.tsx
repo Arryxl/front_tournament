@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, fileBase } from '../../lib/api';
 import { Spinner } from '../../components/ui';
+import { useSettings } from '../../lib/useSettings';
+import { useToast } from '../../components/Toast';
+import { useConfirm } from '../../components/Confirm';
+import { FilterBar, SearchBox, ChipGroup } from '../../components/admin/Filters';
 import {
-  GROUPS,
   emptyBoard,
   openDrawChannel,
   type Board,
@@ -26,6 +29,11 @@ const shuffle = <T,>(arr: T[]): T[] => {
 type Assignment = { team: TeamLite; group: GroupName };
 
 export default function AdminGroups() {
+  const settings = useSettings();
+  const toast = useToast();
+  const confirm = useConfirm();
+  const LETTERS = settings.groupLetters;
+
   const [groups, setGroups] = useState<Group[]>([]);
   const [standings, setStandings] = useState<Standing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,17 +42,24 @@ export default function AdminGroups() {
   // -------- sorteo en vivo --------
   const [approved, setApproved] = useState<TeamLite[]>([]);
   const [phase, setPhase] = useState<Phase>('idle');
-  const [board, setBoard] = useState<Board>(emptyBoard());
+  const [board, setBoard] = useState<Board>(emptyBoard(LETTERS));
   const [pointer, setPointer] = useState(0);
   const [prepared, setPrepared] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  // filtros de las tablas guardadas
+  const [fGroup, setFGroup] = useState<string>('all');
+  const [fTeam, setFTeam] = useState('');
+
+  // mostrar/ocultar el panel de sorteo (se colapsa cuando ya está sorteado)
+  const [drawOpen, setDrawOpen] = useState(false);
 
   const planRef = useRef<{ order: Assignment[]; assignments: Assignment[] } | null>(null);
   const channelRef = useRef<ReturnType<typeof openDrawChannel> | null>(null);
   const snapshotRef = useRef<DrawEvent>({
     type: 'sync',
     phase: 'idle',
-    board: emptyBoard(),
+    board: emptyBoard(LETTERS),
     parade: [],
     total: 0,
     revealed: 0,
@@ -105,9 +120,12 @@ export default function AdminGroups() {
 
   const prepare = () => {
     const arr = shuffle(approved);
-    const assignments: Assignment[] = arr.map((team, i) => ({ team, group: GROUPS[i % 4] }));
+    const assignments: Assignment[] = arr.map((team, i) => ({
+      team,
+      group: LETTERS[i % LETTERS.length],
+    }));
     planRef.current = { assignments, order: shuffle(assignments) };
-    setBoard(emptyBoard());
+    setBoard(emptyBoard(LETTERS));
     setPointer(0);
     setPrepared(true);
     setSaved(false);
@@ -119,7 +137,7 @@ export default function AdminGroups() {
 
   const doIntro = () => {
     if (!prepared) prepare();
-    setBoard(emptyBoard());
+    setBoard(emptyBoard(LETTERS));
     setPointer(0);
     setPhase('intro');
     post({ type: 'intro' });
@@ -151,7 +169,7 @@ export default function AdminGroups() {
     planRef.current = null;
     setPrepared(false);
     setSaved(false);
-    setBoard(emptyBoard());
+    setBoard(emptyBoard(LETTERS));
     setPointer(0);
     setPhase('idle');
     post({ type: 'reset' });
@@ -168,37 +186,84 @@ export default function AdminGroups() {
         })),
       });
       setSaved(true);
+      toast.success('Sorteo guardado', 'Ya se refleja en la llave y en las tablas.');
       load();
     } catch (e: any) {
-      alert(e.response?.data?.message || 'Error al guardar el sorteo');
+      toast.error('Error al guardar el sorteo', e.response?.data?.message);
     } finally {
       setBusy(false);
     }
   };
 
   const quickDraw = async () => {
-    if (!confirm('Sorteo rápido (sin show): reasignará todos los equipos aprobados.')) return;
+    const ok = await confirm({
+      title: 'Sorteo rápido',
+      body: 'Reasignará TODOS los equipos aprobados a los grupos al azar, sin la animación en vivo. ¿Continuar?',
+      confirmLabel: 'Sortear',
+      danger: true,
+    });
+    if (!ok) return;
     setBusy(true);
     try {
       await api.post('/groups/draw', {});
+      toast.success('Sorteo rápido completado', 'Equipos repartidos en los grupos.');
       load();
     } catch (e: any) {
-      alert(e.response?.data?.message || 'Error en el sorteo');
+      toast.error('Error en el sorteo', e.response?.data?.message);
     } finally {
       setBusy(false);
     }
   };
 
+  // Tablas construidas desde la asignación REAL equipo→grupo (groups[].teams),
+  // fusionando los stats de standings cuando existen. Así los grupos se ven
+  // aunque las standings estén vacías.
   const savedGroups = useMemo(
     () =>
-      groups.map((g) => ({
-        ...g,
-        rows: standings
-          .filter((s) => s.groupId === g.id)
-          .sort((a, b) => (a.position ?? 99) - (b.position ?? 99)),
-      })),
+      groups.map((g) => {
+        const gteams = g.teams || [];
+        const rows = gteams
+          .map((team) => {
+            const st = standings.find((s) => s.teamId === team.id);
+            return {
+              id: st?.id || team.id,
+              team,
+              played: st?.played ?? 0,
+              won: st?.won ?? 0,
+              drawn: st?.drawn ?? 0,
+              lost: st?.lost ?? 0,
+              goalsFor: st?.goalsFor ?? 0,
+              goalsAgainst: st?.goalsAgainst ?? 0,
+              points: st?.points ?? 0,
+              position: st?.position ?? null,
+            };
+          })
+          .sort((a, b) => {
+            if (a.position != null && b.position != null) return a.position - b.position;
+            if (b.points !== a.points) return b.points - a.points;
+            return b.goalsFor - b.goalsAgainst - (a.goalsFor - a.goalsAgainst);
+          });
+        return { ...g, rows };
+      }),
     [groups, standings],
   );
+
+  const teamsInGroups = groups.reduce((n, g) => n + (g.teams?.length ?? 0), 0);
+  const isDrawn = teamsInGroups > 0;
+  const standingsMissing = isDrawn && standings.length === 0;
+
+  const rebuildStandings = async () => {
+    setBusy(true);
+    try {
+      const { data } = await api.post('/groups/rebuild-standings', {});
+      toast.success('Tablas reconstruidas', `${data.created} filas creadas.`);
+      load();
+    } catch (e: any) {
+      toast.error('No se pudieron reconstruir', e.response?.data?.message);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   if (loading) return <Spinner />;
 
@@ -211,19 +276,64 @@ export default function AdminGroups() {
           <span className="kicker">Torneo</span>
           <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3">Grupos</h1>
         </div>
-        <button className="btn" onClick={quickDraw} disabled={busy}>
-          Sorteo rápido
-        </button>
+        <div className="flex items-center gap-2">
+          {isDrawn && (
+            <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-green border border-green/40 px-2.5 py-1.5 rounded">
+              ✓ Sorteado
+            </span>
+          )}
+          {(!isDrawn || drawOpen) && (
+            <button className="btn" onClick={quickDraw} disabled={busy}>
+              Sorteo rápido
+            </button>
+          )}
+        </div>
       </div>
 
+      {/* Panel compacto cuando ya está sorteado */}
+      {isDrawn && !drawOpen && (
+        <div className="card p-5 mb-8 flex items-center justify-between flex-wrap gap-3">
+          <div className="min-w-0">
+            <div className="font-display font-black uppercase tracking-tight text-xl">
+              Grupos sorteados
+            </div>
+            <p className="font-mono text-[11px] text-mute mt-1.5 leading-relaxed">
+              {teamsInGroups} equipos repartidos en {LETTERS.length} grupos. Las tablas están abajo.
+              {standingsMissing && ' Las posiciones aparecen vacías — pulsa «Reconstruir tablas».'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {standingsMissing && (
+              <button className="btn btn-ignite" onClick={rebuildStandings} disabled={busy}>
+                Reconstruir tablas
+              </button>
+            )}
+            <button className="btn" onClick={() => setDrawOpen(true)}>
+              Volver a sortear
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ============ SORTEO EN VIVO ============ */}
+      {(!isDrawn || drawOpen) && (
       <div className="card p-5 mb-8 border-ignite/30">
+        {isDrawn && drawOpen && (
+          <div className="flex justify-end mb-2">
+            <button
+              className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute hover:text-ignite"
+              onClick={() => setDrawOpen(false)}
+            >
+              ✕ Ocultar sorteo
+            </button>
+          </div>
+        )}
         <div className="flex items-center justify-between flex-wrap gap-3 mb-1">
           <div className="font-display font-black uppercase tracking-tight text-2xl">
             Sorteo en vivo
           </div>
           <span className="font-mono text-[11px] tracking-[0.2em] uppercase text-mute">
-            {total} equipos · 4 grupos
+            {total} equipos · {LETTERS.length} grupos
           </span>
         </div>
         <p className="font-mono text-[11px] text-mute mb-5 leading-[1.7]">
@@ -280,7 +390,7 @@ export default function AdminGroups() {
             {/* mirror del tablero */}
             {(phase === 'draw' || phase === 'complete') && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
-                {GROUPS.map((g) => (
+                {LETTERS.map((g) => (
                   <div key={g} className="card p-3">
                     <div className="font-display font-black uppercase tracking-tight text-sm mb-2 flex justify-between">
                       <span>Grupo {g}</span>
@@ -314,43 +424,89 @@ export default function AdminGroups() {
           </>
         )}
       </div>
+      )}
 
       {/* ============ GRUPOS GUARDADOS ============ */}
+      <div className="flex items-center gap-3 mb-4">
+        <h2 className="font-display font-black uppercase tracking-tight text-2xl">Tablas</h2>
+        <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">
+          {LETTERS.length} grupos · clasifican 1° y 2°
+        </span>
+      </div>
+
+      {savedGroups.length > 0 && (
+        <FilterBar>
+          <ChipGroup
+            label="Grupo"
+            value={fGroup}
+            onChange={setFGroup}
+            options={[{ value: 'all', label: 'Todos' }, ...savedGroups.map((g) => ({ value: g.name, label: g.name }))]}
+          />
+          <SearchBox value={fTeam} onChange={setFTeam} placeholder="Buscar equipo…" />
+        </FilterBar>
+      )}
+
       <div className="grid md:grid-cols-2 gap-5">
-        {savedGroups.map((g) => (
-          <div key={g.id} className="card p-4">
-            <div className="font-display font-black text-2xl mb-3">Grupo {g.name}</div>
-            <table className="w-full font-mono text-xs">
-              <thead className="text-mute">
-                <tr className="text-left">
-                  <th className="py-1">#</th>
-                  <th>Equipo</th>
-                  <th className="text-center">PJ</th>
-                  <th className="text-center">DG</th>
-                  <th className="text-center">Pts</th>
-                </tr>
-              </thead>
-              <tbody>
-                {g.rows.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="py-2 text-mute">
-                      Sin equipos
-                    </td>
-                  </tr>
+        {savedGroups
+          .filter((g) => fGroup === 'all' || g.name === fGroup)
+          .map((g) => {
+            const term = fTeam.trim().toLowerCase();
+            const rows = term ? g.rows.filter((s) => (s.team?.name || '').toLowerCase().includes(term)) : g.rows;
+            return (
+              <div key={g.id} className="card overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-line bg-void-2">
+                  <span className="font-display font-black uppercase tracking-tight text-xl">Grupo {g.name}</span>
+                  <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-mute">
+                    {g.rows.length} equipos
+                  </span>
+                </div>
+                {/* encabezado de columnas */}
+                <div className="grid grid-cols-[22px_1fr_26px_26px_26px_26px_34px_36px] gap-x-1.5 px-4 py-2 font-mono text-[9px] tracking-[0.1em] uppercase text-mute border-b border-line-2">
+                  <span>#</span>
+                  <span>Equipo</span>
+                  <span className="text-center">PJ</span>
+                  <span className="text-center">G</span>
+                  <span className="text-center">E</span>
+                  <span className="text-center">P</span>
+                  <span className="text-center">DG</span>
+                  <span className="text-right">Pts</span>
+                </div>
+                {rows.length === 0 ? (
+                  <p className="font-mono text-xs text-mute px-4 py-3">
+                    {term ? 'Sin coincidencias.' : 'Sin equipos.'}
+                  </p>
+                ) : (
+                  rows.map((s, i) => {
+                    const pos = s.position ?? i + 1;
+                    const top2 = pos <= 2;
+                    const dg = s.goalsFor - s.goalsAgainst;
+                    return (
+                      <div
+                        key={s.id}
+                        className={`grid grid-cols-[22px_1fr_26px_26px_26px_26px_34px_36px] gap-x-1.5 px-4 py-2 items-center border-b border-line-2 last:border-0 ${
+                          top2 ? 'bg-ignite/[0.05]' : ''
+                        }`}
+                      >
+                        <span className={`font-display font-black tabular-nums ${top2 ? 'text-ignite' : 'text-mute'}`}>
+                          {pos}
+                        </span>
+                        <span className="font-display font-bold text-sm truncate">{s.team?.name}</span>
+                        <span className="text-center font-mono text-[13px] text-mute tabular-nums">{s.played}</span>
+                        <span className="text-center font-mono text-[13px] tabular-nums">{s.won}</span>
+                        <span className="text-center font-mono text-[13px] tabular-nums">{s.drawn}</span>
+                        <span className="text-center font-mono text-[13px] tabular-nums">{s.lost}</span>
+                        <span className="text-center font-mono text-[13px] tabular-nums">
+                          {dg > 0 ? '+' : ''}
+                          {dg}
+                        </span>
+                        <span className="text-right font-display font-black text-base tabular-nums">{s.points}</span>
+                      </div>
+                    );
+                  })
                 )}
-                {g.rows.map((s, i) => (
-                  <tr key={s.id} className="border-t border-line-2">
-                    <td className="py-2">{i + 1}</td>
-                    <td className="font-display font-semibold text-sm">{s.team?.name}</td>
-                    <td className="text-center">{s.played}</td>
-                    <td className="text-center">{s.goalsFor - s.goalsAgainst}</td>
-                    <td className="text-center font-bold text-ignite">{s.points}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ))}
+              </div>
+            );
+          })}
       </div>
     </div>
   );

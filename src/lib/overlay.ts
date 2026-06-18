@@ -13,6 +13,7 @@ export const rankLabel = (r?: string | null) => (r ? RANK_LABEL[r] || r : '—')
 
 export const PHASE_LABEL: Record<string, string> = {
   groups: 'Fase de grupos',
+  round16: 'Octavos de final',
   quarters: 'Cuartos de final',
   semis: 'Semifinal',
   third: 'Tercer puesto',

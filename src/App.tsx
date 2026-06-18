@@ -13,10 +13,12 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import DrawStage from './pages/DrawStage';
 import OverlayVersus from './pages/overlay/OverlayVersus';
+import OverlayScoreboard from './pages/overlay/OverlayScoreboard';
 import OverlayStats from './pages/overlay/OverlayStats';
 import OverlayPredictions from './pages/overlay/OverlayPredictions';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminSettings from './pages/admin/AdminSettings';
 import AdminRegistrations from './pages/admin/AdminRegistrations';
 import AdminTeams from './pages/admin/AdminTeams';
 import AdminGroups from './pages/admin/AdminGroups';
@@ -30,6 +32,7 @@ import AdminOverlays from './pages/admin/AdminOverlays';
 
 const adminLinks = [
   { to: '/admin', label: 'Dashboard' },
+  { to: '/admin/settings', label: 'Configuración' },
   { to: '/admin/registrations', label: 'Inscripciones' },
   { to: '/admin/teams', label: 'Equipos' },
   { to: '/admin/groups', label: 'Grupos' },
@@ -95,6 +98,7 @@ export default function App() {
 
         {/* Overlays de partido para OBS (Browser Source, fondo transparente) */}
         <Route path="/overlay/match/:id/versus" element={<OverlayVersus />} />
+        <Route path="/overlay/match/:id/scoreboard" element={<OverlayScoreboard />} />
         <Route path="/overlay/match/:id/stats" element={<OverlayStats />} />
         <Route path="/overlay/match/:id/predictions" element={<OverlayPredictions />} />
 
@@ -114,6 +118,7 @@ export default function App() {
           }
         >
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/admin/registrations" element={<AdminRegistrations />} />
           <Route path="/admin/teams" element={<AdminTeams />} />
           <Route path="/admin/groups" element={<AdminGroups />} />

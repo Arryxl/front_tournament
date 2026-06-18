@@ -3,13 +3,12 @@
 // Cambia aquí los datos y se reflejan en toda la promo.
 // ============================================================
 
+// Nota: el formato (3v3…), nº de equipos, grupos y total de partidos ya NO se
+// fijan aquí — se derivan de /settings vía `useSettings()`. Aquí solo queda la
+// info de marca/promo que no cambia con la configuración del torneo.
 export const TOURNAMENT = {
   season: 'S01',
-  format: '3V3 · ELIMINACIÓN',
   platform: 'CROSS-PLAY',
-  teams: 16,
-  matches: 32,
-  groups: 4,
   rankRange: 'Platino 3 — Champion 3',
   tagline: 'Todo lo que sube, vuelve a caer. Nosotros decidimos dónde.',
 

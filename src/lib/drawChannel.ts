@@ -15,11 +15,16 @@ export interface TeamLite {
   players?: PlayerLite[];
 }
 
-export const GROUPS = ['A', 'B', 'C', 'D'] as const;
-export type GroupName = (typeof GROUPS)[number];
+// Los grupos ya no son fijos (A–D): dependen del nº de equipos (16 ⇒ A–D,
+// 32 ⇒ A–H). El nombre del grupo es una letra cualquiera.
+export type GroupName = string;
 
-export type Board = Record<GroupName, TeamLite[]>;
-export const emptyBoard = (): Board => ({ A: [], B: [], C: [], D: [] });
+export type Board = Record<string, TeamLite[]>;
+export const emptyBoard = (letters: readonly string[]): Board => {
+  const b: Board = {};
+  for (const l of letters) b[l] = [];
+  return b;
+};
 
 export type Phase = 'idle' | 'intro' | 'parade' | 'draw' | 'complete';
 

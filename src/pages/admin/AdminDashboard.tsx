@@ -2,32 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { Spinner } from '../../components/ui';
-import type { TournamentSettings } from '../../types';
+import { useSettings } from '../../lib/useSettings';
 
 export default function AdminDashboard() {
+  const settings = useSettings();
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState(true);
-  const [settings, setSettings] = useState<TournamentSettings | null>(null);
-  const [savingKey, setSavingKey] = useState<string | null>(null);
-
-  const loadSettings = () =>
-    api
-      .get('/settings')
-      .then((r) => setSettings(r.data))
-      .catch(() => {});
-
-  const toggle = async (key: 'registrationsOpen' | 'tournamentStarted', value: boolean) => {
-    setSavingKey(key);
-    try {
-      const r = await api.patch('/settings', { [key]: value });
-      setSettings(r.data);
-    } finally {
-      setSavingKey(null);
-    }
-  };
 
   useEffect(() => {
-    loadSettings();
     Promise.all([
       api.get('/teams'),
       api.get('/matches'),
@@ -71,6 +53,12 @@ export default function AdminDashboard() {
     { to: '/admin/predictions', label: 'Abrir predicciones', hint: 'Ventanas por partido' },
   ];
 
+  // Estado legible del torneo a partir de la configuración guardada.
+  const statePill = (on: boolean) =>
+    `font-mono text-[9px] tracking-[0.2em] uppercase px-2 py-0.5 rounded ${
+      on ? 'bg-ignite text-void' : 'border border-line text-mute'
+    }`;
+
   return (
     <div>
       <span className="kicker">Administración</span>
@@ -94,37 +82,51 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Estado del torneo — se propaga por todo el sistema (landing, llave, etc.) */}
-      <h2 className="font-display font-black uppercase tracking-tight text-xl mb-4">Estado del torneo</h2>
-      <div className="grid sm:grid-cols-2 gap-4 mb-12">
-        <StateToggle
-          label="Inscripciones"
-          on={!!settings?.registrationsOpen}
-          onText="Abiertas — los equipos pueden registrarse"
-          offText="Cerradas — no se aceptan nuevos equipos"
-          busy={savingKey === 'registrationsOpen'}
-          disabled={!settings}
-          onToggle={() => toggle('registrationsOpen', !settings?.registrationsOpen)}
-        />
-        <StateToggle
-          label="Torneo"
-          on={!!settings?.tournamentStarted}
-          onText="En curso — la fase de grupos arrancó"
-          offText="Sin comenzar — todavía en pretemporada"
-          busy={savingKey === 'tournamentStarted'}
-          disabled={!settings}
-          onToggle={() => toggle('tournamentStarted', !settings?.tournamentStarted)}
-        />
+      {/* Estado del torneo — solo lectura. Se edita en Configuración. */}
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+        <h2 className="font-display font-black uppercase tracking-tight text-xl">Estado del torneo</h2>
+        <Link to="/admin/settings" className="btn btn-ignite">
+          Configurar torneo →
+        </Link>
+      </div>
+      <div className="card p-6 mb-12">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div>
+            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mb-2">Inscripciones</div>
+            <span className={statePill(settings.registrationsOpen)}>
+              {settings.registrationsOpen ? 'ABIERTAS' : 'CERRADAS'}
+            </span>
+          </div>
+          <div>
+            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mb-2">Torneo</div>
+            <span className={statePill(settings.tournamentStarted)}>
+              {settings.tournamentStarted ? 'EN CURSO' : 'SIN COMENZAR'}
+            </span>
+          </div>
+          <div>
+            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mb-2">Formato</div>
+            <div className="font-display font-black uppercase tracking-tight text-2xl text-ink">
+              {settings.formatLabel}
+            </div>
+          </div>
+          <div>
+            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mb-2">Equipos · Grupos</div>
+            <div className="font-display font-black uppercase tracking-tight text-2xl text-ink">
+              {settings.teamCount} <span className="text-mute text-base">/ {settings.groups}g</span>
+            </div>
+          </div>
+        </div>
+        <div className="font-mono text-[10px] text-mute mt-5 leading-relaxed">
+          {settings.matchesTotal} partidos esperados ({settings.formatLabel},{' '}
+          {settings.playersPerSide}+{settings.substitutes} por equipo). Cambia estos valores en{' '}
+          <Link to="/admin/settings" className="text-ignite hover:underline">Configuración</Link>.
+        </div>
       </div>
 
       <h2 className="font-display font-black uppercase tracking-tight text-xl mb-4">Acciones rápidas</h2>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {actions.map((a) => (
-          <Link
-            key={a.to}
-            to={a.to}
-            className="card p-5 lift flex flex-col gap-2 group"
-          >
+          <Link key={a.to} to={a.to} className="card p-5 lift flex flex-col gap-2 group">
             <span className="font-display font-bold text-base group-hover:text-ignite transition-colors">
               {a.label}
             </span>
@@ -133,57 +135,6 @@ export default function AdminDashboard() {
           </Link>
         ))}
       </div>
-    </div>
-  );
-}
-
-function StateToggle({
-  label,
-  on,
-  onText,
-  offText,
-  busy,
-  disabled,
-  onToggle,
-}: {
-  label: string;
-  on: boolean;
-  onText: string;
-  offText: string;
-  busy: boolean;
-  disabled: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <div className={`card p-5 flex items-center justify-between gap-4 ${on ? 'border-ignite/40' : ''}`}>
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="font-display font-black uppercase tracking-tight text-lg">{label}</span>
-          <span
-            className={`font-mono text-[9px] tracking-[0.2em] uppercase px-2 py-0.5 rounded ${
-              on ? 'bg-ignite text-void' : 'border border-line text-mute'
-            }`}
-          >
-            {on ? 'ON' : 'OFF'}
-          </span>
-        </div>
-        <div className="font-mono text-[11px] text-mute mt-2 leading-snug">{on ? onText : offText}</div>
-      </div>
-      <button
-        type="button"
-        disabled={busy || disabled}
-        onClick={onToggle}
-        aria-pressed={on}
-        className={`relative w-14 h-8 rounded-full shrink-0 transition-colors disabled:opacity-40 ${
-          on ? 'bg-ignite' : 'bg-void-2 border border-line'
-        }`}
-      >
-        <span
-          className={`absolute top-1 w-6 h-6 rounded-full transition-all ${
-            on ? 'left-7 bg-void' : 'left-1 bg-mute'
-          }`}
-        />
-      </button>
     </div>
   );
 }

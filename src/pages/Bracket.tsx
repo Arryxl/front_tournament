@@ -1,33 +1,38 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
 import { Spinner } from '../components/ui';
+import { useSettings } from '../lib/useSettings';
 import type { Match, Standing, TournamentSettings } from '../types';
 
 /* ============================================================
-   Estructura fija de la llave (según el plan GRV).
-   Si la API ya trae partidos, se fusionan por matchCode;
-   si no, se muestran los cruces / seeds como referencia.
+   Estructura de la llave generada dinámicamente según el nº de
+   equipos (16 ⇒ cuartos→semis→final; 32 ⇒ octavos→cuartos→semis→final).
+   Si la API ya trae partidos, se fusionan por matchCode; si no, se
+   muestran los cruces / seeds como referencia.
    ============================================================ */
 
 type Slot = {
   code: string;
   format: 'bo3' | 'bo5' | 'bo7';
-  home: string; // nombre real o seed ("1°A", "Ganador Q01")
+  home: string; // nombre real o seed ("1° Grupo A", "Ganador Q01")
   away: string;
 };
 
-const BRACKET: Record<string, Slot> = {
-  Q01: { code: 'Q01', format: 'bo3', home: '1° Grupo A', away: '2° Grupo B' },
-  Q02: { code: 'Q02', format: 'bo3', home: '1° Grupo B', away: '2° Grupo A' },
-  Q03: { code: 'Q03', format: 'bo3', home: '1° Grupo C', away: '2° Grupo D' },
-  Q04: { code: 'Q04', format: 'bo3', home: '1° Grupo D', away: '2° Grupo C' },
-  SF1: { code: 'SF1', format: 'bo5', home: 'Ganador Q01', away: 'Ganador Q04' },
-  SF2: { code: 'SF2', format: 'bo5', home: 'Ganador Q02', away: 'Ganador Q03' },
-  GF: { code: 'GF', format: 'bo7', home: 'Ganador SF1', away: 'Ganador SF2' },
-  '3L': { code: '3L', format: 'bo7', home: 'Perdedor SF1', away: 'Perdedor SF2' },
+const FORMAT_LABEL: Record<string, string> = { bo3: 'BO3', bo5: 'BO5', bo7: 'BO7' };
+
+type ResolvedSlot = Slot & {
+  homeScore: number | null;
+  awayScore: number | null;
+  homeWin: boolean;
+  awayWin: boolean;
+  homeTbd: boolean;
+  awayTbd: boolean;
+  status: Match['status'] | 'scheduled';
 };
 
-const FORMAT_LABEL: Record<string, string> = { bo3: 'BO3', bo5: 'BO5', bo7: 'BO7' };
+type Node = { code: string; slot: ResolvedSlot; children?: Node[]; isFinal?: boolean };
+
+const pad2 = (n: number) => String(n).padStart(2, '0');
 
 /* ---------------- Tarjeta de partido del bracket ---------------- */
 function BracketMatch({ slot, live, isFinal }: { slot: ResolvedSlot; live?: boolean; isFinal?: boolean }) {
@@ -56,19 +61,6 @@ function BracketMatch({ slot, live, isFinal }: { slot: ResolvedSlot; live?: bool
   );
 }
 
-type ResolvedSlot = Slot & {
-  homeScore: number | null;
-  awayScore: number | null;
-  homeWin: boolean;
-  awayWin: boolean;
-  homeTbd: boolean;
-  awayTbd: boolean;
-  status: Match['status'] | 'scheduled';
-};
-
-/* ---------------- Nodo recursivo del árbol ---------------- */
-type Node = { slot: ResolvedSlot; children?: Node[]; isFinal?: boolean };
-
 function BracketNode({ node }: { node: Node }) {
   return (
     <div className="bk-node">
@@ -78,7 +70,7 @@ function BracketNode({ node }: { node: Node }) {
       {node.children && (
         <div className="bk-branches">
           {node.children.map((c) => (
-            <BracketNode key={c.slot.code} node={c} />
+            <BracketNode key={c.code} node={c} />
           ))}
         </div>
       )}
@@ -98,8 +90,6 @@ function ColHead({ final, children }: { final?: boolean; children: string }) {
 
 /* ============================================================
    Fase de grupos — DATOS REALES desde /groups/standings.
-   Si un grupo aún no tiene equipos, se muestran filas
-   "Por confirmar" como marcador de posición.
    ============================================================ */
 type Row = {
   pos: number;
@@ -113,8 +103,6 @@ type Row = {
   pts: number;
   placeholder: boolean;
 };
-
-const GROUP_LETTERS = ['A', 'B', 'C', 'D'] as const;
 
 function placeholderRows(): Row[] {
   return Array.from({ length: 4 }, (_, i) => ({
@@ -131,7 +119,6 @@ function placeholderRows(): Row[] {
   }));
 }
 
-// Plantilla compacta: en móvil se ocultan G/E/P para evitar scroll horizontal.
 const COLS =
   'grid-cols-[18px_1fr_26px_30px_34px] sm:grid-cols-[22px_1fr_28px_26px_26px_26px_34px_36px]';
 
@@ -201,7 +188,7 @@ function GroupTable({ name, rows, started }: { name: string; rows: Row[]; starte
       })}
 
       <div className="px-4 py-2 font-mono text-[9px] tracking-[0.15em] uppercase text-mute bg-void/40">
-        <span className="text-ignite">1° · 2°</span> clasifican a cuartos
+        <span className="text-ignite">1° · 2°</span> clasifican a la llave
       </div>
     </div>
   );
@@ -244,28 +231,29 @@ function StatusBanner({ settings }: { settings: TournamentSettings | null }) {
 
 /* ============================================================ */
 export default function Bracket() {
+  const settings = useSettings();
+  const letters = settings.groupLetters;
+
   const [matches, setMatches] = useState<Match[]>([]);
   const [standings, setStandings] = useState<Standing[]>([]);
-  const [settings, setSettings] = useState<TournamentSettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const settingsRaw: TournamentSettings | null = settings.raw;
 
   useEffect(() => {
     Promise.all([
       api.get('/matches/bracket').catch(() => ({ data: [] })),
       api.get('/groups/standings').catch(() => ({ data: [] })),
-      api.get('/settings').catch(() => ({ data: null })),
     ])
-      .then(([m, s, st]) => {
+      .then(([m, s]) => {
         setMatches(m.data);
         setStandings(s.data);
-        setSettings(st.data);
       })
       .finally(() => setLoading(false));
   }, []);
 
-  // Construye las tablas de cada grupo a partir de los standings reales.
+  // Tablas de cada grupo a partir de los standings reales.
   const groups = useMemo(() => {
-    return GROUP_LETTERS.map((letter) => {
+    return letters.map((letter) => {
       const rows = standings
         .filter((s) => s.group?.name === letter)
         .map((s, i) => ({
@@ -282,20 +270,21 @@ export default function Bracket() {
         }));
       return { name: letter, rows: rows.length ? rows : placeholderRows() };
     });
-  }, [standings]);
+  }, [standings, letters]);
 
-  // Fusiona la estructura fija con los datos reales (si existen).
+  // Resolver: fusiona la estructura con datos reales por matchCode.
   const resolve = useMemo(() => {
     const byCode = new Map(matches.map((m) => [m.matchCode, m]));
-    return (code: string): ResolvedSlot => {
-      const base = BRACKET[code];
+    return (code: string, base: { home: string; away: string }): ResolvedSlot => {
       const m = byCode.get(code);
       const homeName = m?.teamHome?.name;
       const awayName = m?.teamAway?.name;
       const homeWin = !!(m?.winnerId && m.winnerId === m.teamHomeId);
       const awayWin = !!(m?.winnerId && m.winnerId === m.teamAwayId);
+      const format = (m?.format as Slot['format']) ?? 'bo3';
       return {
-        ...base,
+        code,
+        format,
         home: homeName || base.home,
         away: awayName || base.away,
         homeTbd: !homeName,
@@ -309,6 +298,55 @@ export default function Bracket() {
     };
   }, [matches]);
 
+  // Estructura de la llave (rondas + seeds) según el nº de grupos.
+  const { tree, colHeads, thirdSlot } = useMemo(() => {
+    // Rondas, de la primera (más equipos) a la final.
+    const firstRoundHasR16 = letters.length * 2 >= 16;
+    const rounds: { codes: string[]; label: string }[] = [];
+    if (firstRoundHasR16) {
+      rounds.push({ codes: Array.from({ length: 8 }, (_, i) => `R${pad2(i + 1)}`), label: 'Octavos de Final' });
+    }
+    rounds.push({ codes: Array.from({ length: 4 }, (_, i) => `Q${pad2(i + 1)}`), label: 'Cuartos de Final' });
+    rounds.push({ codes: ['SF1', 'SF2'], label: 'Semifinales' });
+    rounds.push({ codes: ['GF'], label: 'Gran Final' });
+
+    // Seeds de la primera ronda a partir de pares de grupos (A,B),(C,D)…
+    const pairs: [string, string][] = [];
+    for (let i = 0; i < letters.length; i += 2) {
+      pairs.push([letters[i], letters[i + 1] ?? letters[i]]);
+    }
+    const firstSeeds = pairs.flatMap(([g1, g2]) => [
+      { home: `1° Grupo ${g1}`, away: `2° Grupo ${g2}` },
+      { home: `1° Grupo ${g2}`, away: `2° Grupo ${g1}` },
+    ]);
+
+    const lastRound = rounds.length - 1;
+    const build = (roundIdx: number, matchIdx: number): Node => {
+      const code = rounds[roundIdx].codes[matchIdx];
+      if (roundIdx === 0) {
+        const seed = firstSeeds[matchIdx] || { home: 'Por confirmar', away: 'Por confirmar' };
+        return { code, slot: resolve(code, seed) };
+      }
+      const children = [build(roundIdx - 1, matchIdx * 2), build(roundIdx - 1, matchIdx * 2 + 1)];
+      const base = {
+        home: `Ganador ${children[0].code}`,
+        away: `Ganador ${children[1].code}`,
+      };
+      return {
+        code,
+        slot: resolve(code, base),
+        children,
+        isFinal: roundIdx === lastRound,
+      };
+    };
+
+    const tree = build(lastRound, 0);
+    // Encabezados de columna, de la final hacia la primera ronda.
+    const colHeads = [...rounds].reverse().map((r) => r.label);
+    const thirdSlot = resolve('3L', { home: 'Perdedor SF1', away: 'Perdedor SF2' });
+    return { tree, colHeads, thirdSlot };
+  }, [letters, resolve]);
+
   if (loading)
     return (
       <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-24">
@@ -316,26 +354,12 @@ export default function Bracket() {
       </div>
     );
 
-  const tournamentStarted = !!settings?.tournamentStarted;
-
-  const tree: Node = {
-    isFinal: true,
-    slot: resolve('GF'),
-    children: [
-      {
-        slot: resolve('SF1'),
-        children: [{ slot: resolve('Q01') }, { slot: resolve('Q04') }],
-      },
-      {
-        slot: resolve('SF2'),
-        children: [{ slot: resolve('Q02') }, { slot: resolve('Q03') }],
-      },
-    ],
-  };
+  const tournamentStarted = !!settingsRaw?.tournamentStarted;
+  const groupCols = letters.length >= 8 ? 'lg:grid-cols-4' : 'md:grid-cols-2';
 
   return (
     <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-16">
-      <StatusBanner settings={settings} />
+      <StatusBanner settings={settingsRaw} />
 
       {/* ---------- FASE DE GRUPOS ---------- */}
       <section className="mb-16">
@@ -352,7 +376,7 @@ export default function Bracket() {
               : 'Las tablas se llenan tras el sorteo. Hasta entonces verás «Por confirmar».'}
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${groupCols} gap-4`}>
           {groups.map((g) => (
             <GroupTable key={g.name} name={g.name} rows={g.rows} started={tournamentStarted} />
           ))}
@@ -374,12 +398,13 @@ export default function Bracket() {
         </div>
 
         <div className="bk-scroll">
-          {/* envoltura que escala al contenido: encabezados y árbol comparten ancho */}
           <div className="inline-block min-w-full">
             <div className="flex flex-row-reverse gap-[var(--bk-ch)] mb-4">
-              <ColHead final>Gran Final</ColHead>
-              <ColHead>Semifinales</ColHead>
-              <ColHead>Cuartos de Final</ColHead>
+              {colHeads.map((label, i) => (
+                <ColHead key={label} final={i === 0}>
+                  {label}
+                </ColHead>
+              ))}
             </div>
             <BracketNode node={tree} />
           </div>
@@ -388,10 +413,10 @@ export default function Bracket() {
         {/* Tercer lugar */}
         <div className="mt-10">
           <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-mute">
-            Tercer lugar · BO7
+            Tercer lugar · {FORMAT_LABEL[thirdSlot.format]}
           </span>
           <div className="mt-3 max-w-[230px]">
-            <BracketMatch slot={resolve('3L')} />
+            <BracketMatch slot={thirdSlot} />
           </div>
         </div>
       </section>

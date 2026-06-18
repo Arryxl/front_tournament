@@ -1,14 +1,25 @@
 import { useEffect, useState } from 'react';
 import { api, fileBase } from '../../lib/api';
 import { Spinner, StatusBadge } from '../../components/ui';
+import { useSettings } from '../../lib/useSettings';
+import { useToast } from '../../components/Toast';
+import { FilterBar, SearchBox, ChipGroup, ResultCount } from '../../components/admin/Filters';
 import type { Registration } from '../../types';
 
 export default function AdminRegistrations() {
+  const settings = useSettings();
+  const toast = useToast();
+  const STARTERS = settings.playersPerSide;
   const [list, setList] = useState<Registration[]>([]);
   const [filter, setFilter] = useState('pending');
+  const [q, setQ] = useState('');
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
   const [result, setResult] = useState<any>(null);
+
+  const shown = q.trim()
+    ? list.filter((r) => r.teamName.toLowerCase().includes(q.trim().toLowerCase()))
+    : list;
 
   const load = () => {
     setLoading(true);
@@ -20,16 +31,26 @@ export default function AdminRegistrations() {
   useEffect(load, [filter]);
 
   const approve = async (id: string) => {
-    const { data } = await api.post(`/teams/registrations/${id}/approve`, {});
-    setResult(data);
-    load();
+    try {
+      const { data } = await api.post(`/teams/registrations/${id}/approve`, {});
+      setResult(data);
+      toast.success('Equipo aprobado', `${data.team?.name} · credenciales generadas.`);
+      load();
+    } catch (e: any) {
+      toast.error('No se pudo aprobar', e.response?.data?.message);
+    }
   };
 
   const reject = async (id: string) => {
     const reason = prompt('Motivo del rechazo:');
     if (!reason) return;
-    await api.post(`/teams/registrations/${id}/reject`, { reason });
-    load();
+    try {
+      await api.post(`/teams/registrations/${id}/reject`, { reason });
+      toast.info('Inscripción rechazada', 'El equipo fue marcado como rechazado.');
+      load();
+    } catch (e: any) {
+      toast.error('No se pudo rechazar', e.response?.data?.message);
+    }
   };
 
   return (
@@ -39,17 +60,21 @@ export default function AdminRegistrations() {
         Inscripciones
       </h1>
 
-      <div className="flex gap-2 mb-6">
-        {['pending', 'approved', 'rejected', ''].map((f) => (
-          <button
-            key={f || 'all'}
-            onClick={() => setFilter(f)}
-            className={`btn ${filter === f ? 'btn-ignite' : ''}`}
-          >
-            {f === '' ? 'Todas' : f}
-          </button>
-        ))}
-      </div>
+      <FilterBar>
+        <SearchBox value={q} onChange={setQ} placeholder="Buscar equipo…" />
+        <ChipGroup
+          label="Estado"
+          value={filter}
+          onChange={setFilter}
+          options={[
+            { value: 'pending', label: 'Pendientes' },
+            { value: 'approved', label: 'Aprobadas' },
+            { value: 'rejected', label: 'Rechazadas' },
+            { value: '', label: 'Todas' },
+          ]}
+        />
+        <ResultCount shown={shown.length} total={list.length} noun="inscripciones" onReset={() => setQ('')} />
+      </FilterBar>
 
       {result && (
         <div className="card p-5 mb-6 border-green/40">
@@ -71,8 +96,12 @@ export default function AdminRegistrations() {
         <Spinner />
       ) : (
         <div className="flex flex-col gap-3">
-          {list.length === 0 && <p className="font-mono text-xs text-mute">Sin inscripciones.</p>}
-          {list.map((r) => (
+          {shown.length === 0 && (
+            <p className="font-mono text-xs text-mute">
+              {q ? 'Ninguna inscripción coincide.' : 'Sin inscripciones.'}
+            </p>
+          )}
+          {shown.map((r) => (
             <div key={r.id} className="card p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -123,12 +152,12 @@ export default function AdminRegistrations() {
                   {[1, 2, 3, 4, 5].map((n) => {
                     const epic = (r as any)[`player${n}Epic`];
                     const steam = (r as any)[`player${n}Steam`];
-                    if (n > 3 && !epic && !steam) return null; // suplente sin datos
-                    const sub = n > 3;
+                    if (n > STARTERS && !epic && !steam) return null; // suplente sin datos
+                    const sub = n > STARTERS;
                     return (
                       <div key={n} className="font-mono text-xs text-mute">
                         <div className="text-ink font-bold mb-1">
-                          {sub ? `Suplente ${n - 3}` : `Jugador ${n}`} {r.captainPlayer === n && '(C)'}
+                          {sub ? `Suplente ${n - STARTERS}` : `Jugador ${n}`} {r.captainPlayer === n && '(C)'}
                           {sub && <span className="text-mute"> · SUP</span>}
                         </div>
                         <div>Epic: {epic || '—'}</div>

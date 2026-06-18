@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, fileBase } from '../lib/api';
+import { useSettings } from '../lib/useSettings';
 
 // Rango elegible: Platino 3 → Champion 3 (sin Platino 4).
 const RANKS = [
@@ -22,11 +23,13 @@ interface PlayerData {
 }
 const emptyPlayer = (): PlayerData => ({ epic: '', steam: '', rank: 'plat3', screenshot: '' });
 
-// 3 titulares + 2 suplentes (mismos requisitos).
-const STARTERS = 3;
-const TOTAL_PLAYERS = 5;
+// La entidad de inscripción soporta hasta 5 jugadores (player1..player5).
+const MAX_PLAYERS = 5;
 
 const fileUrl = (u: string) => (u.startsWith('http') ? u : `${fileBase}${u}`);
+
+const numberWord = (n: number) =>
+  ['cero', 'un', 'dos', 'tres', 'cuatro', 'cinco'][n] ?? String(n);
 
 const STEPS = ['Equipo', 'Jugadores', 'Confirmar'];
 
@@ -146,27 +149,37 @@ function PlayerForm({
 
 /* ---------------- Página ---------------- */
 export default function Register() {
+  const settings = useSettings();
+  // Titulares = jugadores por lado (1v1/2v2/3v3); + suplentes. Tope de 5 por
+  // las columnas de la inscripción.
+  const STARTERS = settings.playersPerSide;
+  const TOTAL_PLAYERS = Math.min(MAX_PLAYERS, settings.playersPerSide + settings.substitutes);
+  const SUBS = TOTAL_PLAYERS - STARTERS;
+  const regOpen = settings.loading ? null : settings.registrationsOpen;
+
   const [step, setStep] = useState(0);
   const [teamName, setTeamName] = useState('');
   const [shieldUrl, setShieldUrl] = useState('');
   const [contactMethod, setContactMethod] = useState<'discord' | 'email'>('discord');
   const [contactValue, setContactValue] = useState('');
   const [players, setPlayers] = useState<PlayerData[]>(
-    Array.from({ length: TOTAL_PLAYERS }, emptyPlayer),
+    Array.from({ length: MAX_PLAYERS }, emptyPlayer),
   );
   const [captain, setCaptain] = useState(1);
   const [accepted, setAccepted] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [regOpen, setRegOpen] = useState<boolean | null>(null);
 
+  // Ajusta el array de jugadores al total requerido por el formato actual.
   useEffect(() => {
-    api
-      .get('/settings')
-      .then((r) => setRegOpen(!!r.data?.registrationsOpen))
-      .catch(() => setRegOpen(true)); // ante la duda, no bloqueamos
-  }, []);
+    setPlayers((prev) => {
+      const next = prev.slice(0, TOTAL_PLAYERS);
+      while (next.length < TOTAL_PLAYERS) next.push(emptyPlayer());
+      return next;
+    });
+    setCaptain((c) => Math.min(c, STARTERS));
+  }, [TOTAL_PLAYERS, STARTERS]);
 
   const updatePlayer = (i: number, d: Partial<PlayerData>) =>
     setPlayers((prev) => prev.map((p, idx) => (idx === i ? { ...p, ...d } : p)));
@@ -192,12 +205,13 @@ export default function Register() {
       }
     }
     if (step === 1) {
-      if (players.some((p) => !p.epic && !p.steam)) {
+      const roster = players.slice(0, TOTAL_PLAYERS);
+      if (roster.some((p) => !p.epic && !p.steam)) {
         setError('Cada jugador (titulares y suplentes) necesita al menos un usuario (Epic o Steam).');
         return false;
       }
-      if (players.some((p) => !p.screenshot)) {
-        setError('La captura de pantalla principal es obligatoria para los 5 jugadores.');
+      if (roster.some((p) => !p.screenshot)) {
+        setError(`La captura de pantalla principal es obligatoria para los ${TOTAL_PLAYERS} jugadores.`);
         return false;
       }
     }
@@ -299,8 +313,10 @@ export default function Register() {
         Inscribe<br />tu equipo
       </h1>
       <p className="font-display text-mute text-base max-w-[58ch] mb-10 leading-[1.6]">
-        Cinco jugadores (3 titulares + 2 suplentes), un escudo y la captura de pantalla principal de
-        cada uno. Rango elegible: <b className="text-ink">Platino 3 a Champion 3</b>.
+        {TOTAL_PLAYERS} jugadores ({numberWord(STARTERS)} {STARTERS === 1 ? 'titular' : 'titulares'} +{' '}
+        {numberWord(SUBS)} {SUBS === 1 ? 'suplente' : 'suplentes'}), un escudo y la captura de pantalla
+        principal de cada uno. Formato <b className="text-ink">{settings.formatLabel}</b> · rango
+        elegible: <b className="text-ink">Platino 3 a Champion 3</b>.
       </p>
 
       {/* stepper */}
@@ -428,7 +444,7 @@ export default function Register() {
               <div>
                 <label className="label">¿Quién es el capitán? (titulares)</label>
                 <div className="grid grid-cols-3 gap-2 mt-1">
-                  {[1, 2, 3].map((n) => (
+                  {Array.from({ length: STARTERS }, (_, i) => i + 1).map((n) => (
                     <button
                       key={n}
                       type="button"
@@ -494,12 +510,12 @@ export default function Register() {
               <div className="font-display font-black uppercase text-lg tracking-tight truncate">
                 {teamName || 'Tu equipo'}
               </div>
-              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">3v3 · RL</div>
+              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">{settings.formatLabel} · RL</div>
             </div>
           </div>
 
           <div className="flex flex-col divide-y divide-line-2 border-t border-line-2">
-            {players.map((p, i) => {
+            {players.slice(0, TOTAL_PLAYERS).map((p, i) => {
               const named = p.epic || p.steam;
               const sub = i >= STARTERS;
               return (
@@ -528,8 +544,8 @@ export default function Register() {
             </div>
             <div className="flex justify-between">
               <span>Capturas principales</span>
-              <span className={players.every((p) => p.screenshot) ? 'text-green' : 'text-ink'}>
-                {players.filter((p) => p.screenshot).length}/{TOTAL_PLAYERS}
+              <span className={players.slice(0, TOTAL_PLAYERS).every((p) => p.screenshot) ? 'text-green' : 'text-ink'}>
+                {players.slice(0, TOTAL_PLAYERS).filter((p) => p.screenshot).length}/{TOTAL_PLAYERS}
               </span>
             </div>
           </div>

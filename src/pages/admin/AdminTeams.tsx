@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { api, fileBase } from '../../lib/api';
 import { Spinner, StatusBadge } from '../../components/ui';
+import { useToast } from '../../components/Toast';
+import { useConfirm } from '../../components/Confirm';
+import { useSettings } from '../../lib/useSettings';
+import { FilterBar, SearchBox, ChipGroup, ResultCount } from '../../components/admin/Filters';
 import type { Group, Team } from '../../types';
 
 const RANKS = [
@@ -31,6 +35,12 @@ const emptyAdd = (): AddForm => ({
 });
 
 export default function AdminTeams() {
+  const toast = useToast();
+  const confirm = useConfirm();
+  const settings = useSettings();
+  const STARTERS = settings.playersPerSide;
+  const [q, setQ] = useState('');
+  const [fGroup, setFGroup] = useState('all');
   const [teams, setTeams] = useState<Team[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,30 +80,56 @@ export default function AdminTeams() {
   };
 
   const save = async (id: string) => {
-    await api.patch(`/teams/${id}`, {
-      name: form.name,
-      groupId: form.groupId || null,
-      contactMethod: form.contactMethod,
-      contactValue: form.contactValue.trim() || null,
-    });
-    setEdit(null);
-    load();
+    try {
+      await api.patch(`/teams/${id}`, {
+        name: form.name,
+        groupId: form.groupId || null,
+        contactMethod: form.contactMethod,
+        contactValue: form.contactValue.trim() || null,
+      });
+      toast.success('Equipo actualizado', form.name);
+      setEdit(null);
+      load();
+    } catch (err: any) {
+      toast.error('No se pudo guardar', err.response?.data?.message);
+    }
   };
 
-  const toggleAccess = async (memberId: string, active: boolean) => {
-    await api.patch(`/teams/members/${memberId}/access`, { active });
-    load();
+  const toggleAccess = async (memberId: string, active: boolean, name: string) => {
+    try {
+      await api.patch(`/teams/members/${memberId}/access`, { active });
+      toast.success(active ? `Acceso restaurado · ${name}` : `Acceso revocado · ${name}`);
+      load();
+    } catch (err: any) {
+      toast.error('No se pudo cambiar el acceso', err.response?.data?.message);
+    }
   };
 
-  const setCaptain = async (memberId: string) => {
-    await api.patch(`/teams/members/${memberId}`, { isCaptain: true });
-    load();
+  const setCaptain = async (memberId: string, name: string) => {
+    try {
+      await api.patch(`/teams/members/${memberId}`, { isCaptain: true });
+      toast.success(`Nuevo capitán · ${name}`);
+      load();
+    } catch (err: any) {
+      toast.error('No se pudo asignar capitán', err.response?.data?.message);
+    }
   };
 
   const removeMember = async (memberId: string, name: string) => {
-    if (!confirm(`¿Quitar a ${name} del equipo? Se deshabilitará su cuenta.`)) return;
-    await api.delete(`/teams/members/${memberId}`);
-    load();
+    const ok = await confirm({
+      title: `Quitar a ${name}`,
+      body: 'Se eliminará del equipo y se deshabilitará su cuenta. ¿Continuar?',
+      confirmLabel: 'Quitar',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await api.delete(`/teams/members/${memberId}`);
+      toast.success(`${name} fue quitado del equipo`);
+      load();
+    } catch (err: any) {
+      toast.error('No se pudo quitar', err.response?.data?.message);
+    }
   };
 
   const uploadShot = async (file: File) => {
@@ -117,11 +153,13 @@ export default function AdminTeams() {
     try {
       const { data } = await api.post(`/teams/${teamId}/members`, addForm);
       setCred({ ...data.credentials });
+      toast.success('Jugador agregado', 'Credenciales generadas abajo.');
       setAddForm(emptyAdd());
       setAddingFor(null);
       load();
     } catch (err: any) {
       setAddError(err.response?.data?.message || 'Error al agregar jugador');
+      toast.error('No se pudo agregar', err.response?.data?.message);
     } finally {
       setAddBusy(false);
     }
@@ -131,15 +169,41 @@ export default function AdminTeams() {
 
   const approved = teams.filter((t) => t.status === 'approved');
   const groupName = (id: string | null) => groups.find((g) => g.id === id)?.name;
+  const term = q.trim().toLowerCase();
+  const shown = approved.filter((t) => {
+    if (fGroup === 'all' && term === '') return true;
+    if (fGroup === 'none' && t.groupId) return false;
+    if (fGroup !== 'all' && fGroup !== 'none' && groupName(t.groupId) !== fGroup) return false;
+    if (term) {
+      const members = (t.members || [])
+        .map((m) => `${m.epicUsername || ''} ${m.steamUsername || ''} ${m.user?.username || ''}`)
+        .join(' ');
+      if (!`${t.name} ${members}`.toLowerCase().includes(term)) return false;
+    }
+    return true;
+  });
+  const groupOptions = [
+    { value: 'all', label: 'Todos' },
+    ...groups.map((g) => ({ value: g.name, label: g.name })),
+    { value: 'none', label: 'Sin grupo' },
+  ];
 
   return (
     <div>
       <span className="kicker">Torneo</span>
       <h1 className="font-display font-black uppercase text-4xl tracking-tight mt-3 mb-2">Equipos</h1>
-      <p className="font-mono text-[11px] text-mute mb-8">
+      <p className="font-mono text-[11px] text-mute mb-6">
         {approved.length} equipos aprobados. Gestiona el roster: revoca accesos, reemplaza o agrega
         jugadores.
       </p>
+
+      {approved.length > 0 && (
+        <FilterBar>
+          <SearchBox value={q} onChange={setQ} placeholder="Buscar equipo o jugador…" />
+          <ChipGroup label="Grupo" value={fGroup} onChange={setFGroup} options={groupOptions} />
+          <ResultCount shown={shown.length} total={approved.length} noun="equipos" onReset={() => { setQ(''); setFGroup('all'); }} />
+        </FilterBar>
+      )}
 
       {cred && (
         <div className="card p-5 mb-6 border-green/40">
@@ -157,12 +221,14 @@ export default function AdminTeams() {
       )}
 
       <div className="flex flex-col gap-3">
-        {approved.length === 0 && (
+        {approved.length === 0 ? (
           <p className="font-mono text-xs text-mute">
             Aún no hay equipos aprobados. Aprueba inscripciones en “Inscripciones”.
           </p>
-        )}
-        {approved.map((t) => {
+        ) : shown.length === 0 ? (
+          <p className="font-mono text-xs text-mute">Ningún equipo coincide con los filtros.</p>
+        ) : null}
+        {shown.map((t) => {
           const members = (t.members || []).slice().sort((a, b) => a.playerNumber - b.playerNumber);
           return (
             <div key={t.id} className="card p-4">
@@ -205,7 +271,7 @@ export default function AdminTeams() {
               <div className="mt-4 flex flex-col divide-y divide-line-2 border-t border-line-2">
                 {members.map((m) => {
                   const name = m.epicUsername || m.steamUsername || `J${m.playerNumber}`;
-                  const sub = m.playerNumber > 3;
+                  const sub = m.playerNumber > STARTERS;
                   const active = m.user?.isActive !== false && !!m.user;
                   const hasAccount = !!m.user;
                   return (
@@ -245,7 +311,7 @@ export default function AdminTeams() {
                         {!m.isCaptain && !sub && (
                           <button
                             className="btn text-[10px] px-2.5 py-1.5"
-                            onClick={() => setCaptain(m.id)}
+                            onClick={() => setCaptain(m.id, name)}
                           >
                             ★ Capitán
                           </button>
@@ -253,7 +319,7 @@ export default function AdminTeams() {
                         {hasAccount && (
                           <button
                             className="btn text-[10px] px-2.5 py-1.5"
-                            onClick={() => toggleAccess(m.id, !active)}
+                            onClick={() => toggleAccess(m.id, !active, name)}
                           >
                             {active ? 'Revocar acceso' : 'Restaurar'}
                           </button>

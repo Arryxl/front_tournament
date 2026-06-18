@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Saira+Condensed:ital,wght@0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Saira+Condensed:ital,wght@0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Saira:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -10,6 +10,7 @@
   --void-2: #121214; /* superficies elevadas / cards */
   --void-3: #1a1a1d; /* hover de superficie */
   --ink: #f1ecdf; /* texto / marca, el marfil de la G */
+  --ink-d: #c9c4b7; /* marfil atenuado (cuerpo secundario suave) */
   --mute: #84847e; /* texto secundario */
   --ignite: #ec571e; /* acento único: brasa naranja (scoreboard / acción) */
   --ignite-h: #ff6a2b; /* brillo / hover del naranja */
@@ -99,4 +100,36 @@ a {
   .stat-num {
     @apply font-display font-black tracking-tight tabular-nums;
   }
+}
+
+/* Notificaciones (toasts) — entrada deslizante desde la derecha */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(16px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+.toast-in { animation: toast-in 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .toast-in { animation: none; }
+}
+
+/* Inputs de fecha/hora — tema oscuro + calendario nativo visible y usable */
+input[type="datetime-local"],
+input[type="date"],
+input[type="time"] {
+  color-scheme: dark; /* popup del calendario en oscuro + icono claro */
+}
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.55) sepia(1) saturate(6) hue-rotate(340deg); /* tono brasa */
+  opacity: 0.85;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+}
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background: rgba(236, 87, 30, 0.15);
 }

@@ -6,7 +6,7 @@ import {
   type OverlayMatch,
   type PlayerStatRow,
 } from '../../lib/overlay';
-import { Crest, OverlayMark } from './parts';
+import { Crest, OverlayMark, SceneSlashes } from './parts';
 
 const COLS: { key: keyof PlayerStatRow; label: string }[] = [
   { key: 'goals', label: 'G' },
@@ -103,11 +103,12 @@ export default function OverlayStats() {
   const finished = match?.status === 'finished';
 
   return (
-    <div className="ov-root flex flex-col" style={{ padding: 'clamp(24px,4vw,64px)' }}>
-      <span className="ov-slash thin" style={{ top: '8%', right: '-4%', width: '20%' }} />
+    <div className="ov-root ov-scene flex flex-col" style={{ padding: 'clamp(24px,4vw,64px)' }}>
+      <div className="ov-ghost text-[24vw]">FINAL</div>
+      <SceneSlashes />
 
       {/* encabezado + marcador */}
-      <div className="flex items-center justify-between gap-4 mb-[clamp(16px,2.5vh,32px)] ov-in">
+      <div className="flex items-center justify-between gap-4 mb-[clamp(16px,2.5vh,32px)] ov-in relative z-[2]">
         <OverlayMark />
         <span className="font-mono text-[11px] tracking-[0.24em] uppercase text-mute">
           {[phase, 'Resultado final'].filter(Boolean).join('  ·  ')}
@@ -115,10 +116,10 @@ export default function OverlayStats() {
       </div>
 
       {/* scoreboard */}
-      <div className="ov-panel p-[clamp(18px,2vw,32px)] mb-[clamp(16px,2.5vh,32px)] ov-pop">
+      <div className="ov-panel p-[clamp(18px,2vw,32px)] mb-[clamp(16px,2.5vh,32px)] ov-pop relative z-[2]">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-[clamp(12px,2vw,40px)]">
           <div className="flex items-center gap-4 min-w-0">
-            <Crest team={home} size={72} />
+            <Crest team={home} size={72} win={homeWin} />
             <div className={`font-display font-black italic uppercase tracking-tight text-[clamp(22px,3vw,46px)] leading-[0.9] truncate ${homeWin ? 'text-ignite' : ''}`}>
               {home?.name || 'Local'}
             </div>
@@ -132,7 +133,7 @@ export default function OverlayStats() {
             <div className={`font-display font-black italic uppercase tracking-tight text-[clamp(22px,3vw,46px)] leading-[0.9] truncate ${awayWin ? 'text-ignite' : ''}`}>
               {away?.name || 'Visita'}
             </div>
-            <Crest team={away} size={72} />
+            <Crest team={away} size={72} win={awayWin} />
           </div>
         </div>
 
@@ -146,7 +147,7 @@ export default function OverlayStats() {
 
       {/* tablas por equipo */}
       {stats.length === 0 ? (
-        <div className="ov-panel p-8 text-center ov-in">
+        <div className="ov-panel p-8 text-center ov-in relative z-[2]">
           <div className="font-display font-black italic uppercase tracking-tight text-2xl">
             {finished ? 'Estadísticas en proceso…' : 'Partido en curso'}
           </div>
@@ -155,7 +156,7 @@ export default function OverlayStats() {
           </p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-[clamp(12px,1.5vw,24px)]">
+        <div className="grid md:grid-cols-2 gap-[clamp(12px,1.5vw,24px)] relative z-[2]">
           <TeamStats team={home} rows={homeStats} side="Local" win={homeWin} delay={0.15} />
           <TeamStats team={away} rows={awayStats} side="Visita" win={awayWin} delay={0.25} />
         </div>

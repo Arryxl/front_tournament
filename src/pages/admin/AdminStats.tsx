@@ -1,8 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../lib/api';
 import { Spinner } from '../../components/ui';
 import { StatEditor } from '../../components/StatEditor';
+import { FilterBar, SearchBox, ChipGroup, ResultCount } from '../../components/admin/Filters';
 import type { Match, TopStat } from '../../types';
+
+const PHASE_OPTS: { value: string; label: string }[] = [
+  { value: '', label: 'Todas' },
+  { value: 'groups', label: 'Grupos' },
+  { value: 'round16', label: 'Octavos' },
+  { value: 'quarters', label: 'Cuartos' },
+  { value: 'semis', label: 'Semis' },
+  { value: 'third', label: '3er' },
+  { value: 'final', label: 'Final' },
+];
 
 function MiniRanking({ title, data }: { title: string; data: TopStat[] }) {
   return (
@@ -33,6 +44,8 @@ export default function AdminStats() {
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
   const [phase, setPhase] = useState('');
+  const [q, setQ] = useState('');
+  const [done, setDone] = useState<'all' | 'finished' | 'pending'>('all');
 
   const loadRankings = () =>
     Promise.all([
@@ -50,11 +63,22 @@ export default function AdminStats() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <Spinner />;
+  const withTeams = useMemo(() => matches.filter((m) => m.teamHomeId && m.teamAwayId), [matches]);
+  const filtered = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    return withTeams.filter((m) => {
+      if (phase && m.phase !== phase) return false;
+      if (done === 'finished' && m.status !== 'finished') return false;
+      if (done === 'pending' && m.status === 'finished') return false;
+      if (term) {
+        const hay = `${m.matchCode} ${m.teamHome?.name || ''} ${m.teamAway?.name || ''}`.toLowerCase();
+        if (!hay.includes(term)) return false;
+      }
+      return true;
+    });
+  }, [withTeams, phase, done, q]);
 
-  const phases = ['', 'groups', 'quarters', 'semis', 'third', 'final'];
-  const withTeams = matches.filter((m) => m.teamHomeId && m.teamAwayId);
-  const filtered = phase ? withTeams.filter((m) => m.phase === phase) : withTeams;
+  if (loading) return <Spinner />;
 
   return (
     <div>
@@ -78,17 +102,37 @@ export default function AdminStats() {
       <h2 className="font-display font-black uppercase tracking-tight text-2xl mb-4">
         Cargar stats por partido
       </h2>
-      <div className="flex gap-2 mb-5 flex-wrap">
-        {phases.map((p) => (
-          <button key={p || 'all'} onClick={() => setPhase(p)} className={`btn ${phase === p ? 'btn-ignite' : ''}`}>
-            {p === '' ? 'Todos' : p}
-          </button>
-        ))}
-      </div>
+
+      <FilterBar>
+        <SearchBox value={q} onChange={setQ} placeholder="Buscar por código o equipo…" />
+        <ChipGroup label="Fase" value={phase} onChange={setPhase} options={PHASE_OPTS} />
+        <ChipGroup
+          label="Estado"
+          value={done}
+          onChange={setDone}
+          options={[
+            { value: 'all', label: 'Todos' },
+            { value: 'finished', label: 'Finalizados' },
+            { value: 'pending', label: 'Pendientes' },
+          ]}
+        />
+        <ResultCount
+          shown={filtered.length}
+          total={withTeams.length}
+          noun="partidos"
+          onReset={() => {
+            setQ('');
+            setPhase('');
+            setDone('all');
+          }}
+        />
+      </FilterBar>
 
       {filtered.length === 0 && (
         <p className="font-mono text-xs text-mute">
-          No hay partidos con ambos equipos asignados todavía. Asigna equipos en “Partidos”.
+          {withTeams.length === 0
+            ? 'No hay partidos con ambos equipos asignados todavía. Asigna equipos en “Partidos”.'
+            : 'Ningún partido coincide con los filtros.'}
         </p>
       )}
 
