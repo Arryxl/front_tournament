@@ -30,6 +30,47 @@ export function formatLabel(playersPerSide: number): string {
   return `${playersPerSide}v${playersPerSide}`;
 }
 
+/** Una fase de la línea de tiempo del torneo (clave + etiquetas para la UI). */
+export interface PhaseDef {
+  key: string;
+  label: string;
+  tag: string;
+}
+
+/**
+ * Fases de la línea de tiempo en orden, adaptadas a la estructura: clasifican 2
+ * por grupo, así que las eliminatorias de entrada (dieciseisavos / octavos) solo
+ * aparecen si clasifican suficientes equipos. Esta lista define qué campos de
+ * fecha se editan en el admin y qué hitos se muestran en la landing.
+ */
+export function timelinePhases(teamCount: number): PhaseDef[] {
+  const qualified = groupCountFor(teamCount) * 2;
+  const phases: PhaseDef[] = [
+    { key: 'registrationOpen', label: 'Apertura de inscripciones', tag: 'INSCRIPCIÓN' },
+    { key: 'registrationClose', label: 'Cierre de inscripciones', tag: 'INSCRIPCIÓN' },
+    { key: 'groupDraw', label: 'Sorteo de grupos', tag: 'SORTEO' },
+    { key: 'groupStage', label: 'Arranca la fase de grupos', tag: 'GRUPOS' },
+  ];
+  if (qualified >= 32) phases.push({ key: 'round32', label: 'Dieciseisavos de final', tag: 'PLAYOFFS' });
+  if (qualified >= 16) phases.push({ key: 'round16', label: 'Octavos de final', tag: 'PLAYOFFS' });
+  phases.push({ key: 'quarters', label: 'Cuartos de final', tag: 'PLAYOFFS' });
+  phases.push({ key: 'semis', label: 'Semifinales', tag: 'PLAYOFFS' });
+  phases.push({ key: 'third', label: 'Tercer puesto', tag: 'FINAL' });
+  phases.push({ key: 'final', label: 'Gran final', tag: 'FINAL' });
+  return phases;
+}
+
+/** Fecha de fase (`YYYY-MM-DD`) → "20 JUL". Devuelve null si no es válida. */
+export function formatPhaseDate(d?: string | null): string | null {
+  if (!d) return null;
+  const dt = new Date(`${d}T00:00:00`);
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt
+    .toLocaleDateString('es', { day: '2-digit', month: 'short' })
+    .replace('.', '')
+    .toUpperCase();
+}
+
 /**
  * Nombre legible de un partido según su fase, en vez del código interno
  * (GA-1, R01, SF1, GF…). Para grupos incluye la jornada si está disponible.

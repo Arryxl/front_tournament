@@ -11,6 +11,8 @@ import Predictions from './pages/Predictions';
 import Rewards from './pages/Rewards';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
+import Recruitment from './pages/Recruitment';
+import MyTeam from './pages/MyTeam';
 import Login from './pages/Login';
 import DrawStage from './pages/DrawStage';
 import OverlayVersus from './pages/overlay/OverlayVersus';
@@ -21,6 +23,7 @@ import OverlayPredictions from './pages/overlay/OverlayPredictions';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminRegistrations from './pages/admin/AdminRegistrations';
+import AdminRecruitment from './pages/admin/AdminRecruitment';
 import AdminTeams from './pages/admin/AdminTeams';
 import AdminTeamDetail from './pages/admin/AdminTeamDetail';
 import AdminGroups from './pages/admin/AdminGroups';
@@ -38,6 +41,7 @@ const adminLinks = [
   { to: '/admin', label: 'Dashboard' },
   { to: '/admin/settings', label: 'Configuración' },
   { to: '/admin/registrations', label: 'Inscripciones' },
+  { to: '/admin/recruitment', label: 'Reclutamiento' },
   { to: '/admin/teams', label: 'Equipos' },
   { to: '/admin/groups', label: 'Grupos' },
   { to: '/admin/matches', label: 'Partidos' },
@@ -69,6 +73,17 @@ export default function App() {
           <Route path="/resultados" element={<MatchSummary />} />
           <Route path="/stats" element={<Stats />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/reclutamiento" element={<Recruitment />} />
+
+          {/* Panel del capitán: gestionar solicitudes de su equipo */}
+          <Route
+            path="/mi-equipo"
+            element={
+              <ProtectedRoute roles={['candidate', 'admin']}>
+                <MyTeam />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Interactivo — requiere sesión pero vive en la web pública */}
           <Route
@@ -126,6 +141,7 @@ export default function App() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/admin/registrations" element={<AdminRegistrations />} />
+          <Route path="/admin/recruitment" element={<AdminRecruitment />} />
           <Route path="/admin/teams" element={<AdminTeams />} />
           <Route path="/admin/teams/:id" element={<AdminTeamDetail />} />
           <Route path="/admin/groups" element={<AdminGroups />} />

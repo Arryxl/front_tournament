@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { api, fileBase } from '../../lib/api';
 import { Spinner } from '../../components/ui';
 import { useSettings } from '../../lib/useSettings';
+import { useConfirm } from '../../components/Confirm';
+import { useToast } from '../../components/Toast';
 import { FilterBar, SearchBox, ChipGroup, ResultCount } from '../../components/admin/Filters';
 import type { Group, Team } from '../../types';
 
@@ -10,6 +12,8 @@ type SortKey = 'name' | 'group' | 'roster';
 
 export default function AdminTeams() {
   const settings = useSettings();
+  const confirm = useConfirm();
+  const toast = useToast();
   const STARTERS = settings.playersPerSide;
   const [q, setQ] = useState('');
   const [fGroup, setFGroup] = useState('all');
@@ -18,18 +22,53 @@ export default function AdminTeams() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const load = () => {
     Promise.all([api.get('/teams'), api.get('/groups')])
       .then(([t, g]) => {
         setTeams(t.data);
         setGroups(g.data);
       })
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(load, []);
 
   const groupName = (gid: string | null) => groups.find((g) => g.id === gid)?.name;
 
   const approved = useMemo(() => teams.filter((t) => t.status === 'approved'), [teams]);
+  const pending = useMemo(() => teams.filter((t) => t.status === 'pending'), [teams]);
+
+  const approveTeam = async (id: string, name: string) => {
+    const ok = await confirm({
+      title: `Inscribir a ${name}`,
+      body: 'El equipo quedará inscrito en el torneo y se notificará a sus jugadores. ¿Continuar?',
+      confirmLabel: 'Inscribir',
+    });
+    if (!ok) return;
+    try {
+      await api.post(`/teams/${id}/approve`);
+      toast.success('Equipo inscrito', name);
+      load();
+    } catch (e: any) {
+      toast.error('No se pudo inscribir', e?.response?.data?.message);
+    }
+  };
+  const rejectTeam = async (id: string, name: string) => {
+    const ok = await confirm({
+      title: `Rechazar a ${name}`,
+      body: 'No se inscribirá al torneo, se eliminará y sus jugadores quedarán libres (sus cuentas siguen activas). ¿Continuar?',
+      confirmLabel: 'Rechazar',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await api.post(`/teams/${id}/reject`);
+      toast.info('Equipo rechazado', name);
+      load();
+    } catch (e: any) {
+      toast.error('No se pudo rechazar', e?.response?.data?.message);
+    }
+  };
 
   const shown = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -71,6 +110,32 @@ export default function AdminTeams() {
       <p className="font-mono text-[11px] text-mute mb-6">
         {approved.length} equipos aprobados. Pulsa un equipo para ver su roster y gestionarlo.
       </p>
+
+      {pending.length > 0 && (
+        <div className="mb-8">
+          <h2 className="font-display font-black italic uppercase tracking-tight text-xl mb-3">
+            Pendientes de inscripción <span className="text-ignite">{pending.length}</span>
+          </h2>
+          <div className="card divide-y divide-line-2">
+            {pending.map((t) => (
+              <div key={t.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                <Link to={`/admin/teams/${t.id}`} className="font-display font-bold text-sm hover:text-ignite truncate">
+                  {t.name}
+                  <span className="font-mono text-[10px] text-mute"> · {(t.members || []).length} jug.</span>
+                </Link>
+                <div className="flex gap-2 shrink-0">
+                  <button className="btn btn-ignite text-[10px] px-2.5 py-1.5" onClick={() => approveTeam(t.id, t.name)}>
+                    Inscribir
+                  </button>
+                  <button className="btn text-[10px] px-2.5 py-1.5" onClick={() => rejectTeam(t.id, t.name)}>
+                    Rechazar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {approved.length > 0 && (
         <FilterBar>

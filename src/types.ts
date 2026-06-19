@@ -20,6 +20,7 @@ export interface Team {
   name: string;
   shieldUrl: string | null;
   status: 'pending' | 'approved' | 'rejected';
+  captainId?: string | null;
   groupId: string | null;
   contactMethod: 'discord' | 'email' | null;
   contactValue: string | null;
@@ -223,6 +224,11 @@ export interface TournamentSettings {
   formatSemis: string;
   formatThird: string;
   formatFinal: string;
+  phaseDates: Record<string, string> | null;
+  prizeFirst: string | null;
+  prizeSecond: string | null;
+  prizeThird: string | null;
+  prizeNote: string | null;
   updatedAt: string;
 }
 
@@ -233,4 +239,135 @@ export interface Registration {
   status: 'pending' | 'approved' | 'rejected';
   submittedAt: string;
   [key: string]: unknown;
+}
+
+// ===== Reclutamiento =====
+
+export type RecruitmentType = 'player_lft' | 'team_lfp';
+export type RecruitmentPostStatus = 'open' | 'closed' | 'hidden';
+export type PlayerPosition = 'striker' | 'goalie' | 'flex';
+export type JoinDirection = 'player_to_team' | 'team_to_player';
+export type RequestStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled';
+
+export interface RecruitmentPost {
+  id: string;
+  type: RecruitmentType;
+  authorId: string;
+  author?: AuthUser;
+  status: RecruitmentPostStatus;
+  message: string | null;
+  region: string | null;
+  availability: string | null;
+  // PLAYER_LFT
+  epicUsername: string | null;
+  steamUsername: string | null;
+  rank: string | null;
+  screenshotUrl: string | null;
+  position: PlayerPosition | null;
+  // TEAM_LFP
+  teamId: string | null;
+  team?: Team | null;
+  teamName: string | null;
+  lookingForRank: string | null;
+  lookingForPosition: PlayerPosition | null;
+  slotsNeeded: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface JoinRequest {
+  id: string;
+  direction: JoinDirection;
+  status: RequestStatus;
+  teamId: string;
+  team?: Team;
+  applicantId: string;
+  applicant?: AuthUser;
+  epicUsername: string | null;
+  steamUsername: string | null;
+  rank: string | null;
+  screenshotUrl: string | null;
+  sourcePostId: string | null;
+  message: string | null;
+  createdAt: string;
+}
+
+export interface TeamLeaveRequest {
+  id: string;
+  memberId: string;
+  teamId: string;
+  userId: string;
+  user?: AuthUser;
+  status: RequestStatus;
+  reason: string | null;
+  createdAt: string;
+}
+
+/** Prefill que el tablón pasa al formulario de inscripción vía router state. */
+export interface RegisterPrefillPlayer {
+  epic: string;
+  steam: string;
+  rank: string;
+  screenshot: string;
+}
+
+export interface PlayerProfile {
+  userId: string;
+  epicUsername: string | null;
+  steamUsername: string | null;
+  rank: string | null;
+  screenshotUrl: string | null;
+  position: PlayerPosition | null;
+  region: string | null;
+  availability: string | null;
+  complete?: boolean;
+}
+
+export type TeamDraftStatus = 'pending' | 'completed' | 'cancelled';
+
+export interface TeamDraftInvite {
+  id: string;
+  draftId: string;
+  userId: string;
+  user?: AuthUser;
+  status: RequestStatus;
+  acceptedAt: string | null;
+  createdAt: string;
+  draft?: TeamDraft;
+}
+
+export interface TeamDraft {
+  id: string;
+  captainId: string;
+  captain?: AuthUser;
+  teamName: string;
+  shieldUrl: string | null;
+  requiredStarters: number;
+  maxRoster: number;
+  status: TeamDraftStatus;
+  teamId: string | null;
+  registrationId: string | null;
+  invites?: TeamDraftInvite[];
+  createdAt: string;
+  completedAt: string | null;
+}
+
+export type NotificationType =
+  | 'team_invite'
+  | 'draft_invite'
+  | 'application'
+  | 'request_accepted'
+  | 'request_rejected'
+  | 'team_created'
+  | 'leave_request'
+  | 'member_left';
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  link: string | null;
+  read: boolean;
+  createdAt: string;
 }

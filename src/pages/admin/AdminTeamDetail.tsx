@@ -131,6 +131,59 @@ export default function AdminTeamDetail() {
     }
   };
 
+  const approveTeam = async () => {
+    if (!team) return;
+    const ok = await confirm({
+      title: `Inscribir a ${team.name}`,
+      body: 'El equipo quedará inscrito en el torneo y se notificará a sus jugadores. ¿Continuar?',
+      confirmLabel: 'Inscribir',
+    });
+    if (!ok) return;
+    try {
+      await api.post(`/teams/${team.id}/approve`);
+      toast.success('Equipo inscrito', team.name);
+      load();
+    } catch (err: any) {
+      toast.error('No se pudo inscribir', err.response?.data?.message);
+    }
+  };
+
+  const rejectTeam = async () => {
+    if (!team) return;
+    const ok = await confirm({
+      title: `Rechazar a ${team.name}`,
+      body: 'No se inscribirá al torneo, se notificará a los jugadores y el equipo se eliminará (sus cuentas quedan libres). ¿Continuar?',
+      confirmLabel: 'Rechazar',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await api.post(`/teams/${team.id}/reject`);
+      toast.success('Equipo rechazado', team.name);
+      window.location.href = '/admin/teams';
+    } catch (err: any) {
+      toast.error('No se pudo rechazar', err.response?.data?.message);
+    }
+  };
+
+  const deleteTeam = async () => {
+    if (!team) return;
+    const ok = await confirm({
+      title: `Eliminar a ${team.name}`,
+      body: 'El equipo se eliminará del torneo y se notificará a sus jugadores (sus cuentas quedan libres). Esta acción no se puede deshacer. ¿Continuar?',
+      confirmLabel: 'Eliminar',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await api.delete(`/teams/${team.id}`);
+      toast.success('Equipo eliminado', team.name);
+      window.location.href = '/admin/teams';
+    } catch (err: any) {
+      toast.error('No se pudo eliminar', err.response?.data?.message);
+    }
+  };
+
   const removeMember = async (memberId: string, name: string) => {
     const ok = await confirm({
       title: `Quitar a ${name}`,
@@ -244,7 +297,17 @@ export default function AdminTeamDetail() {
             </div>
           </div>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-2 shrink-0 flex-wrap">
+          {team.status === 'pending' && (
+            <>
+              <button className="btn btn-ignite" onClick={approveTeam}>
+                ✓ Inscribir
+              </button>
+              <button className="btn" onClick={rejectTeam}>
+                Rechazar
+              </button>
+            </>
+          )}
           <button
             className="btn"
             onClick={() => {
@@ -257,6 +320,9 @@ export default function AdminTeamDetail() {
           </button>
           <button className="btn" onClick={openEdit}>
             Editar
+          </button>
+          <button className="btn !text-ignite !border-ignite/40" onClick={deleteTeam}>
+            Eliminar
           </button>
         </div>
       </div>

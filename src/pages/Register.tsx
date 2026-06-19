@@ -140,7 +140,7 @@ function PlayerForm({
           value={data.screenshot}
           onChange={(url) => update({ screenshot: url })}
           thumb
-          required
+          required={!substitute}
         />
       </div>
     </div>
@@ -205,14 +205,32 @@ export default function Register() {
       }
     }
     if (step === 1) {
-      const roster = players.slice(0, TOTAL_PLAYERS);
-      if (roster.some((p) => !p.epic && !p.steam)) {
-        setError('Cada jugador (titulares y suplentes) necesita al menos un usuario (Epic o Steam).');
+      // Titulares: obligatorios (usuario + captura). Los 3 (o los que indique el
+      // formato) deben estar completos.
+      const starters = players.slice(0, STARTERS);
+      if (starters.some((p) => !p.epic && !p.steam)) {
+        setError(`Cada titular necesita al menos un usuario (Epic o Steam). Faltan datos en los ${STARTERS} titulares.`);
         return false;
       }
-      if (roster.some((p) => !p.screenshot)) {
-        setError(`La captura de pantalla principal es obligatoria para los ${TOTAL_PLAYERS} jugadores.`);
+      if (starters.some((p) => !p.screenshot)) {
+        setError(`La captura de pantalla principal es obligatoria para los ${STARTERS} titulares.`);
         return false;
+      }
+      // Suplentes: opcionales. Pero si empiezas a llenar uno, debe quedar
+      // completo (usuario + captura) para que sea válido.
+      const subs = players.slice(STARTERS, TOTAL_PLAYERS);
+      for (let i = 0; i < subs.length; i++) {
+        const p = subs[i];
+        const started = p.epic || p.steam || p.screenshot;
+        if (!started) continue; // suplente vacío → se ignora
+        if (!p.epic && !p.steam) {
+          setError(`El suplente ${i + 1} necesita un usuario (Epic o Steam) o déjalo vacío.`);
+          return false;
+        }
+        if (!p.screenshot) {
+          setError(`Falta la captura del suplente ${i + 1}, o déjalo vacío si no lo vas a inscribir.`);
+          return false;
+        }
       }
     }
     return true;
@@ -313,11 +331,28 @@ export default function Register() {
         Inscribe<br />tu equipo
       </h1>
       <p className="font-display text-mute text-base max-w-[58ch] mb-10 leading-[1.6]">
-        {TOTAL_PLAYERS} jugadores ({numberWord(STARTERS)} {STARTERS === 1 ? 'titular' : 'titulares'} +{' '}
-        {numberWord(SUBS)} {SUBS === 1 ? 'suplente' : 'suplentes'}), un escudo y la captura de pantalla
-        principal de cada uno. Formato <b className="text-ink">{settings.formatLabel}</b> · rango
-        elegible: <b className="text-ink">Platino 3 a Champion 3</b>.
+        {numberWord(STARTERS)} {STARTERS === 1 ? 'titular' : 'titulares'} obligatorios
+        {SUBS > 0 && (
+          <>
+            {' '}+ hasta {numberWord(SUBS)} {SUBS === 1 ? 'suplente' : 'suplentes'}{' '}
+            <b className="text-ink">(opcionales)</b>
+          </>
+        )}
+        , un escudo y la captura de pantalla principal de cada titular. Formato{' '}
+        <b className="text-ink">{settings.formatLabel}</b> · rango elegible:{' '}
+        <b className="text-ink">Platino 3 a Champion 3</b>.
       </p>
+
+      {/* ¿sin equipo? → reclutamiento */}
+      <div className="card p-4 mb-8 flex items-center justify-between gap-3 max-w-2xl">
+        <span className="font-mono text-xs text-mute leading-[1.6]">
+          ¿Todavía no tienes equipo o te falta gente? Encuéntralos o forma tu equipo en{' '}
+          <b className="text-ink">Reclutamiento</b>.
+        </span>
+        <Link to="/reclutamiento" className="btn btn-ignite !py-2 shrink-0">
+          Ir a reclutamiento
+        </Link>
+      </div>
 
       {/* stepper */}
       <div className="flex items-center gap-2 mb-10 max-w-2xl">
@@ -424,7 +459,7 @@ export default function Register() {
                 <PlayerForm key={i} index={i} data={p} update={(d) => updatePlayer(i, d)} />
               ))}
               <div className="font-mono text-[11px] tracking-[0.25em] uppercase text-mute mt-2">
-                Suplentes
+                Suplentes <span className="text-mute/70 normal-case tracking-normal">· opcionales</span>
               </div>
               {players.slice(STARTERS).map((p, i) => (
                 <PlayerForm
@@ -543,9 +578,9 @@ export default function Register() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span>Capturas principales</span>
-              <span className={players.slice(0, TOTAL_PLAYERS).every((p) => p.screenshot) ? 'text-green' : 'text-ink'}>
-                {players.slice(0, TOTAL_PLAYERS).filter((p) => p.screenshot).length}/{TOTAL_PLAYERS}
+              <span>Capturas titulares</span>
+              <span className={players.slice(0, STARTERS).every((p) => p.screenshot) ? 'text-green' : 'text-ink'}>
+                {players.slice(0, STARTERS).filter((p) => p.screenshot).length}/{STARTERS}
               </span>
             </div>
           </div>

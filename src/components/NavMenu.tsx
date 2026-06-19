@@ -14,6 +14,7 @@ export const NAV_LINKS = [
   { to: '/stats', label: 'Estadísticas' },
   { to: '/predictions', label: 'Predicciones' },
   { to: '/rewards', label: 'Tienda' },
+  { to: '/reclutamiento', label: 'Reclutamiento' },
   { to: '/register', label: 'Inscripción' },
 ];
 

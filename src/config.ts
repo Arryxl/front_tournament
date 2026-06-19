@@ -25,15 +25,9 @@ export const TOURNAMENT = {
   },
 };
 
-export const SCHEDULE = [
-  { date: '20 JUN', label: 'Apertura de inscripciones', tag: 'INSCRIPCIÓN' },
-  { date: '20 JUL', label: 'Cierre de inscripciones', tag: 'INSCRIPCIÓN' },
-  { date: '22 JUL', label: 'Sorteo de grupos', tag: 'SORTEO' },
-  { date: '25 JUL', label: 'Arranca la fase de grupos', tag: 'GRUPOS' },
-  { date: '05 AGO', label: 'Cuartos de final', tag: 'PLAYOFFS' },
-  { date: '12 AGO', label: 'Semifinales · BO5', tag: 'PLAYOFFS' },
-  { date: '23 AGO', label: 'Gran final · BO7', tag: 'FINAL' },
-];
+// Nota: las fechas de las fases (línea de tiempo) y los premios por puesto ya NO
+// se fijan aquí — se editan desde el admin (Configuración) y se guardan en
+// /settings (`phaseDates`, `prizeFirst/second/third`, `prizeNote`).
 
 export const SOCIALS = {
   tiktok: 'https://www.tiktok.com/@gravity_leaguerl',

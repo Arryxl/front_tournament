@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { OrbitMark, Wordmark } from '../components/brand';
 import { SocialRow } from '../components/Socials';
-import { SCHEDULE, SOCIALS, TOURNAMENT } from '../config';
+import { SOCIALS, TOURNAMENT } from '../config';
 import { useSettings } from '../lib/useSettings';
-import { matchLabel } from '../lib/tournament';
+import { matchLabel, timelinePhases, formatPhaseDate } from '../lib/tournament';
 import type { Match, TeamCount } from '../types';
 
 /* ---------------- Countdown ---------------- */
@@ -165,6 +165,23 @@ export default function Landing() {
   const s = useSettings();
 
   const qualified = s.groups * 2;
+
+  // Premios por puesto (editables desde el admin). Si no hay valor, se muestra
+  // "Por anunciar" para no dejar huecos en la landing.
+  const pd = s.raw?.phaseDates ?? {};
+  const podium = [
+    { place: 1, tag: 'Campeón', value: s.raw?.prizeFirst || 'Por anunciar' },
+    { place: 2, tag: 'Subcampeón', value: s.raw?.prizeSecond || 'Por anunciar' },
+    { place: 3, tag: 'Tercer lugar', value: s.raw?.prizeThird || 'Por anunciar' },
+  ];
+  const prizeNote = s.raw?.prizeNote || 'Premios sujetos a cambios. Inscripción 100% gratuita.';
+
+  // Línea de tiempo: fases según la estructura + su fecha configurada.
+  const timeline = timelinePhases(s.teamCount).map((p) => ({
+    ...p,
+    date: formatPhaseDate(pd[p.key]),
+  }));
+
   const FEATURES = [
     {
       n: '01',
@@ -339,21 +356,62 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ============ PREMIO ============ */}
+      {/* ============ PREMIOS ============ */}
       <section className="px-[var(--pad)] py-[clamp(56px,8vh,104px)] border-t border-line-2 relative overflow-hidden">
         <div className="cover-halo opacity-60" />
-        <div className="max-w-[1240px] mx-auto relative z-[2] text-center">
-          <span className="kicker reveal justify-center" style={{ display: 'inline-flex' }}>
-            03 / El premio
-          </span>
-          <div className="reveal font-mono text-[11px] tracking-[0.25em] uppercase text-mute mt-5">
-            {TOURNAMENT.prize.label}
+        <div className="max-w-[1240px] mx-auto relative z-[2]">
+          <div className="text-center">
+            <span className="kicker reveal justify-center" style={{ display: 'inline-flex' }}>
+              03 / Los premios
+            </span>
+            <div className="reveal font-mono text-[11px] tracking-[0.25em] uppercase text-mute mt-5">
+              {TOURNAMENT.prize.label}
+            </div>
+            <div className="reveal font-display font-black italic uppercase text-[clamp(36px,9vw,108px)] leading-[0.85] tracking-tight mt-2 text-ignite">
+              {podium[0].value}
+            </div>
           </div>
-          <div className="reveal font-display font-black italic uppercase text-[clamp(44px,12vw,150px)] leading-[0.85] tracking-tight mt-2 text-ignite">
-            {TOURNAMENT.prize.amount}
+
+          {/* Podio: 1º destacado, 2º y 3º al lado. */}
+          <div className="grid sm:grid-cols-3 gap-px bg-line border border-line mt-9">
+            {podium.map((p) => (
+              <div
+                key={p.place}
+                className={`reveal bg-void p-5 sm:p-7 flex flex-col gap-3 ${
+                  p.place === 1 ? 'sm:order-2 relative' : p.place === 2 ? 'sm:order-1' : 'sm:order-3'
+                }`}
+              >
+                {p.place === 1 && (
+                  <span
+                    className="absolute inset-x-0 top-0 h-[2px] bg-ignite"
+                    style={{ boxShadow: '0 0 18px var(--ignite)' }}
+                  />
+                )}
+                <div className="flex items-baseline justify-between gap-2">
+                  <span
+                    className={`font-display font-black italic text-[clamp(34px,5vw,60px)] leading-none tracking-tight tabular-nums ${
+                      p.place === 1 ? 'text-ignite' : 'text-mute'
+                    }`}
+                  >
+                    {p.place}º
+                  </span>
+                  <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">
+                    {p.tag}
+                  </span>
+                </div>
+                <div
+                  className={`font-display font-black italic uppercase tracking-tight leading-[0.95] ${
+                    p.place === 1 ? 'text-[clamp(22px,2.8vw,34px)] text-ink' : 'text-[clamp(18px,2.2vw,26px)] text-ink'
+                  }`}
+                >
+                  {p.value}
+                </div>
+              </div>
+            ))}
           </div>
-          <p className="reveal font-display text-[clamp(15px,2vw,24px)] text-mute mt-6 max-w-[30ch] mx-auto leading-[1.3]">
-            El que sube más alto, cae con el trofeo. Inscripción 100% gratuita.
+
+          <p className="reveal font-mono text-[10px] tracking-[0.14em] uppercase text-mute mt-5 text-center max-w-[52ch] mx-auto leading-relaxed">
+            {prizeNote}
           </p>
           <div className="reveal mt-8 flex justify-center">
             <Link to="/register" className="btn btn-ignite">Quiero competir</Link>
@@ -369,13 +427,17 @@ export default function Landing() {
             Hasta la<br />final
           </h2>
           <div className="border-t border-line">
-            {SCHEDULE.map((s) => (
+            {timeline.map((s) => (
               <div
-                key={s.label}
+                key={s.key}
                 className="reveal grid grid-cols-[78px_1fr] md:grid-cols-[140px_120px_1fr] gap-4 items-center py-4 border-b border-line group"
               >
-                <span className="font-display font-black italic text-lg md:text-2xl tracking-tight group-hover:text-ignite transition-colors">
-                  {s.date}
+                <span
+                  className={`font-display font-black italic text-lg md:text-2xl tracking-tight transition-colors ${
+                    s.date ? 'group-hover:text-ignite' : 'text-mute'
+                  }`}
+                >
+                  {s.date ?? 'POR DEFINIR'}
                 </span>
                 <span className="hidden md:inline font-mono text-[10px] tracking-[0.2em] uppercase text-ignite">
                   {s.tag}

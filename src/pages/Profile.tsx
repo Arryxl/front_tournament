@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, fileBase } from '../lib/api';
 import { useAuth } from '../store/auth';
-import { Spinner, Coin, BackButton, gratsLabel } from '../components/ui';
+import { Spinner, Coin, BackButton, gratsLabel, StatusBadge } from '../components/ui';
 import LinkedAccounts from '../components/LinkedAccounts';
 import AdvancedStats from '../components/AdvancedStats';
+import RecruitmentPanel from '../components/RecruitmentPanel';
+import PlayerProfileCard from '../components/PlayerProfileCard';
 import type { Team } from '../types';
 
 const RANK_LABEL: Record<string, string> = {
@@ -96,11 +98,20 @@ export default function Profile() {
                   <div className="font-display font-black italic uppercase text-2xl tracking-tight leading-none">
                     {team.name}
                   </div>
-                  <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mt-1.5">
-                    {team.group ? `Grupo ${team.group.name}` : 'Sin grupo asignado'}
+                  <div className="flex items-center gap-2 mt-2">
+                    <StatusBadge status={team.status} />
+                    <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">
+                      {team.group ? `Grupo ${team.group.name}` : 'Sin grupo'}
+                    </span>
                   </div>
                 </div>
               </div>
+              {team.status === 'pending' && (
+                <div className="font-mono text-xs text-ignite border border-ignite/40 rounded-md px-4 py-3 mb-4">
+                  Tu equipo está <b>pendiente de inscripción</b>: el administrador debe confirmarlo
+                  para entrar al torneo. Te llegará una notificación cuando se resuelva.
+                </div>
+              )}
               <div className="grid sm:grid-cols-3 gap-3">
                 {(team.members || [])
                   .slice()
@@ -183,6 +194,10 @@ export default function Profile() {
           {stats?.extraAvg && <AdvancedStats extra={stats.extraAvg} />}
         </>
       )}
+
+      {/* ===== perfil de jugador + reclutamiento (todos los usuarios) ===== */}
+      {user && <PlayerProfileCard />}
+      {user && <RecruitmentPanel team={team} userId={user.id} />}
 
       {/* ===== historial de grats (todos) ===== */}
       <section>

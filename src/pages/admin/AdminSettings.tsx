@@ -5,7 +5,13 @@ import { Spinner } from '../../components/ui';
 import { useToast } from '../../components/Toast';
 import { useConfirm } from '../../components/Confirm';
 import { useSettings } from '../../lib/useSettings';
-import { expectedMatchCount, formatLabel, groupCountFor, hasRound16 } from '../../lib/tournament';
+import {
+  expectedMatchCount,
+  formatLabel,
+  groupCountFor,
+  hasRound16,
+  timelinePhases,
+} from '../../lib/tournament';
 import type { TournamentSettings } from '../../types';
 
 /** Campos editables de la configuración del torneo (borrador local). */
@@ -21,6 +27,11 @@ interface Draft {
   formatSemis: string;
   formatThird: string;
   formatFinal: string;
+  phaseDates: Record<string, string>;
+  prizeFirst: string;
+  prizeSecond: string;
+  prizeThird: string;
+  prizeNote: string;
 }
 
 const toDraft = (s: TournamentSettings): Draft => ({
@@ -35,6 +46,11 @@ const toDraft = (s: TournamentSettings): Draft => ({
   formatSemis: s.formatSemis,
   formatThird: s.formatThird,
   formatFinal: s.formatFinal,
+  phaseDates: s.phaseDates ?? {},
+  prizeFirst: s.prizeFirst ?? '',
+  prizeSecond: s.prizeSecond ?? '',
+  prizeThird: s.prizeThird ?? '',
+  prizeNote: s.prizeNote ?? '',
 });
 
 const SERIES_OPTS = [
@@ -83,6 +99,9 @@ export default function AdminSettings() {
   const dirty = changedKeys.length > 0;
 
   if (loading || !draft || !saved) return <Spinner />;
+
+  // Fases visibles según la estructura (clasifican 2 por grupo).
+  const phases = timelinePhases(draft.teamCapacity);
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setDraft((d) => (d ? { ...d, [key]: value } : d));
@@ -301,6 +320,81 @@ export default function AdminSettings() {
         «Generar partidos» para que la estructura se recree con los nuevos formatos.
       </p>
 
+      {/* ===== Fechas de las fases ===== */}
+      <SectionTitle>Fechas de las fases</SectionTitle>
+      <p className="font-mono text-[11px] text-mute mb-4 max-w-[64ch] leading-relaxed">
+        Alimentan la <b className="text-ink">línea de tiempo</b> («La ruta») de la landing. Las
+        rondas eliminatorias que se muestran dependen de la estructura: con{' '}
+        <b className="text-ink">{phases.length}</b> hitos para{' '}
+        <b className="text-ink">{draft.teamCapacity}</b> equipos ({groupCountFor(draft.teamCapacity) * 2}{' '}
+        clasificados). Deja una fecha vacía para mostrarla como «Por definir».
+      </p>
+      <div className="grid sm:grid-cols-2 gap-4 mb-8">
+        {phases.map((p) => (
+          <DateRow
+            key={p.key}
+            label={p.label}
+            tag={p.tag}
+            value={draft.phaseDates[p.key] ?? ''}
+            changed={(draft.phaseDates[p.key] ?? '') !== (saved.phaseDates[p.key] ?? '')}
+            onChange={(v) => {
+              const next = { ...draft.phaseDates };
+              if (v) next[p.key] = v;
+              else delete next[p.key];
+              set('phaseDates', next);
+            }}
+          />
+        ))}
+      </div>
+
+      {/* ===== Premios ===== */}
+      <SectionTitle>Premios</SectionTitle>
+      <p className="font-mono text-[11px] text-mute mb-4 max-w-[64ch] leading-relaxed">
+        Texto libre por puesto (p. ej. <span className="text-ignite">$ 300 USD</span>, «Merch + rol
+        exclusivo»…). Se muestran en el podio de premios de la landing. La{' '}
+        <b className="text-ink">nota</b> aclara que están sujetos a cambios.
+      </p>
+      <div className="grid sm:grid-cols-3 gap-4 mb-4">
+        <PrizeRow
+          place="1º"
+          tag="Campeón"
+          accent
+          value={draft.prizeFirst}
+          changed={draft.prizeFirst !== saved.prizeFirst}
+          onChange={(v) => set('prizeFirst', v)}
+        />
+        <PrizeRow
+          place="2º"
+          tag="Subcampeón"
+          value={draft.prizeSecond}
+          changed={draft.prizeSecond !== saved.prizeSecond}
+          onChange={(v) => set('prizeSecond', v)}
+        />
+        <PrizeRow
+          place="3º"
+          tag="Tercer lugar"
+          value={draft.prizeThird}
+          changed={draft.prizeThird !== saved.prizeThird}
+          onChange={(v) => set('prizeThird', v)}
+        />
+      </div>
+      <div className={`card p-5 mb-8 ${draft.prizeNote !== saved.prizeNote ? 'border-ignite/50' : ''}`}>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="font-display font-black italic uppercase tracking-tight text-lg">
+            Nota de premios
+          </span>
+          {draft.prizeNote !== saved.prizeNote && <span className="font-mono text-[9px] text-ignite">●</span>}
+        </div>
+        <input
+          type="text"
+          className="input w-full"
+          maxLength={280}
+          placeholder="Premios sujetos a cambios. Inscripción 100% gratuita."
+          value={draft.prizeNote}
+          onChange={(e) => set('prizeNote', e.target.value)}
+        />
+      </div>
+
       {/* ===== Barra de guardado ===== */}
       <div className="sticky bottom-0 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 bg-void/85 backdrop-blur-md border-t border-line flex items-center gap-3 flex-wrap">
         <button className="btn btn-ignite" onClick={save} disabled={!dirty || saving}>
@@ -405,6 +499,89 @@ function SeriesPickerRow({
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+function DateRow({
+  label,
+  tag,
+  value,
+  changed,
+  onChange,
+}: {
+  label: string;
+  tag: string;
+  value: string;
+  changed: boolean;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className={`card p-5 ${changed ? 'border-ignite/50' : ''}`}>
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-display font-black italic uppercase tracking-tight text-lg truncate">
+            {label}
+          </span>
+          {changed && <span className="font-mono text-[9px] text-ignite shrink-0">●</span>}
+        </div>
+        <span className="font-mono text-[9px] tracking-[0.2em] uppercase text-ignite shrink-0">{tag}</span>
+      </div>
+      <div className="flex items-center gap-3 flex-wrap">
+        <input
+          type="date"
+          className="input max-w-[200px]"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        {value && (
+          <button type="button" className="btn" onClick={() => onChange('')}>
+            Quitar
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PrizeRow({
+  place,
+  tag,
+  value,
+  changed,
+  accent,
+  onChange,
+}: {
+  place: string;
+  tag: string;
+  value: string;
+  changed: boolean;
+  accent?: boolean;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div
+      className={`card p-5 ${changed ? 'border-ignite/50' : accent ? 'border-ignite/30' : ''}`}
+    >
+      <div className="flex items-baseline justify-between gap-2 mb-3">
+        <span
+          className={`font-display font-black italic uppercase tracking-tight text-2xl tabular-nums ${
+            accent ? 'text-ignite' : 'text-mute'
+          }`}
+        >
+          {place}
+        </span>
+        <span className="font-mono text-[9px] tracking-[0.2em] uppercase text-mute">{tag}</span>
+        {changed && <span className="font-mono text-[9px] text-ignite">●</span>}
+      </div>
+      <input
+        type="text"
+        className="input w-full"
+        maxLength={160}
+        placeholder="Por anunciar"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { Atmosphere } from './Atmosphere';
 import { BrandLogo, Wordmark } from './brand';
 import { SocialRow } from './Socials';
 import { NavMenu, NAV_LINKS } from './NavMenu';
+import NotificationBell from './NotificationBell';
 import { useSettings } from '../lib/useSettings';
 import type { Role } from '../types';
 
@@ -76,7 +77,10 @@ export function PublicLayout() {
               </Link>
             )}
           </div>
-          <NavMenu />
+          <div className="flex items-center gap-3">
+            {user && <NotificationBell />}
+            <NavMenu />
+          </div>
         </div>
       </header>
       <main className="flex-1 w-full">
