@@ -6,6 +6,7 @@ import { SocialRow } from '../components/Socials';
 import { SOCIALS, TOURNAMENT } from '../config';
 import { useSettings } from '../lib/useSettings';
 import { matchLabel, timelinePhases, formatPhaseDate } from '../lib/tournament';
+import { TeamPicker } from '../components/TeamPicker';
 import type { Match, TeamCount } from '../types';
 
 /* ---------------- Countdown ---------------- */
@@ -235,7 +236,7 @@ export default function Landing() {
           <div className="reveal flex flex-wrap gap-x-5 gap-y-2 font-mono text-[10px] sm:text-[11px] tracking-[0.18em] uppercase text-mute mb-[clamp(20px,4vh,44px)]">
             <span>LIGA — <b className="text-ink font-normal">ROCKET LEAGUE</b></span>
             <span>FORMATO · <b className="text-ink font-normal">{s.formatLabel.toUpperCase()} · ELIMINACIÓN</b></span>
-            <span>TEMPORADA · <b className="text-ink font-normal">{TOURNAMENT.season}</b></span>
+            <span className="uppercase"><b className="text-ink font-normal">{s.seasonLabel}</b></span>
           </div>
 
           <h1 className="reveal">
@@ -244,12 +245,12 @@ export default function Landing() {
 
           <div className="reveal flex flex-col gap-5 md:flex-row md:justify-between md:items-end md:gap-6 mt-[clamp(22px,4vh,44px)] pt-5 border-t border-line">
             <p className="font-display font-medium text-[clamp(16px,2vw,24px)] max-w-[24ch] leading-[1.25] text-ink">
-              {TOURNAMENT.tagline}
+              {s.tagline}
             </p>
             <div className="font-mono text-[10px] sm:text-[11px] tracking-[0.16em] uppercase text-mute md:text-right leading-[1.9] shrink-0">
-              RANGO · <b className="text-ignite font-normal">{TOURNAMENT.rankRange}</b><br />
-              PLATAFORMA · <b className="text-ink font-normal">{TOURNAMENT.platform}</b><br />
-              ENTRADA · <b className="text-green font-normal">{TOURNAMENT.free ? 'GRATIS' : 'DE PAGO'}</b>
+              RANGO · <b className="text-ignite font-normal">{s.rankRangeLabel}</b><br />
+              PLATAFORMA · <b className="text-ink font-normal">{s.platform}</b><br />
+              ENTRADA · <b className="text-green font-normal">{s.entryFree ? 'GRATIS' : 'DE PAGO'}</b>
             </div>
           </div>
 
@@ -279,6 +280,25 @@ export default function Landing() {
 
       {/* ============ MEDIDOR DE INSCRIPCIONES ============ */}
       {s.registrationsOpen && count && <RegistrationMeter count={count} />}
+
+      {/* ============ EQUIPOS DISPONIBLES ============ */}
+      {s.predefinedTeamsMode && (
+        <section className="px-[var(--pad)] py-[clamp(56px,8vh,104px)] border-t border-line-2">
+          <div className="max-w-[1240px] mx-auto">
+            <span className="kicker reveal">Equipos · RLCS 2026</span>
+            <h2 className="reveal font-display font-black italic uppercase text-[clamp(34px,6.5vw,82px)] leading-[0.92] tracking-tight mt-3 max-w-[16ch]">
+              Equipos<br />disponibles
+            </h2>
+            <p className="reveal font-display text-mute text-[clamp(15px,1.8vw,20px)] leading-[1.45] max-w-[48ch] mt-5 mb-10">
+              Elige en tu inscripción uno de los equipos de la RLCS 2026. Los marcados como
+              «tomado» ya fueron reclamados por otro capitán.
+            </p>
+            <div className="reveal">
+              <TeamPicker readOnly />
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ============ QUÉ ES GRAVITY ============ */}
       <section className="px-[var(--pad)] py-[clamp(56px,8vh,104px)] border-t border-line-2">

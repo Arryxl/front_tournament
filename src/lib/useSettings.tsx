@@ -14,6 +14,7 @@ import {
   groupLettersFor,
   hasRound16,
 } from './tournament';
+import { ranksBetween, rankRangeLabel } from './ranks';
 import type { TournamentSettings } from '../types';
 
 export interface DerivedSettings {
@@ -33,6 +34,25 @@ export interface DerivedSettings {
   hasRound16: boolean;
   matchesTotal: number;
   registrationDeadline: string | null;
+  /** Nombre del torneo/temporada (cae a "Gravity" si no está configurado). */
+  tournamentName: string;
+  /** Modo de equipos predefinidos (selector de catálogo + apartado landing). */
+  predefinedTeamsMode: boolean;
+  /** Etiqueta de temporada (cae a "Temporada 01"). */
+  seasonLabel: string;
+  /** Plataforma para la promo (cae a "Cross-play"). */
+  platform: string;
+  /** Lema/tagline de la landing. */
+  tagline: string;
+  /** Entrada gratis (true) o de pago. */
+  entryFree: boolean;
+  /** Rango mínimo/máximo elegible (claves) + derivados para UI. */
+  minRank: string;
+  maxRank: string;
+  /** Texto "Mín — Máx" del rango permitido. */
+  rankRangeLabel: string;
+  /** Lista [clave, etiqueta] de rangos elegibles entre min y max. */
+  allowedRanks: [string, string][];
   reload: () => void;
 }
 
@@ -67,6 +87,18 @@ function derive(
     hasRound16: hasRound16(teamCount),
     matchesTotal: expectedMatchCount(teamCount),
     registrationDeadline: raw?.registrationDeadline ?? null,
+    tournamentName: raw?.tournamentName?.trim() || 'Gravity',
+    predefinedTeamsMode: raw?.predefinedTeamsMode ?? false,
+    seasonLabel: raw?.seasonLabel?.trim() || 'Temporada 01',
+    platform: raw?.platform?.trim() || 'Cross-play',
+    tagline:
+      raw?.tagline?.trim() ||
+      'Todo lo que sube, vuelve a caer. Nosotros decidimos dónde.',
+    entryFree: raw?.entryFree ?? true,
+    minRank: raw?.minRank || 'plat3',
+    maxRank: raw?.maxRank || 'gc1',
+    rankRangeLabel: rankRangeLabel(raw?.minRank, raw?.maxRank),
+    allowedRanks: ranksBetween(raw?.minRank, raw?.maxRank),
     reload,
   };
 }

@@ -123,6 +123,11 @@ export default function PlayerProfileCard({
                 <option key={v} value={v}>{l}</option>
               ))}
             </select>
+            {rank === 'gc1' && (
+              <div className="font-mono text-[10px] text-ignite mt-1.5 leading-[1.5]">
+                ⚠ Recuerda: solo puede haber 1 Grand Champion 1 por equipo.
+              </div>
+            )}
           </div>
           <div>
             <label className="label">Posición preferida</label>

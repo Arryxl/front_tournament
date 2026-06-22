@@ -12,6 +12,7 @@ import type { Team } from '../types';
 const RANK_LABEL: Record<string, string> = {
   plat3: 'Platino 3', plat4: 'Platino 4', dia1: 'Diamante 1', dia2: 'Diamante 2',
   dia3: 'Diamante 3', champ1: 'Champion 1', champ2: 'Champion 2', champ3: 'Champion 3',
+  gc1: 'Grand Champion 1',
 };
 
 export default function Profile() {

@@ -5,12 +5,14 @@ import {
   useMatchPoll,
   useTransparentBody,
 } from '../../lib/overlay';
+import { useSettings } from '../../lib/useSettings';
 import { Crest, OverlayMark, SceneSlashes } from './parts';
 
 export default function OverlayVersus() {
   const { id } = useParams();
   useTransparentBody();
   const { match } = useMatchPoll(id);
+  const { tournamentName } = useSettings();
 
   const home = match?.teamHome ?? null;
   const away = match?.teamAway ?? null;
@@ -30,7 +32,7 @@ export default function OverlayVersus() {
 
   return (
     <div className="ov-root ov-scene grid place-items-center" style={{ padding: 'clamp(24px,5vw,80px)' }}>
-      <div className="ov-ghost text-[26vw]">GRAVITY</div>
+      <div className="ov-ghost text-[26vw]">{tournamentName.toUpperCase()}</div>
       <SceneSlashes />
 
       {/* marca arriba */}

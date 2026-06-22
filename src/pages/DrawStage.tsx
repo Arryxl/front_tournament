@@ -206,7 +206,7 @@ export default function DrawStage() {
             Sorteo en vivo
           </span>
           <span className="font-mono text-[11px] tracking-[0.28em] uppercase text-mute">
-            Gravity · Temporada 01
+            {settings.tournamentName} · {settings.seasonLabel}
           </span>
         </div>
         {(phase === 'draw' || phase === 'complete') && counter.total > 0 && (
@@ -236,7 +236,7 @@ export default function DrawStage() {
       {phase === 'intro' && (
         <div className="draw-center">
           <span className="kicker justify-center draw-pop" style={{ display: 'inline-flex' }}>
-            Temporada 01 · Sorteo de grupos
+            {settings.seasonLabel} · Sorteo de grupos
           </span>
           <h1 className="draw-title font-display font-black italic uppercase tracking-tight">
             El sorteo

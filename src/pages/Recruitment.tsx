@@ -5,9 +5,11 @@ import { useAuth } from '../store/auth';
 import { useSettings } from '../lib/useSettings';
 import { Spinner } from '../components/ui';
 import { UploadField } from '../components/UploadField';
+import { TeamPicker } from '../components/TeamPicker';
 import { RANKS, rankLabel, POSITIONS, positionLabel } from '../lib/ranks';
 import type {
   PlayerProfile,
+  PresetTeam,
   RecruitmentPost,
   RecruitmentType,
   Team,
@@ -175,7 +177,7 @@ export default function Recruitment() {
 
   return (
     <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-16">
-      <span className="kicker">Mercado de fichajes · Temporada 01</span>
+      <span className="kicker">Mercado de fichajes · {settings.seasonLabel}</span>
       <h1 className="font-display font-black italic uppercase text-[clamp(40px,8vw,96px)] tracking-tight leading-[0.88] mt-3 mb-3">
         Reclutamiento
       </h1>
@@ -326,6 +328,7 @@ export default function Recruitment() {
           requiredStarters={settings.playersPerSide}
           maxRoster={settings.playersPerTeam}
           meId={user?.id}
+          predefined={settings.predefinedTeamsMode}
           onClose={() => setShowCreate(false)}
           onSubmit={createTeam}
         />
@@ -356,12 +359,14 @@ function CreateTeamModal({
   requiredStarters,
   maxRoster,
   meId,
+  predefined,
   onClose,
   onSubmit,
 }: {
   requiredStarters: number;
   maxRoster: number;
   meId?: string;
+  predefined: boolean;
   onClose: () => void;
   onSubmit: (
     teamName: string,
@@ -373,6 +378,7 @@ function CreateTeamModal({
 }) {
   const [teamName, setTeamName] = useState('');
   const [shieldUrl, setShieldUrl] = useState('');
+  const [selectedPreset, setSelectedPreset] = useState<PresetTeam | null>(null);
   const [contactMethod, setContactMethod] = useState<'discord' | 'email'>('discord');
   const [contactValue, setContactValue] = useState('');
   const [freePlayers, setFreePlayers] = useState<RecruitmentPost[]>([]);
@@ -403,11 +409,34 @@ function CreateTeamModal({
         {requiredStarters} titulares, el equipo se <b className="text-ink">postula a inscripción</b> y queda a
         la espera de que el administrador lo apruebe (igual que el registro normal).
       </p>
-      <div>
-        <label className="label">Nombre del equipo</label>
-        <input className="input" value={teamName} onChange={(e) => setTeamName(e.target.value)} maxLength={50} placeholder="Ej. Nova Boost" />
+      <div className="font-mono text-[10px] text-ignite border border-ignite/40 rounded-md px-3 py-2 leading-[1.5]">
+        ⚠ Solo se permite 1 Grand Champion 1 (GC1) por equipo. Si dos jugadores GC1 intentan unirse,
+        el segundo no podrá aceptar.
       </div>
-      <UploadField label="Escudo (opcional)" endpoint="shield" value={shieldUrl} onChange={setShieldUrl} thumb />
+      {predefined ? (
+        <div>
+          <label className="label">Elige tu equipo</label>
+          <p className="font-mono text-[10px] text-mute mt-1 mb-2 leading-[1.6]">
+            Cada equipo solo puede ser tomado una vez.
+          </p>
+          <TeamPicker
+            value={selectedPreset?.slug ?? null}
+            onSelect={(p) => {
+              setSelectedPreset(p);
+              setTeamName(p.name);
+              setShieldUrl(p.logo ?? '');
+            }}
+          />
+        </div>
+      ) : (
+        <>
+          <div>
+            <label className="label">Nombre del equipo</label>
+            <input className="input" value={teamName} onChange={(e) => setTeamName(e.target.value)} maxLength={50} placeholder="Ej. Nova Boost" />
+          </div>
+          <UploadField label="Escudo (opcional)" endpoint="shield" value={shieldUrl} onChange={setShieldUrl} thumb />
+        </>
+      )}
 
       <div>
         <label className="label">Medio de contacto del capitán <span className="text-ignite">*</span></label>

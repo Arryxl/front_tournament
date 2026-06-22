@@ -211,10 +211,29 @@ export interface Reward {
   isActive: boolean;
 }
 
+export interface PresetTeam {
+  id: string;
+  slug: string;
+  name: string;
+  region: string | null;
+  placementLabel: string | null;
+  logo: string | null;
+  sortOrder: number;
+  taken: boolean;
+}
+
 export interface TournamentSettings {
   id: string;
   registrationsOpen: boolean;
   tournamentStarted: boolean;
+  tournamentName: string | null;
+  predefinedTeamsMode: boolean;
+  seasonLabel: string | null;
+  platform: string | null;
+  tagline: string | null;
+  entryFree: boolean;
+  minRank: string;
+  maxRank: string;
   teamCapacity: number;
   playersPerSide: number;
   substitutes: number;

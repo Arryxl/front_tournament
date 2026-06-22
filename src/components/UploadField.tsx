@@ -16,7 +16,7 @@ export function UploadField({
   required,
 }: {
   label: string;
-  endpoint: 'shield' | 'screenshot';
+  endpoint: 'shield' | 'screenshot' | 'preset-team';
   value: string;
   onChange: (url: string) => void;
   thumb?: boolean;

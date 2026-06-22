@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/auth';
 import { BrandLogo } from '../components/brand';
 import { BackButton } from '../components/ui';
@@ -7,6 +7,9 @@ import { BackButton } from '../components/ui';
 export default function Login() {
   const { login, register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Si llegamos aquí desde una acción protegida (p. ej. predecir), volver allí.
+  const from = (location.state as { from?: string } | null)?.from;
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +26,8 @@ export default function Login() {
         mode === 'login'
           ? await login(username, password)
           : await register(username, password, email || undefined);
-      navigate(user.role === 'admin' ? '/admin' : user.role === 'candidate' ? '/player' : '/');
+      if (from) navigate(from);
+      else navigate(user.role === 'admin' ? '/admin' : user.role === 'candidate' ? '/player' : '/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error de autenticación');
     } finally {

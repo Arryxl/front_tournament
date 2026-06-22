@@ -91,7 +91,7 @@ export function PublicLayout() {
           <div>
             <Wordmark className="text-5xl" />
             <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mt-4">
-              Rocket League {s.formatLabel} · Temporada 01 · GRV-03
+              Rocket League {s.formatLabel} · {s.seasonLabel} · GRV-03
             </p>
           </div>
           <div className="flex flex-col gap-4 md:items-end">

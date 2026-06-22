@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
+import { useAuth } from '../store/auth';
 import { Spinner, StatusBadge, Coin, BackButton } from '../components/ui';
 import type { Match } from '../types';
 
 type ScoreState = Record<string, { home: string; away: string }>;
 
 export default function Predictions() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [matches, setMatches] = useState<Match[]>([]);
   const [mine, setMine] = useState<any[]>([]);
   const [board, setBoard] = useState<any[]>([]);
@@ -16,7 +20,8 @@ export default function Predictions() {
   const load = () => {
     Promise.all([
       api.get('/matches'),
-      api.get('/predictions/my').catch(() => ({ data: [] })),
+      // Solo con sesión: las predicciones propias requieren autenticación.
+      user ? api.get('/predictions/my').catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
       api.get('/predictions/leaderboard').catch(() => ({ data: [] })),
     ])
       .then(([m, p, b]) => {
@@ -26,7 +31,7 @@ export default function Predictions() {
       })
       .finally(() => setLoading(false));
   };
-  useEffect(load, []);
+  useEffect(load, [user]);
 
   const setScore = (id: string, key: 'home' | 'away', val: string) =>
     setScores((s) => {
@@ -36,6 +41,11 @@ export default function Predictions() {
 
   const predict = async (matchId: string, winnerId: string) => {
     setMsg('');
+    // Si no hay sesión, llevar a iniciar sesión (y volver aquí después).
+    if (!user) {
+      navigate('/login', { state: { from: '/predictions' } });
+      return;
+    }
     const sc = scores[matchId];
     const payload: any = { matchId, predictedWinnerId: winnerId };
     if (sc && sc.home !== '' && sc.away !== '') {
@@ -74,6 +84,18 @@ export default function Predictions() {
       </p>
 
       {msg && <div className="font-mono text-xs text-ignite mb-6">{msg}</div>}
+
+      {!user && (
+        <div className="card p-4 mb-8 flex items-center justify-between gap-3 flex-wrap">
+          <span className="font-mono text-xs text-mute leading-[1.6]">
+            Puedes ver los partidos y el ranking. Para <b className="text-ink">hacer predicciones</b> y
+            ganar grats necesitas iniciar sesión.
+          </span>
+          <Link to="/login" className="btn btn-ignite !py-2 shrink-0">
+            Iniciar sesión
+          </Link>
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-[1fr_360px] gap-10 items-start">
         {/* abiertas + mis predicciones */}

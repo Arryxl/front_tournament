@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './store/auth';
+import { useSettings } from './lib/useSettings';
 import { DashboardLayout, ProtectedRoute, PublicLayout } from './components/Layout';
 
 import Landing from './pages/Landing';
@@ -22,6 +23,7 @@ import OverlayPredictions from './pages/overlay/OverlayPredictions';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminSettings from './pages/admin/AdminSettings';
+import AdminPresetTeams from './pages/admin/AdminPresetTeams';
 import AdminRegistrations from './pages/admin/AdminRegistrations';
 import AdminRecruitment from './pages/admin/AdminRecruitment';
 import AdminTeams from './pages/admin/AdminTeams';
@@ -40,6 +42,7 @@ import AdminOverlays from './pages/admin/AdminOverlays';
 const adminLinks = [
   { to: '/admin', label: 'Dashboard' },
   { to: '/admin/settings', label: 'Configuración' },
+  { to: '/admin/preset-teams', label: 'Equipos predefinidos' },
   { to: '/admin/registrations', label: 'Inscripciones' },
   { to: '/admin/recruitment', label: 'Reclutamiento' },
   { to: '/admin/teams', label: 'Equipos' },
@@ -59,9 +62,14 @@ const ANY = ['public', 'candidate', 'admin'] as const;
 
 export default function App() {
   const { fetchMe } = useAuth();
+  const { tournamentName } = useSettings();
   useEffect(() => {
     fetchMe();
   }, [fetchMe]);
+  // El nombre del torneo (configurable) alimenta el título de la pestaña.
+  useEffect(() => {
+    document.title = `${tournamentName} · Rocket League`;
+  }, [tournamentName]);
 
   return (
     <BrowserRouter>
@@ -85,15 +93,8 @@ export default function App() {
             }
           />
 
-          {/* Interactivo — requiere sesión pero vive en la web pública */}
-          <Route
-            path="/predictions"
-            element={
-              <ProtectedRoute roles={[...ANY]}>
-                <Predictions />
-              </ProtectedRoute>
-            }
-          />
+          {/* Predicciones: visibles para todos; predecir exige sesión */}
+          <Route path="/predictions" element={<Predictions />} />
           <Route
             path="/rewards"
             element={
@@ -140,6 +141,7 @@ export default function App() {
         >
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
+          <Route path="/admin/preset-teams" element={<AdminPresetTeams />} />
           <Route path="/admin/registrations" element={<AdminRegistrations />} />
           <Route path="/admin/recruitment" element={<AdminRecruitment />} />
           <Route path="/admin/teams" element={<AdminTeams />} />

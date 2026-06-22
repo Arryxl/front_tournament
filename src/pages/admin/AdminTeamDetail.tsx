@@ -5,19 +5,12 @@ import { Spinner, StatusBadge } from '../../components/ui';
 import { useToast } from '../../components/Toast';
 import { useConfirm } from '../../components/Confirm';
 import { useSettings } from '../../lib/useSettings';
+import { RANKS } from '../../lib/ranks';
+import { UploadField } from '../../components/UploadField';
+import { TeamPicker } from '../../components/TeamPicker';
 import type { Group, Team, TeamReadiness } from '../../types';
 
 const PLATFORM_LABEL: Record<string, string> = { steam: 'Steam', epic: 'Epic' };
-
-const RANKS = [
-  ['plat3', 'Platino 3'],
-  ['dia1', 'Diamante 1'],
-  ['dia2', 'Diamante 2'],
-  ['dia3', 'Diamante 3'],
-  ['champ1', 'Champion 1'],
-  ['champ2', 'Champion 2'],
-  ['champ3', 'Champion 3'],
-];
 
 type AddForm = {
   epicUsername: string;
@@ -50,12 +43,14 @@ export default function AdminTeamDetail() {
   const [notFound, setNotFound] = useState(false);
 
   const [editing, setEditing] = useState(false);
+  const [pickPreset, setPickPreset] = useState(false);
   const [form, setForm] = useState<{
     name: string;
+    shieldUrl: string;
     groupId: string;
     contactMethod: 'discord' | 'email';
     contactValue: string;
-  }>({ name: '', groupId: '', contactMethod: 'discord', contactValue: '' });
+  }>({ name: '', shieldUrl: '', groupId: '', contactMethod: 'discord', contactValue: '' });
 
   // alta de reemplazo
   const [adding, setAdding] = useState(false);
@@ -86,8 +81,10 @@ export default function AdminTeamDetail() {
   const openEdit = () => {
     if (!team) return;
     setEditing(true);
+    setPickPreset(false);
     setForm({
       name: team.name,
+      shieldUrl: team.shieldUrl || '',
       groupId: team.groupId || '',
       contactMethod: team.contactMethod || 'discord',
       contactValue: team.contactValue || '',
@@ -98,7 +95,8 @@ export default function AdminTeamDetail() {
     if (!team) return;
     try {
       await api.patch(`/teams/${team.id}`, {
-        name: form.name,
+        name: form.name.trim(),
+        shieldUrl: form.shieldUrl || null,
         groupId: form.groupId || null,
         contactMethod: form.contactMethod,
         contactValue: form.contactValue.trim() || null,
@@ -263,10 +261,12 @@ export default function AdminTeamDetail() {
       <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
         <div className="flex items-center gap-4 min-w-0">
           {team.shieldUrl ? (
-            <img
-              src={team.shieldUrl.startsWith('http') ? team.shieldUrl : `${fileBase}${team.shieldUrl}`}
-              className="w-14 h-14 rounded-md object-cover border border-line shrink-0"
-            />
+            <div className="w-14 h-14 rounded-md border border-line shrink-0 grid place-items-center bg-white/[0.02] p-1">
+              <img
+                src={team.shieldUrl.startsWith('http') ? team.shieldUrl : `${fileBase}${team.shieldUrl}`}
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
           ) : (
             <span className="w-14 h-14 rounded-md bg-void-2 border border-line shrink-0" />
           )}
@@ -346,6 +346,52 @@ export default function AdminTeamDetail() {
       {editing && (
         <div className="card p-5 mb-6 flex flex-col gap-3">
           <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">Editar equipo</div>
+
+          {/* Identidad: escudo + (opcional) elegir del catálogo de predefinidos */}
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="h-16 w-16 shrink-0 grid place-items-center rounded-md border border-line bg-white/[0.02]">
+              {form.shieldUrl ? (
+                <img
+                  src={form.shieldUrl.startsWith('http') ? form.shieldUrl : `${fileBase}${form.shieldUrl}`}
+                  className="max-h-[80%] max-w-[80%] object-contain"
+                />
+              ) : (
+                <span className="font-display font-black italic text-mute">{(form.name || '??').slice(0, 2).toUpperCase()}</span>
+              )}
+            </div>
+            <div className="flex-1 min-w-[180px]">
+              <UploadField
+                label="Escudo"
+                endpoint="shield"
+                value={form.shieldUrl}
+                onChange={(u) => setForm({ ...form, shieldUrl: u })}
+              />
+            </div>
+            <button
+              type="button"
+              className={`btn ${pickPreset ? 'btn-ignite' : ''}`}
+              onClick={() => setPickPreset((v) => !v)}
+            >
+              {pickPreset ? 'Cerrar catálogo' : 'Elegir del catálogo'}
+            </button>
+          </div>
+
+          {pickPreset && (
+            <div className="border border-line rounded-md p-3">
+              <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-mute mb-2">
+                Asigna un equipo predefinido (rellena nombre y escudo)
+              </div>
+              <TeamPicker
+                value={null}
+                onSelect={(p) => {
+                  setForm((f) => ({ ...f, name: p.name, shieldUrl: p.logo ?? '' }));
+                  setPickPreset(false);
+                  toast.info('Asignado del catálogo', `${p.name} · revisa y guarda`);
+                }}
+              />
+            </div>
+          )}
+
           <div className="grid md:grid-cols-[1fr_200px] gap-3">
             <div>
               <label className="label">Nombre</label>
@@ -412,6 +458,9 @@ export default function AdminTeamDetail() {
         <div className="card p-5 mb-6 flex flex-col gap-3">
           <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">
             Agregar jugador / reemplazo
+          </div>
+          <div className="font-mono text-[10px] text-ignite border border-ignite/40 rounded-md px-3 py-2">
+            ⚠ Solo 1 Grand Champion 1 (GC1) por equipo. No podrás agregar un GC1 si el equipo ya tiene uno.
           </div>
           <div className="grid md:grid-cols-2 gap-3">
             <div>

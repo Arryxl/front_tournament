@@ -12,12 +12,21 @@ import {
   hasRound16,
   timelinePhases,
 } from '../../lib/tournament';
+import { RANK_LADDER, rankLabel } from '../../lib/ranks';
 import type { TournamentSettings } from '../../types';
 
 /** Campos editables de la configuración del torneo (borrador local). */
 interface Draft {
   registrationsOpen: boolean;
   tournamentStarted: boolean;
+  tournamentName: string;
+  predefinedTeamsMode: boolean;
+  seasonLabel: string;
+  platform: string;
+  tagline: string;
+  entryFree: boolean;
+  minRank: string;
+  maxRank: string;
   playersPerSide: number;
   substitutes: number;
   teamCapacity: number;
@@ -37,6 +46,14 @@ interface Draft {
 const toDraft = (s: TournamentSettings): Draft => ({
   registrationsOpen: s.registrationsOpen,
   tournamentStarted: s.tournamentStarted,
+  tournamentName: s.tournamentName ?? '',
+  predefinedTeamsMode: s.predefinedTeamsMode,
+  seasonLabel: s.seasonLabel ?? '',
+  platform: s.platform ?? '',
+  tagline: s.tagline ?? '',
+  entryFree: s.entryFree,
+  minRank: s.minRank ?? 'plat3',
+  maxRank: s.maxRank ?? 'gc1',
   playersPerSide: s.playersPerSide,
   substitutes: s.substitutes,
   teamCapacity: s.teamCapacity,
@@ -165,6 +182,111 @@ export default function AdminSettings() {
         llave). <b className="text-ink">Nada se guarda hasta que pulses «Guardar cambios»</b>: se
         escriben de una sola vez en la base de datos (tabla <span className="text-ignite">tournament_settings</span>).
       </p>
+
+      {/* ===== Torneo ===== */}
+      <SectionTitle>Torneo</SectionTitle>
+      <div className="grid sm:grid-cols-2 gap-4 mb-8">
+        <div
+          className={`card p-5 sm:col-span-2 ${
+            draft.tournamentName !== saved.tournamentName ? 'border-ignite/50' : ''
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span className="font-display font-black italic uppercase tracking-tight text-lg">
+              Nombre del torneo
+            </span>
+            {draft.tournamentName !== saved.tournamentName && (
+              <span className="font-mono text-[9px] text-ignite">●</span>
+            )}
+          </div>
+          <div className="font-mono text-[11px] text-mute mt-1.5 mb-4 leading-snug">
+            Aparece en el título del navegador, la landing, los overlays y el sorteo. La marca
+            «Gravity» se mantiene. Déjalo vacío para usar «Gravity».
+          </div>
+          <input
+            type="text"
+            maxLength={120}
+            className="input max-w-[420px]"
+            value={draft.tournamentName}
+            onChange={(e) => set('tournamentName', e.target.value)}
+            placeholder="Ej. Gravity League S01"
+          />
+        </div>
+        <ToggleRow
+          label="Modo equipos predefinidos"
+          on={draft.predefinedTeamsMode}
+          onText="Inscripción y reclutamiento eligen del catálogo; la landing muestra los equipos disponibles"
+          offText="Nombre libre + escudo subido (clásico)"
+          changed={draft.predefinedTeamsMode !== saved.predefinedTeamsMode}
+          onToggle={() => set('predefinedTeamsMode', !draft.predefinedTeamsMode)}
+        />
+        <Link to="/admin/preset-teams" className="card p-5 flex items-center justify-between gap-3 hover:border-ignite/50 transition">
+          <div>
+            <div className="font-display font-black italic uppercase tracking-tight text-lg">Definir equipos</div>
+            <div className="font-mono text-[11px] text-mute mt-1.5 leading-snug">
+              Edita, añade o elimina los equipos del catálogo (escudo, nombre, región).
+            </div>
+          </div>
+          <span className="font-mono text-ignite text-lg">→</span>
+        </Link>
+      </div>
+
+      {/* ===== Textos de la temporada (landing) ===== */}
+      <SectionTitle>Textos de la temporada</SectionTitle>
+      <p className="font-mono text-[11px] text-mute mb-4 max-w-[64ch] leading-relaxed">
+        Se muestran en la landing y en los encabezados de toda la interfaz. Para preparar una nueva
+        temporada/torneo basta con cambiarlos aquí.
+      </p>
+      <div className="grid sm:grid-cols-2 gap-4 mb-8">
+        <TextRow
+          label="Etiqueta de temporada"
+          hint='Encabezados de la interfaz (ej. "Temporada 01"). Vacío → "Temporada 01".'
+          value={draft.seasonLabel}
+          changed={draft.seasonLabel !== saved.seasonLabel}
+          maxLength={60}
+          placeholder="Temporada 01"
+          onInput={(v) => set('seasonLabel', v)}
+        />
+        <TextRow
+          label="Plataforma"
+          hint='Promo de la landing (ej. "Cross-play").'
+          value={draft.platform}
+          changed={draft.platform !== saved.platform}
+          maxLength={60}
+          placeholder="Cross-play"
+          onInput={(v) => set('platform', v)}
+        />
+        <TextRow
+          label="Lema (tagline)"
+          hint="Frase del encabezado de la landing."
+          value={draft.tagline}
+          changed={draft.tagline !== saved.tagline}
+          maxLength={280}
+          placeholder="Todo lo que sube, vuelve a caer…"
+          wide
+          onInput={(v) => set('tagline', v)}
+        />
+        <RankRow
+          label="Rango mínimo"
+          value={draft.minRank}
+          changed={draft.minRank !== saved.minRank}
+          onPick={(v) => set('minRank', v)}
+        />
+        <RankRow
+          label="Rango máximo"
+          value={draft.maxRank}
+          changed={draft.maxRank !== saved.maxRank}
+          onPick={(v) => set('maxRank', v)}
+        />
+        <ToggleRow
+          label="Entrada"
+          on={draft.entryFree}
+          onText="Gratis — la landing muestra «GRATIS»"
+          offText="De pago — la landing muestra «DE PAGO»"
+          changed={draft.entryFree !== saved.entryFree}
+          onToggle={() => set('entryFree', !draft.entryFree)}
+        />
+      </div>
 
       {/* ===== Estado del torneo ===== */}
       <SectionTitle>Estado</SectionTitle>
@@ -414,6 +536,72 @@ export default function AdminSettings() {
 function SectionTitle({ children }: { children: string }) {
   return (
     <h2 className="font-display font-black italic uppercase tracking-tight text-xl mb-4">{children}</h2>
+  );
+}
+
+function TextRow({
+  label,
+  hint,
+  value,
+  changed,
+  maxLength,
+  placeholder,
+  wide,
+  onInput,
+}: {
+  label: string;
+  hint?: string;
+  value: string;
+  changed: boolean;
+  maxLength?: number;
+  placeholder?: string;
+  wide?: boolean;
+  onInput: (v: string) => void;
+}) {
+  return (
+    <div className={`card p-5 ${wide ? 'sm:col-span-2' : ''} ${changed ? 'border-ignite/50' : ''}`}>
+      <div className="flex items-center gap-2">
+        <span className="font-display font-black italic uppercase tracking-tight text-lg">{label}</span>
+        {changed && <span className="font-mono text-[9px] text-ignite">●</span>}
+      </div>
+      {hint && <div className="font-mono text-[11px] text-mute mt-1.5 mb-3 leading-snug">{hint}</div>}
+      <input
+        type="text"
+        className="input w-full"
+        value={value}
+        maxLength={maxLength}
+        placeholder={placeholder}
+        onChange={(e) => onInput(e.target.value)}
+      />
+    </div>
+  );
+}
+
+function RankRow({
+  label,
+  value,
+  changed,
+  onPick,
+}: {
+  label: string;
+  value: string;
+  changed: boolean;
+  onPick: (v: string) => void;
+}) {
+  return (
+    <div className={`card p-5 ${changed ? 'border-ignite/50' : ''}`}>
+      <div className="flex items-center gap-2">
+        <span className="font-display font-black italic uppercase tracking-tight text-lg">{label}</span>
+        {changed && <span className="font-mono text-[9px] text-ignite">●</span>}
+      </div>
+      <select className="input w-full mt-3" value={value} onChange={(e) => onPick(e.target.value)}>
+        {RANK_LADDER.map((k) => (
+          <option key={k} value={k}>
+            {rankLabel(k)}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
 

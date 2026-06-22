@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
 import { Spinner } from '../components/ui';
+import { useSettings } from '../lib/useSettings';
 import type { TopStat } from '../types';
 
 type Row = { id: string; name: string; team?: string; value: number; sub?: string };
@@ -55,6 +56,7 @@ function Podium({ rows, unit }: { rows: Row[]; unit: string }) {
 }
 
 export default function Stats() {
+  const settings = useSettings();
   const [data, setData] = useState<Record<string, Row[]>>({});
   const [tab, setTab] = useState<TabKey>('goleadores');
   const [loading, setLoading] = useState(true);
@@ -113,7 +115,7 @@ export default function Stats() {
 
   return (
     <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-16">
-      <span className="kicker">Temporada 01 · en vivo</span>
+      <span className="kicker">{settings.seasonLabel} · en vivo</span>
       <h1 className="font-display font-black italic uppercase text-[clamp(40px,9vw,120px)] tracking-tight leading-[0.82] mt-3 mb-8">
         Quién<br />manda
       </h1>

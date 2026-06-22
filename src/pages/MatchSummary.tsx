@@ -3,6 +3,7 @@ import { api } from '../lib/api';
 import { Spinner } from '../components/ui';
 import AdvancedPlayerCard from '../components/AdvancedPlayerCard';
 import { matchLabel, matchFormatLabel } from '../lib/tournament';
+import { useSettings } from '../lib/useSettings';
 import type { Match, PlayerExtraStats } from '../types';
 
 interface PlayerStatRow {
@@ -190,6 +191,7 @@ function SeasonBoard({ s }: { s: SeasonSummary }) {
 
 /* ---------------- página ---------------- */
 export default function MatchSummary() {
+  const settings = useSettings();
   const [matches, setMatches] = useState<Match[]>([]);
   const [summary, setSummary] = useState<SeasonSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -228,7 +230,7 @@ export default function MatchSummary() {
 
   return (
     <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-16">
-      <span className="kicker">Temporada 01 · resúmenes</span>
+      <span className="kicker">{settings.seasonLabel} · resúmenes</span>
       <h1 className="font-display font-black italic uppercase text-[clamp(40px,9vw,120px)] tracking-tight leading-[0.82] mt-3 mb-3">
         Resultados
       </h1>

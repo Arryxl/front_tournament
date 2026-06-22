@@ -2,18 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, fileBase } from '../lib/api';
 import { useSettings } from '../lib/useSettings';
-
-// Rango elegible: Platino 3 → Champion 3 (sin Platino 4).
-const RANKS = [
-  ['plat3', 'Platino 3'],
-  ['dia1', 'Diamante 1'],
-  ['dia2', 'Diamante 2'],
-  ['dia3', 'Diamante 3'],
-  ['champ1', 'Champion 1'],
-  ['champ2', 'Champion 2'],
-  ['champ3', 'Champion 3'],
-];
-const rankLabel = (v: string) => RANKS.find(([k]) => k === v)?.[1] || v;
+import { rankLabel } from '../lib/ranks';
+import { TeamPicker } from '../components/TeamPicker';
+import type { PresetTeam } from '../types';
 
 interface PlayerData {
   epic: string;
@@ -97,12 +88,22 @@ function PlayerForm({
   data,
   update,
   substitute,
+  ranks,
 }: {
   index: number;
   data: PlayerData;
   update: (d: Partial<PlayerData>) => void;
   substitute?: boolean;
+  ranks: [string, string][];
 }) {
+  // Si el rango actual quedó fuera del rango permitido (admin lo cambió), lo
+  // ajusta al primero disponible.
+  useEffect(() => {
+    if (ranks.length && !ranks.some(([k]) => k === data.rank)) {
+      update({ rank: ranks[0][0] });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ranks]);
   return (
     <div className="card p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -127,7 +128,7 @@ function PlayerForm({
         <div>
           <label className="label">Rango en Rocket League</label>
           <select className="input" value={data.rank} onChange={(e) => update({ rank: e.target.value })}>
-            {RANKS.map(([v, l]) => (
+            {ranks.map(([v, l]) => (
               <option key={v} value={v}>
                 {l}
               </option>
@@ -157,9 +158,12 @@ export default function Register() {
   const SUBS = TOTAL_PLAYERS - STARTERS;
   const regOpen = settings.loading ? null : settings.registrationsOpen;
 
+  const predefined = settings.predefinedTeamsMode;
+
   const [step, setStep] = useState(0);
   const [teamName, setTeamName] = useState('');
   const [shieldUrl, setShieldUrl] = useState('');
+  const [selectedPreset, setSelectedPreset] = useState<PresetTeam | null>(null);
   const [contactMethod, setContactMethod] = useState<'discord' | 'email'>('discord');
   const [contactValue, setContactValue] = useState('');
   const [players, setPlayers] = useState<PlayerData[]>(
@@ -188,7 +192,7 @@ export default function Register() {
     setError('');
     if (step === 0) {
       if (!teamName.trim()) {
-        setError('Ponle un nombre a tu equipo.');
+        setError(predefined ? 'Elige un equipo del catálogo.' : 'Ponle un nombre a tu equipo.');
         return false;
       }
       if (!contactValue.trim()) {
@@ -231,6 +235,14 @@ export default function Register() {
           setError(`Falta la captura del suplente ${i + 1}, o déjalo vacío si no lo vas a inscribir.`);
           return false;
         }
+      }
+      // Regla GC1: solo 1 Grand Champion 1 por equipo.
+      const gc1 = players
+        .slice(0, TOTAL_PLAYERS)
+        .filter((p) => (p.epic || p.steam) && p.rank === 'gc1').length;
+      if (gc1 > 1) {
+        setError('Solo se permite 1 Grand Champion 1 (GC1) por equipo. Ajusta los rangos.');
+        return false;
       }
     }
     return true;
@@ -279,7 +291,7 @@ export default function Register() {
       <div className="max-w-[760px] mx-auto px-[var(--pad)] py-24 text-center">
         <div className="cover-halo" />
         <span className="kicker justify-center" style={{ display: 'inline-flex' }}>
-          Temporada 01
+          {settings.seasonLabel}
         </span>
         <h1 className="font-display font-black italic uppercase text-5xl md:text-7xl tracking-tight mt-5 leading-[0.9]">
           Inscripciones<br />cerradas
@@ -326,7 +338,7 @@ export default function Register() {
   return (
     <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-16">
       {/* encabezado */}
-      <span className="kicker">Únete · Temporada 01</span>
+      <span className="kicker">Únete · {settings.seasonLabel}</span>
       <h1 className="font-display font-black italic uppercase text-[clamp(40px,8vw,96px)] tracking-tight leading-[0.88] mt-3 mb-3">
         Inscribe<br />tu equipo
       </h1>
@@ -338,9 +350,9 @@ export default function Register() {
             <b className="text-ink">(opcionales)</b>
           </>
         )}
-        , un escudo y la captura de pantalla principal de cada titular. Formato{' '}
+        , {predefined ? 'tu equipo' : 'un escudo'} y la captura de pantalla principal de cada titular. Formato{' '}
         <b className="text-ink">{settings.formatLabel}</b> · rango elegible:{' '}
-        <b className="text-ink">Platino 3 a Champion 3</b>.
+        <b className="text-ink">{settings.rankRangeLabel}</b>.
       </p>
 
       {/* ¿sin equipo? → reclutamiento */}
@@ -387,19 +399,39 @@ export default function Register() {
           {step === 0 && (
             <div className="card p-6 flex flex-col gap-5">
               <div className="font-display font-black italic uppercase tracking-tight text-2xl">El equipo</div>
-              <div>
-                <label className="label">Nombre del equipo</label>
-                <input
-                  className="input text-lg"
-                  value={teamName}
-                  onChange={(e) => setTeamName(e.target.value)}
-                  maxLength={50}
-                  placeholder="Ej. Nova Boost"
-                  autoFocus
-                />
-                <div className="font-mono text-[10px] text-mute mt-1.5">{teamName.length}/50 · debe ser único</div>
-              </div>
-              <UploadField label="Escudo del equipo (opcional)" endpoint="shield" value={shieldUrl} onChange={setShieldUrl} thumb />
+              {predefined ? (
+                <div>
+                  <label className="label">Elige tu equipo</label>
+                  <p className="font-mono text-[11px] text-mute mt-1 mb-3 leading-[1.7]">
+                    Selecciona uno de los equipos disponibles. Cada equipo solo puede ser tomado
+                    por una inscripción.
+                  </p>
+                  <TeamPicker
+                    value={selectedPreset?.slug ?? null}
+                    onSelect={(p) => {
+                      setSelectedPreset(p);
+                      setTeamName(p.name);
+                      setShieldUrl(p.logo ?? '');
+                    }}
+                  />
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="label">Nombre del equipo</label>
+                    <input
+                      className="input text-lg"
+                      value={teamName}
+                      onChange={(e) => setTeamName(e.target.value)}
+                      maxLength={50}
+                      placeholder="Ej. Nova Boost"
+                      autoFocus
+                    />
+                    <div className="font-mono text-[10px] text-mute mt-1.5">{teamName.length}/50 · debe ser único</div>
+                  </div>
+                  <UploadField label="Escudo del equipo (opcional)" endpoint="shield" value={shieldUrl} onChange={setShieldUrl} thumb />
+                </>
+              )}
 
               {/* Medio de contacto: por aquí llega la respuesta y las credenciales */}
               <div className="border-t border-line-2 pt-5 flex flex-col gap-4">
@@ -452,11 +484,17 @@ export default function Register() {
 
           {step === 1 && (
             <>
+              {settings.maxRank === 'gc1' && (
+                <div className="font-mono text-[11px] text-ignite border border-ignite/40 rounded-md px-4 py-3 leading-[1.6]">
+                  ⚠ Regla de rangos: solo se permite <b>1 Grand Champion 1 (GC1)</b> por equipo.
+                  Si registras dos o más jugadores GC1, la inscripción será rechazada.
+                </div>
+              )}
               <div className="font-mono text-[11px] tracking-[0.25em] uppercase text-mute">
                 Titulares
               </div>
               {players.slice(0, STARTERS).map((p, i) => (
-                <PlayerForm key={i} index={i} data={p} update={(d) => updatePlayer(i, d)} />
+                <PlayerForm key={i} index={i} data={p} update={(d) => updatePlayer(i, d)} ranks={settings.allowedRanks} />
               ))}
               <div className="font-mono text-[11px] tracking-[0.25em] uppercase text-mute mt-2">
                 Suplentes <span className="text-mute/70 normal-case tracking-normal">· opcionales</span>
@@ -468,6 +506,7 @@ export default function Register() {
                   data={p}
                   update={(d) => updatePlayer(STARTERS + i, d)}
                   substitute
+                  ranks={settings.allowedRanks}
                 />
               ))}
             </>
@@ -501,7 +540,7 @@ export default function Register() {
                 />
                 <span>
                   Confirmo que los datos son correctos, que cada jugador está dentro del rango permitido
-                  y acepto las bases del torneo Gravity.
+                  y acepto las bases del torneo {settings.tournamentName}.
                 </span>
               </label>
             </div>
@@ -535,7 +574,7 @@ export default function Register() {
           <div className="font-mono text-[10px] tracking-[0.25em] uppercase text-mute mb-4">Resumen</div>
           <div className="flex items-center gap-3 mb-5">
             {shieldSrc ? (
-              <img src={shieldSrc} alt="" className="w-14 h-14 rounded-lg object-cover border border-line" />
+              <img src={shieldSrc} alt="" className="w-14 h-14 rounded-lg object-contain bg-void border border-line p-1" />
             ) : (
               <div className="w-14 h-14 rounded-lg bg-void border border-line grid place-items-center font-display font-black italic text-lg text-mute">
                 {teamName ? teamName.slice(0, 2).toUpperCase() : '??'}
@@ -545,7 +584,9 @@ export default function Register() {
               <div className="font-display font-black italic uppercase text-lg tracking-tight truncate">
                 {teamName || 'Tu equipo'}
               </div>
-              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">{settings.formatLabel} · RL</div>
+              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">
+                {selectedPreset ? selectedPreset.placementLabel : `${settings.formatLabel} · RL`}
+              </div>
             </div>
           </div>
 
@@ -568,7 +609,7 @@ export default function Register() {
 
           <div className="mt-5 font-mono text-[10px] tracking-[0.15em] uppercase text-mute leading-[2]">
             <div className="flex justify-between">
-              <span>Escudo</span>
+              <span>{predefined ? 'Equipo' : 'Escudo'}</span>
               <span className={shieldUrl ? 'text-green' : ''}>{shieldUrl ? '✓' : 'pendiente'}</span>
             </div>
             <div className="flex justify-between gap-2">
