@@ -9,6 +9,7 @@ interface AuthState {
   register: (username: string, password: string, email?: string) => Promise<AuthUser>;
   logout: () => void;
   fetchMe: () => Promise<void>;
+  handleSessionExpired: () => void;
 }
 
 export const useAuth = create<AuthState>((set) => ({
@@ -34,6 +35,12 @@ export const useAuth = create<AuthState>((set) => ({
   logout: () => {
     localStorage.removeItem('gravity_token');
     localStorage.removeItem('gravity_refresh');
+    set({ user: null });
+  },
+
+  // El interceptor de axios emite este evento cuando el refresh token también
+  // expiró/falló: limpiamos el usuario para que la UI refleje el cierre de sesión.
+  handleSessionExpired: () => {
     set({ user: null });
   },
 

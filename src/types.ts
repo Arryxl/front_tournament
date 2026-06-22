@@ -38,7 +38,7 @@ export interface TeamMember {
   user?: AuthUser | null;
 }
 
-export type LinkedPlatform = 'steam' | 'epic';
+export type LinkedPlatform = 'steam' | 'epic' | 'psn' | 'xbox' | 'switch';
 
 export interface LinkedAccountInfo {
   platform: LinkedPlatform;

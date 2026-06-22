@@ -1,11 +1,25 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useToast } from './Toast';
+import ConsoleIdHelp from './ConsoleIdHelp';
 import type { LinkedPlatform, LinkStatus } from '../types';
 
 const PLATFORM_LABEL: Record<LinkedPlatform, string> = {
   steam: 'Steam',
   epic: 'Epic Games',
+  psn: 'PlayStation',
+  xbox: 'Xbox',
+  switch: 'Nintendo Switch',
+};
+
+/** Plataformas verificadas por OAuth (botón "Conectar"). Las demás = ID manual. */
+const VERIFIED: LinkedPlatform[] = ['steam', 'epic'];
+const isVerified = (p: LinkedPlatform) => VERIFIED.includes(p);
+
+const CONSOLE_HINT: Partial<Record<LinkedPlatform, string>> = {
+  psn: 'Tu Online ID de PSN',
+  xbox: 'Tu Gamertag',
+  switch: 'Tu nombre en RL (Switch)',
 };
 
 /**
@@ -59,6 +73,21 @@ export default function LinkedAccounts() {
     }
   };
 
+  const saveConsole = async (platform: LinkedPlatform, platformId: string) => {
+    const id = platformId.trim();
+    if (!id) return;
+    setBusy(platform);
+    try {
+      await api.post(`/link/${platform}/console`, { platformId: id });
+      toast.success(`${PLATFORM_LABEL[platform]} guardada`, 'Tu ID quedó registrado.');
+      load();
+    } catch (e: any) {
+      toast.error('No se pudo guardar', e.response?.data?.message || undefined);
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const unlink = async (platform: LinkedPlatform) => {
     try {
       await api.delete(`/link/${platform}`);
@@ -99,52 +128,117 @@ export default function LinkedAccounts() {
 
       {!status.complete && (
         <p className="font-mono text-xs text-mute mb-4 leading-relaxed">
-          Conecta tu cuenta para que tus estadísticas de los partidos privados se
-          registren a tu nombre. La verificación es obligatoria antes de jugar.
+          Conecta tus cuentas para que tus estadísticas de los partidos privados se
+          registren a tu nombre. Steam y Epic se verifican con un clic; en consola
+          basta con escribir tu ID tal como aparece en el juego.
         </p>
+      )}
+
+      {platforms.some((p) => !VERIFIED.includes(p)) && (
+        <div className="mb-4">
+          <ConsoleIdHelp />
+        </div>
       )}
 
       <div className="grid sm:grid-cols-2 gap-3">
         {platforms.map((platform) => {
           const account = status.accounts.find((a) => a.platform === platform);
           return (
-            <div key={platform} className="card p-4 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="font-display font-bold uppercase tracking-tight">
-                  {PLATFORM_LABEL[platform]}
-                </div>
-                {account ? (
-                  <div className="font-mono text-[11px] text-mute mt-1 truncate">
-                    {account.displayName || account.platformId}
-                  </div>
-                ) : (
-                  <div className="font-mono text-[11px] text-ignite mt-1">
-                    Sin vincular
-                  </div>
-                )}
-              </div>
-              {account ? (
-                <button
-                  type="button"
-                  onClick={() => unlink(platform)}
-                  className="shrink-0 font-mono text-[10px] tracking-[0.2em] uppercase text-mute hover:text-ignite transition-colors"
-                >
-                  Desvincular
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  disabled={busy === platform}
-                  onClick={() => connect(platform)}
-                  className="shrink-0 font-mono text-[10px] tracking-[0.2em] uppercase border border-line rounded-sm px-3 py-2 hover:border-ignite hover:text-ignite transition-colors disabled:opacity-50"
-                >
-                  {busy === platform ? 'Abriendo…' : 'Conectar'}
-                </button>
-              )}
-            </div>
+            <PlatformCard
+              key={platform}
+              platform={platform}
+              account={account}
+              busy={busy === platform}
+              onConnect={() => connect(platform)}
+              onSaveConsole={(id) => saveConsole(platform, id)}
+              onUnlink={() => unlink(platform)}
+            />
           );
         })}
       </div>
     </section>
+  );
+}
+
+function PlatformCard({
+  platform,
+  account,
+  busy,
+  onConnect,
+  onSaveConsole,
+  onUnlink,
+}: {
+  platform: LinkedPlatform;
+  account: LinkStatus['accounts'][number] | undefined;
+  busy: boolean;
+  onConnect: () => void;
+  onSaveConsole: (id: string) => void;
+  onUnlink: () => void;
+}) {
+  const [value, setValue] = useState('');
+  const verified = isVerified(platform);
+
+  return (
+    <div className="card p-4 flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="font-display font-bold uppercase tracking-tight flex items-center gap-2">
+            {PLATFORM_LABEL[platform]}
+            {!verified && (
+              <span className="font-mono text-[8px] tracking-[0.15em] uppercase text-mute border border-line rounded px-1 py-px">
+                Consola
+              </span>
+            )}
+          </div>
+          {account ? (
+            <div className="font-mono text-[11px] text-mute mt-1 truncate">
+              {account.displayName || account.platformId}
+              {verified && <span className="text-green"> · verificada</span>}
+            </div>
+          ) : (
+            <div className="font-mono text-[11px] text-ignite mt-1">Sin vincular</div>
+          )}
+        </div>
+        {account ? (
+          <button
+            type="button"
+            onClick={onUnlink}
+            className="shrink-0 font-mono text-[10px] tracking-[0.2em] uppercase text-mute hover:text-ignite transition-colors"
+          >
+            {verified ? 'Desvincular' : 'Quitar'}
+          </button>
+        ) : verified ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onConnect}
+            className="shrink-0 font-mono text-[10px] tracking-[0.2em] uppercase border border-line rounded-sm px-3 py-2 hover:border-ignite hover:text-ignite transition-colors disabled:opacity-50"
+          >
+            {busy ? 'Abriendo…' : 'Conectar'}
+          </button>
+        ) : null}
+      </div>
+
+      {/* Consolas sin vincular: input para declarar el ID */}
+      {!account && !verified && (
+        <div className="flex items-center gap-2">
+          <input
+            className="input flex-1 !py-2 text-sm"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={CONSOLE_HINT[platform] || 'Tu ID'}
+            onKeyDown={(e) => e.key === 'Enter' && onSaveConsole(value)}
+          />
+          <button
+            type="button"
+            disabled={busy || !value.trim()}
+            onClick={() => onSaveConsole(value)}
+            className="shrink-0 font-mono text-[10px] tracking-[0.2em] uppercase border border-line rounded-sm px-3 py-2 hover:border-ignite hover:text-ignite transition-colors disabled:opacity-50"
+          >
+            {busy ? '…' : 'Guardar'}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

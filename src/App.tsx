@@ -61,11 +61,17 @@ const adminLinks = [
 const ANY = ['public', 'candidate', 'admin'] as const;
 
 export default function App() {
-  const { fetchMe } = useAuth();
+  const { fetchMe, handleSessionExpired } = useAuth();
   const { tournamentName } = useSettings();
   useEffect(() => {
     fetchMe();
   }, [fetchMe]);
+  // Cuando el refresh token también falla, el interceptor avisa por evento.
+  useEffect(() => {
+    window.addEventListener('gravity:session-expired', handleSessionExpired);
+    return () =>
+      window.removeEventListener('gravity:session-expired', handleSessionExpired);
+  }, [handleSessionExpired]);
   // El nombre del torneo (configurable) alimenta el título de la pestaña.
   useEffect(() => {
     document.title = `${tournamentName} · Rocket League`;

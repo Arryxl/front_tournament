@@ -4,15 +4,27 @@ import { api, fileBase } from '../lib/api';
 import { useSettings } from '../lib/useSettings';
 import { rankLabel } from '../lib/ranks';
 import { TeamPicker } from '../components/TeamPicker';
+import ConsoleIdHelp from '../components/ConsoleIdHelp';
 import type { PresetTeam } from '../types';
 
 interface PlayerData {
   epic: string;
   steam: string;
+  psn: string;
+  xbox: string;
+  nswitch: string;
   rank: string;
   screenshot: string;
 }
-const emptyPlayer = (): PlayerData => ({ epic: '', steam: '', rank: 'plat3', screenshot: '' });
+const emptyPlayer = (): PlayerData => ({
+  epic: '',
+  steam: '',
+  psn: '',
+  xbox: '',
+  nswitch: '',
+  rank: 'plat3',
+  screenshot: '',
+});
 
 // La entidad de inscripción soporta hasta 5 jugadores (player1..player5).
 const MAX_PLAYERS = 5;
@@ -124,6 +136,25 @@ function PlayerForm({
           <input className="input" value={data.steam} onChange={(e) => update({ steam: e.target.value })} placeholder="Tu Steam" />
         </div>
       </div>
+      <div>
+        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mb-2">
+          ¿Juegas en consola? Añade tu ID — tal como aparece tu nombre en Rocket League
+        </div>
+        <div className="grid md:grid-cols-3 gap-4">
+          <div>
+            <label className="label">PlayStation (PSN ID)</label>
+            <input className="input" value={data.psn} onChange={(e) => update({ psn: e.target.value })} placeholder="Online ID de PSN" />
+          </div>
+          <div>
+            <label className="label">Xbox (Gamertag)</label>
+            <input className="input" value={data.xbox} onChange={(e) => update({ xbox: e.target.value })} placeholder="Tu Gamertag" />
+          </div>
+          <div>
+            <label className="label">Nintendo Switch</label>
+            <input className="input" value={data.nswitch} onChange={(e) => update({ nswitch: e.target.value })} placeholder="Tu nombre en RL (Switch)" />
+          </div>
+        </div>
+      </div>
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="label">Rango en Rocket League</label>
@@ -225,7 +256,7 @@ export default function Register() {
       const subs = players.slice(STARTERS, TOTAL_PLAYERS);
       for (let i = 0; i < subs.length; i++) {
         const p = subs[i];
-        const started = p.epic || p.steam || p.screenshot;
+        const started = p.epic || p.steam || p.psn || p.xbox || p.nswitch || p.screenshot;
         if (!started) continue; // suplente vacío → se ignora
         if (!p.epic && !p.steam) {
           setError(`El suplente ${i + 1} necesita un usuario (Epic o Steam) o déjalo vacío.`);
@@ -269,6 +300,9 @@ export default function Register() {
           ...acc,
           [`player${i + 1}Epic`]: p.epic,
           [`player${i + 1}Steam`]: p.steam,
+          [`player${i + 1}Psn`]: p.psn,
+          [`player${i + 1}Xbox`]: p.xbox,
+          [`player${i + 1}Switch`]: p.nswitch,
           [`player${i + 1}Rank`]: p.rank,
           [`player${i + 1}Screenshot`]: p.screenshot,
         }),
@@ -490,6 +524,7 @@ export default function Register() {
                   Si registras dos o más jugadores GC1, la inscripción será rechazada.
                 </div>
               )}
+              <ConsoleIdHelp />
               <div className="font-mono text-[11px] tracking-[0.25em] uppercase text-mute">
                 Titulares
               </div>
