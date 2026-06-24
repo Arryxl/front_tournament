@@ -15,6 +15,9 @@ const PLATFORM_LABEL: Record<string, string> = { steam: 'Steam', epic: 'Epic' };
 type AddForm = {
   epicUsername: string;
   steamUsername: string;
+  psnUsername: string;
+  xboxUsername: string;
+  switchUsername: string;
   rank: string;
   screenshotUrl: string;
   username: string;
@@ -23,6 +26,9 @@ type AddForm = {
 const emptyAdd = (): AddForm => ({
   epicUsername: '',
   steamUsername: '',
+  psnUsername: '',
+  xboxUsername: '',
+  switchUsername: '',
   rank: 'plat3',
   screenshotUrl: '',
   username: '',
@@ -213,8 +219,14 @@ export default function AdminTeamDetail() {
   const submitAdd = async () => {
     if (!team) return;
     setAddError('');
-    if (!addForm.epicUsername && !addForm.steamUsername) {
-      setAddError('Indica al menos un usuario (Epic o Steam).');
+    if (
+      !addForm.epicUsername &&
+      !addForm.steamUsername &&
+      !addForm.psnUsername &&
+      !addForm.xboxUsername &&
+      !addForm.switchUsername
+    ) {
+      setAddError('Indica al menos un usuario (Epic, Steam, PSN, Xbox o Switch).');
       return;
     }
     setAddBusy(true);
@@ -477,6 +489,30 @@ export default function AdminTeamDetail() {
                 className="input"
                 value={addForm.steamUsername}
                 onChange={(e) => setAddForm({ ...addForm, steamUsername: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="label">ID de PSN (opcional)</label>
+              <input
+                className="input"
+                value={addForm.psnUsername}
+                onChange={(e) => setAddForm({ ...addForm, psnUsername: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="label">Gamertag de Xbox (opcional)</label>
+              <input
+                className="input"
+                value={addForm.xboxUsername}
+                onChange={(e) => setAddForm({ ...addForm, xboxUsername: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="label">ID de Switch (opcional)</label>
+              <input
+                className="input"
+                value={addForm.switchUsername}
+                onChange={(e) => setAddForm({ ...addForm, switchUsername: e.target.value })}
               />
             </div>
             <div>
