@@ -102,9 +102,36 @@ export default function AdminOverlays() {
         transparente para superponerse sobre el gameplay.
       </p>
 
+      {/* Overlay informativo — disponible siempre, no depende de partidos.
+          Pensado para la fase de inscripción: promociona la página en el stream. */}
+      <div className="card p-5 mb-6 border-ignite/30">
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-1">
+          <div className="font-display font-black italic uppercase tracking-tight text-xl">
+            Informativo · inscripciones
+          </div>
+          <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute">
+            /overlay/registration
+          </span>
+        </div>
+        <p className="font-mono text-[11px] text-mute leading-[1.8] mb-3">
+          Escena a pantalla completa para tu stream mientras el torneo está en{' '}
+          <b className="text-ink">inscripción</b>: nombre del torneo, formato, rango, entrada,
+          cuenta atrás al cierre, cupos en vivo y la{' '}
+          <b className="text-ink">URL donde inscribirse</b>. Casi todo sale de la{' '}
+          <Link to="/admin/settings" className="text-ignite underline">Configuración</Link> y se
+          actualiza solo. Contenido grande y centrado: se lee aunque lo pongas en un recuadro
+          pequeño del stream. Por defecto el link es{' '}
+          <b className="text-ink">tu-dominio/register</b> (en producción será tu dominio real).
+          Puedes ajustar: <b className="text-ink">?url=gravity.arryxl.me/register</b> (forzar el
+          link) y <b className="text-ink">?discord=discord.gg/tucodigo</b> (servidor de Discord).
+        </p>
+        <CopyRow url={`${origin}/overlay/registration`} />
+      </div>
+
       {matches.length === 0 ? (
-        <p className="font-mono text-xs text-ignite">
-          No hay partidos creados todavía. Crea partidos en{' '}
+        <p className="font-mono text-xs text-mute">
+          Aún no hay partidos creados, así que los overlays de partido (versus, marcador,
+          predicciones, stats) todavía no están disponibles. Se activan en cuanto crees partidos en{' '}
           <Link to="/admin/matches" className="text-ignite underline">Partidos</Link>.
         </p>
       ) : (

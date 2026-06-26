@@ -20,6 +20,7 @@ import OverlayVersus from './pages/overlay/OverlayVersus';
 import OverlayScoreboard from './pages/overlay/OverlayScoreboard';
 import OverlayStats from './pages/overlay/OverlayStats';
 import OverlayPredictions from './pages/overlay/OverlayPredictions';
+import OverlayRegistration from './pages/overlay/OverlayRegistration';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminSettings from './pages/admin/AdminSettings';
@@ -123,6 +124,9 @@ export default function App() {
 
         {/* Escenario del sorteo en vivo — ventana de stream / OBS (sin layout) */}
         <Route path="/draw/stage" element={<DrawStage />} />
+
+        {/* Overlay informativo (no depende de partidos): promo de inscripción */}
+        <Route path="/overlay/registration" element={<OverlayRegistration />} />
 
         {/* Overlays de partido para OBS (Browser Source, fondo transparente) */}
         <Route path="/overlay/match/:id/versus" element={<OverlayVersus />} />
