@@ -54,19 +54,51 @@ export interface LinkStatus {
   complete: boolean;
 }
 
+/** `verified` = login OAuth (Steam/Epic). `declared` = ID de consola escrito a mano. */
+export type PlatformLinkState = 'verified' | 'declared' | 'missing';
+
+export type PlayerLinkStatus = 'verified' | 'declared' | 'partial' | 'missing' | 'none';
+
+export interface PlayerPlatformLink {
+  platform: LinkedPlatform;
+  state: PlatformLinkState;
+  oauth: boolean;
+  platformId: string | null;
+  displayName: string | null;
+  verifiedAt: string | null;
+}
+
 export interface TeamReadinessPlayer {
   memberId: string;
   playerNumber: number;
   username: string | null;
+  status: PlayerLinkStatus;
+  platforms: PlayerPlatformLink[];
+  verifiedCount: number;
+  declaredCount: number;
+  missingCount: number;
   expected: LinkedPlatform[];
   linked: LinkedPlatform[];
   missing: LinkedPlatform[];
   ready: boolean;
 }
 
+export interface TeamLinkSummary {
+  teamId: string;
+  players: number;
+  /** Jugadores de los que se espera al menos una vinculación. */
+  expected: number;
+  verified: number;
+  declared: number;
+  pending: number;
+  noPlatforms: number;
+  ready: boolean;
+}
+
 export interface TeamReadiness {
   teamId: string;
   players: TeamReadinessPlayer[];
+  summary: TeamLinkSummary;
   ready: boolean;
 }
 

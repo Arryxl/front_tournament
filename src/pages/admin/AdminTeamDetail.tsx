@@ -8,9 +8,12 @@ import { useSettings } from '../../lib/useSettings';
 import { RANKS } from '../../lib/ranks';
 import { UploadField } from '../../components/UploadField';
 import { TeamPicker } from '../../components/TeamPicker';
+import {
+  PlatformChip,
+  PlayerLinkBadge,
+  VerificationLegend,
+} from '../../components/admin/Verification';
 import type { Group, Team, TeamReadiness } from '../../types';
-
-const PLATFORM_LABEL: Record<string, string> = { steam: 'Steam', epic: 'Epic' };
 
 type AddForm = {
   epicUsername: string;
@@ -259,6 +262,7 @@ export default function AdminTeamDetail() {
   }
 
   const members = (team.members || []).slice().sort((a, b) => a.playerNumber - b.playerNumber);
+  const linkOf = new Map((readiness?.players || []).map((p) => [p.memberId, p]));
 
   return (
     <div>
@@ -592,9 +596,10 @@ export default function AdminTeamDetail() {
             const sub = m.playerNumber > STARTERS;
             const active = m.user?.isActive !== false && !!m.user;
             const hasAccount = !!m.user;
+            const link = linkOf.get(m.id);
             return (
               <div key={m.id} className="flex items-center justify-between gap-3 px-4 py-3 flex-wrap">
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
                   <span className="font-mono text-[10px] text-mute w-5 shrink-0">{m.playerNumber}</span>
                   <span className="font-display font-semibold truncate">
                     {m.isCaptain && <span className="text-ignite">★ </span>}
@@ -613,6 +618,7 @@ export default function AdminTeamDetail() {
                   ) : (
                     <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-ignite">● sin acceso</span>
                   )}
+                  {link && <PlayerLinkBadge status={link.status} />}
                 </div>
                 <div className="flex items-center gap-2">
                   {!m.isCaptain && !sub && (
@@ -644,7 +650,7 @@ export default function AdminTeamDetail() {
       {/* verificación de cuentas (gate "listo para jugar") */}
       {readiness && (
         <>
-          <div className="flex items-center gap-3 mt-8 mb-3">
+          <div className="flex items-center gap-3 mt-8 mb-3 flex-wrap">
             <h2 className="font-display font-black italic uppercase tracking-tight text-xl">
               Verificación de cuentas
             </h2>
@@ -654,35 +660,38 @@ export default function AdminTeamDetail() {
               </span>
             ) : (
               <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-ignite border border-ignite/50 bg-ignite/10 rounded-sm px-2.5 py-1">
-                Vinculaciones pendientes
+                {readiness.summary.pending} jugador
+                {readiness.summary.pending === 1 ? '' : 'es'} sin vincular
               </span>
             )}
+            <span className="font-mono text-[10px] text-mute">
+              {readiness.summary.verified + readiness.summary.declared} de{' '}
+              {readiness.summary.expected} con cuenta vinculada
+            </span>
           </div>
+
+          <VerificationLegend />
+
           <div className="card">
             <div className="flex flex-col divide-y divide-line-2">
               {readiness.players.map((p) => (
-                <div key={p.memberId} className="flex items-center justify-between gap-3 px-4 py-3 flex-wrap">
+                <div
+                  key={p.memberId}
+                  className="grid sm:grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-4 py-3"
+                >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span className="font-mono text-[10px] text-mute w-5 shrink-0">{p.playerNumber}</span>
                     <span className="font-display font-semibold truncate">{p.username || '—'}</span>
+                    <PlayerLinkBadge status={p.status} />
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {p.expected.length === 0 && (
-                      <span className="font-mono text-[10px] text-mute">sin plataformas en la inscripción</span>
+                  <div className="flex items-center gap-1.5 flex-wrap sm:justify-end">
+                    {p.platforms.length === 0 ? (
+                      <span className="font-mono text-[10px] text-mute">
+                        no declaró plataformas en la inscripción
+                      </span>
+                    ) : (
+                      p.platforms.map((link) => <PlatformChip key={link.platform} link={link} />)
                     )}
-                    {p.expected.map((plat) => {
-                      const ok = p.linked.includes(plat);
-                      return (
-                        <span
-                          key={plat}
-                          className={`font-mono text-[9px] tracking-[0.15em] uppercase px-1.5 py-0.5 rounded-sm border ${
-                            ok ? 'text-green border-green/40' : 'text-ignite border-ignite/40'
-                          }`}
-                        >
-                          {ok ? '✓' : '○'} {PLATFORM_LABEL[plat] || plat}
-                        </span>
-                      );
-                    })}
                   </div>
                 </div>
               ))}

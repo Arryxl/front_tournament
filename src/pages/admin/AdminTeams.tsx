@@ -6,9 +6,11 @@ import { useSettings } from '../../lib/useSettings';
 import { useConfirm } from '../../components/Confirm';
 import { useToast } from '../../components/Toast';
 import { FilterBar, SearchBox, ChipGroup, ResultCount } from '../../components/admin/Filters';
-import type { Group, Team } from '../../types';
+import { TeamLinkBadge } from '../../components/admin/Verification';
+import type { Group, Team, TeamLinkSummary } from '../../types';
 
-type SortKey = 'name' | 'group' | 'roster';
+type SortKey = 'name' | 'group' | 'roster' | 'verification';
+type LinkFilter = 'all' | 'pending' | 'done';
 
 export default function AdminTeams() {
   const settings = useSettings();
@@ -17,16 +19,23 @@ export default function AdminTeams() {
   const STARTERS = settings.playersPerSide;
   const [q, setQ] = useState('');
   const [fGroup, setFGroup] = useState('all');
+  const [fLink, setFLink] = useState<LinkFilter>('all');
   const [sort, setSort] = useState<SortKey>('name');
   const [teams, setTeams] = useState<Team[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
+  const [links, setLinks] = useState<Map<string, TeamLinkSummary>>(new Map());
   const [loading, setLoading] = useState(true);
 
   const load = () => {
-    Promise.all([api.get('/teams'), api.get('/groups')])
-      .then(([t, g]) => {
+    Promise.all([
+      api.get('/teams'),
+      api.get('/groups'),
+      api.get<TeamLinkSummary[]>('/link/teams').catch(() => ({ data: [] as TeamLinkSummary[] })),
+    ])
+      .then(([t, g, l]) => {
         setTeams(t.data);
         setGroups(g.data);
+        setLinks(new Map(l.data.map((s) => [s.teamId, s])));
       })
       .finally(() => setLoading(false));
   };
@@ -75,6 +84,11 @@ export default function AdminTeams() {
     const list = approved.filter((t) => {
       if (fGroup === 'none' && t.groupId) return false;
       if (fGroup !== 'all' && fGroup !== 'none' && groupName(t.groupId) !== fGroup) return false;
+      if (fLink !== 'all') {
+        const pending = links.get(t.id)?.pending ?? 0;
+        if (fLink === 'pending' && pending === 0) return false;
+        if (fLink === 'done' && pending > 0) return false;
+      }
       if (term) {
         const members = (t.members || [])
           .map((m) => `${m.epicUsername || ''} ${m.steamUsername || ''} ${m.user?.username || ''}`)
@@ -85,6 +99,12 @@ export default function AdminTeams() {
     });
     return [...list].sort((a, b) => {
       if (sort === 'roster') return (b.members?.length ?? 0) - (a.members?.length ?? 0);
+      // Primero los equipos con más vinculaciones pendientes: son los que hay que perseguir.
+      if (sort === 'verification') {
+        const pa = links.get(a.id)?.pending ?? 0;
+        const pb = links.get(b.id)?.pending ?? 0;
+        return pb - pa || a.name.localeCompare(b.name);
+      }
       if (sort === 'group') {
         const ga = groupName(a.groupId) || 'zzz';
         const gb = groupName(b.groupId) || 'zzz';
@@ -93,13 +113,18 @@ export default function AdminTeams() {
       return a.name.localeCompare(b.name);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [approved, groups, q, fGroup, sort]);
+  }, [approved, groups, links, q, fGroup, fLink, sort]);
 
   const groupOptions = [
     { value: 'all', label: 'Todos' },
     ...groups.map((g) => ({ value: g.name, label: g.name })),
     { value: 'none', label: 'Sin grupo' },
   ];
+
+  const pendingTeams = useMemo(
+    () => approved.filter((t) => (links.get(t.id)?.pending ?? 0) > 0).length,
+    [approved, links],
+  );
 
   if (loading) return <Spinner />;
 
@@ -142,6 +167,16 @@ export default function AdminTeams() {
           <SearchBox value={q} onChange={setQ} placeholder="Buscar equipo o jugador…" />
           <ChipGroup label="Grupo" value={fGroup} onChange={setFGroup} options={groupOptions} />
           <ChipGroup
+            label="Verificación"
+            value={fLink}
+            onChange={setFLink}
+            options={[
+              { value: 'all', label: 'Todos' },
+              { value: 'pending', label: 'Pendientes', count: pendingTeams },
+              { value: 'done', label: 'Completos', count: approved.length - pendingTeams },
+            ]}
+          />
+          <ChipGroup
             label="Orden"
             value={sort}
             onChange={setSort}
@@ -149,6 +184,7 @@ export default function AdminTeams() {
               { value: 'name', label: 'Nombre' },
               { value: 'group', label: 'Grupo' },
               { value: 'roster', label: 'Roster' },
+              { value: 'verification', label: 'Verificación' },
             ]}
           />
           <ResultCount
@@ -158,6 +194,7 @@ export default function AdminTeams() {
             onReset={() => {
               setQ('');
               setFGroup('all');
+              setFLink('all');
             }}
           />
         </FilterBar>
@@ -208,6 +245,7 @@ export default function AdminTeams() {
                           Sin grupo
                         </span>
                       )}
+                      <TeamLinkBadge summary={links.get(t.id)} />
                     </div>
                     <div className="font-mono text-[10px] text-mute mt-0.5 truncate">
                       {captainName ? (
