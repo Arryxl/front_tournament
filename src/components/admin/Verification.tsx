@@ -14,16 +14,17 @@ export const PLATFORM_LABEL: Record<LinkedPlatform, string> = {
 };
 
 /**
- * Los tres estados posibles y su lectura para el admin. La distinción clave:
- * Steam/Epic pasan por un login del proveedor (identidad probada); los IDs de
- * consola los escribe el propio jugador y no se pueden verificar.
+ * Cómo se lee cada estado en el panel. Un ID de consola cuenta como verificado
+ * (en consola no hay OAuth: verificar es declarar el nick tal cual aparece en
+ * el juego), pero se marca con `(ID)` para no perder de vista que esa identidad
+ * no la confirmó ningún proveedor.
  */
 const STATE_UI: Record<
   Exclude<PlayerLinkStatus, 'none'> | 'none',
   { label: string; icon: string; cls: string }
 > = {
   verified: { label: 'Verificado', icon: '✓', cls: 'text-green border-green/50 bg-green/10' },
-  declared: { label: 'ID declarado', icon: '◐', cls: 'text-ink border-line bg-white/[0.03]' },
+  declared: { label: 'Verificado (ID)', icon: '✓', cls: 'text-green border-green/40' },
   partial: { label: 'Incompleto', icon: '!', cls: 'text-ignite border-ignite/50 bg-ignite/10' },
   missing: { label: 'Sin verificar', icon: '○', cls: 'text-ignite border-ignite/50 bg-ignite/10' },
   none: { label: 'Sin plataformas', icon: '–', cls: 'text-mute border-line' },
@@ -54,8 +55,8 @@ export function PlatformChip({ link }: { link: PlayerPlatformLink }) {
               link.verifiedAt ? ` el ${new Date(link.verifiedAt).toLocaleDateString('es-MX')}` : ''
             }`
           : link.state === 'declared'
-            ? 'ID escrito por el jugador — no se puede verificar en consola'
-            : `El jugador aún no vincula su cuenta de ${PLATFORM_LABEL[link.platform]}`
+            ? 'Verificada por ID: el jugador escribió su nick de consola (no hay login que lo confirme)'
+            : `El jugador aún no verifica su cuenta de ${PLATFORM_LABEL[link.platform]}`
       }
     >
       {ui.icon} {PLATFORM_LABEL[link.platform]}
@@ -100,10 +101,11 @@ export function VerificationLegend() {
   return (
     <p className="font-mono text-[10px] text-mute leading-relaxed mb-3">
       <span className="text-green">✓ Verificado</span> — el jugador inició sesión con Steam/Epic y su
-      identidad quedó probada. <span className="text-ink">◐ ID declarado</span> — cuenta de consola
-      (PSN/Xbox/Switch): el jugador escribió su ID a mano y no hay forma de verificarlo.{' '}
-      <span className="text-ignite">○ Sin verificar</span> — no ha vinculado la cuenta que puso en su
-      inscripción, así que sus stats de replays no se le podrán asignar.
+      identidad quedó probada. <span className="text-green">✓ Verificado (ID)</span> — consola
+      (PSN/Xbox/Switch): no hay login que lo confirme, así que verificar es declarar el nick tal cual
+      aparece en Rocket League. <span className="text-ignite">○ Sin verificar</span> — no ha
+      verificado la cuenta que puso en su inscripción, así que sus stats de replays no se le podrán
+      asignar.
     </p>
   );
 }

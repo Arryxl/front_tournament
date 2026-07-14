@@ -79,7 +79,7 @@ export default function LinkedAccounts() {
     setBusy(platform);
     try {
       await api.post(`/link/${platform}/console`, { platformId: id });
-      toast.success(`${PLATFORM_LABEL[platform]} guardada`, 'Tu ID quedó registrado.');
+      toast.success(`${PLATFORM_LABEL[platform]} verificada`, 'Tu ID quedó registrado.');
       load();
     } catch (e: any) {
       toast.error('No se pudo guardar', e.response?.data?.message || undefined);
@@ -128,9 +128,10 @@ export default function LinkedAccounts() {
 
       {!status.complete && (
         <p className="font-mono text-xs text-mute mb-4 leading-relaxed">
-          Conecta tus cuentas para que tus estadísticas de los partidos privados se
-          registren a tu nombre. Steam y Epic se verifican con un clic; en consola
-          basta con escribir tu ID tal como aparece en el juego.
+          Verifica tus cuentas para que tus estadísticas de los partidos privados se
+          registren a tu nombre. Steam y Epic se verifican con un clic; en consola,
+          verificar es escribir tu ID <b className="text-ink">exactamente</b> como
+          aparece tu nombre en Rocket League.
         </p>
       )}
 
@@ -175,8 +176,11 @@ function PlatformCard({
   onSaveConsole: (id: string) => void;
   onUnlink: () => void;
 }) {
-  const [value, setValue] = useState('');
-  const verified = isVerified(platform);
+  const oauth = isVerified(platform);
+  const [value, setValue] = useState(account?.platformId ?? '');
+  const [editing, setEditing] = useState(false);
+  // En consola no hay OAuth: el ID que el jugador escribe ES su verificación.
+  const showInput = !oauth && (!account || editing);
 
   return (
     <div className="card p-4 flex flex-col gap-3">
@@ -184,7 +188,7 @@ function PlatformCard({
         <div className="min-w-0">
           <div className="font-display font-bold uppercase tracking-tight flex items-center gap-2">
             {PLATFORM_LABEL[platform]}
-            {!verified && (
+            {!oauth && (
               <span className="font-mono text-[8px] tracking-[0.15em] uppercase text-mute border border-line rounded px-1 py-px">
                 Consola
               </span>
@@ -193,34 +197,48 @@ function PlatformCard({
           {account ? (
             <div className="font-mono text-[11px] text-mute mt-1 truncate">
               {account.displayName || account.platformId}
-              {verified && <span className="text-green"> · verificada</span>}
+              <span className="text-green"> · verificada</span>
             </div>
           ) : (
-            <div className="font-mono text-[11px] text-ignite mt-1">Sin vincular</div>
+            <div className="font-mono text-[11px] text-ignite mt-1">Sin verificar</div>
           )}
         </div>
-        {account ? (
-          <button
-            type="button"
-            onClick={onUnlink}
-            className="shrink-0 font-mono text-[10px] tracking-[0.2em] uppercase text-mute hover:text-ignite transition-colors"
-          >
-            {verified ? 'Desvincular' : 'Quitar'}
-          </button>
-        ) : verified ? (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={onConnect}
-            className="shrink-0 font-mono text-[10px] tracking-[0.2em] uppercase border border-line rounded-sm px-3 py-2 hover:border-ignite hover:text-ignite transition-colors disabled:opacity-50"
-          >
-            {busy ? 'Abriendo…' : 'Conectar'}
-          </button>
-        ) : null}
+        <div className="flex items-center gap-3 shrink-0">
+          {account && !oauth && !editing && (
+            <button
+              type="button"
+              onClick={() => {
+                setValue(account.platformId);
+                setEditing(true);
+              }}
+              className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute hover:text-ignite transition-colors"
+            >
+              Cambiar ID
+            </button>
+          )}
+          {account ? (
+            <button
+              type="button"
+              onClick={onUnlink}
+              className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute hover:text-ignite transition-colors"
+            >
+              {oauth ? 'Desvincular' : 'Quitar'}
+            </button>
+          ) : oauth ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={onConnect}
+              className="font-mono text-[10px] tracking-[0.2em] uppercase border border-line rounded-sm px-3 py-2 hover:border-ignite hover:text-ignite transition-colors disabled:opacity-50"
+            >
+              {busy ? 'Abriendo…' : 'Verificar'}
+            </button>
+          ) : null}
+        </div>
       </div>
 
-      {/* Consolas sin vincular: input para declarar el ID */}
-      {!account && !verified && (
+      {/* Consola: escribir (o corregir) el ID es la verificación. */}
+      {showInput && (
         <div className="flex items-center gap-2">
           <input
             className="input flex-1 !py-2 text-sm"
@@ -232,10 +250,13 @@ function PlatformCard({
           <button
             type="button"
             disabled={busy || !value.trim()}
-            onClick={() => onSaveConsole(value)}
+            onClick={() => {
+              onSaveConsole(value);
+              setEditing(false);
+            }}
             className="shrink-0 font-mono text-[10px] tracking-[0.2em] uppercase border border-line rounded-sm px-3 py-2 hover:border-ignite hover:text-ignite transition-colors disabled:opacity-50"
           >
-            {busy ? '…' : 'Guardar'}
+            {busy ? '…' : 'Verificar'}
           </button>
         </div>
       )}
