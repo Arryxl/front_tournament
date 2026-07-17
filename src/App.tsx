@@ -14,6 +14,7 @@ import Profile from './pages/Profile';
 import Register from './pages/Register';
 import Recruitment from './pages/Recruitment';
 import MyTeam from './pages/MyTeam';
+import Privacy from './pages/Privacy';
 import Login from './pages/Login';
 import DrawStage from './pages/DrawStage';
 import OverlayVersus from './pages/overlay/OverlayVersus';
@@ -89,6 +90,7 @@ export default function App() {
           <Route path="/stats" element={<Stats />} />
           <Route path="/register" element={<Register />} />
           <Route path="/reclutamiento" element={<Recruitment />} />
+          <Route path="/privacidad" element={<Privacy />} />
 
           {/* Panel del capitán: gestionar solicitudes de su equipo */}
           <Route

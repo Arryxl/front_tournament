@@ -96,6 +96,12 @@ export function PublicLayout() {
           </div>
           <div className="flex flex-col gap-4 md:items-end">
             <SocialRow />
+            <Link
+              to="/privacidad"
+              className="font-mono text-[10px] tracking-[0.18em] uppercase text-mute hover:text-ignite transition-colors"
+            >
+              Política de privacidad
+            </Link>
             <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-mute">
               © {new Date().getFullYear()} Gravity League
             </div>
