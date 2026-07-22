@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { SOCIALS } from '../config';
+import { SOCIALS, PUBLISHER } from '../config';
 
 /** Fecha de última actualización — cámbiala si revisas el contenido. */
 const UPDATED = '17 de julio de 2026';
@@ -55,10 +55,16 @@ export default function Privacy() {
       <div className="flex flex-col gap-10">
         <Section n="01" title="Quiénes somos">
           <p>
-            «Gravity League» (en adelante, «nosotros») es un proyecto operado por su organización
-            responsable y accesible en <strong className="text-ink">gravity.arryxl.me</strong>.
-            Somos el responsable del tratamiento de los datos descritos en esta política. Para
-            cualquier consulta sobre privacidad puedes escribirnos por nuestro{' '}
+            «Gravity League» (en adelante, «nosotros») es una liga comunitaria de{' '}
+            <em>Rocket League</em> operada por{' '}
+            <strong className="text-ink">{PUBLISHER.name}</strong> y accesible en{' '}
+            <strong className="text-ink">gravity.arryxl.me</strong>. {PUBLISHER.name} es el
+            responsable del tratamiento de los datos descritos en esta política. Para cualquier
+            consulta sobre privacidad puedes escribirnos a{' '}
+            <a href={`mailto:${PUBLISHER.email}`} className="text-ignite hover:text-ignite-h underline underline-offset-4">
+              {PUBLISHER.email}
+            </a>{' '}
+            o por nuestro{' '}
             <a href={DISCORD} target="_blank" rel="noreferrer" className="text-ignite hover:text-ignite-h underline underline-offset-4">
               servidor de Discord
             </a>
@@ -193,7 +199,11 @@ export default function Privacy() {
 
         <Section n="10" title="Contacto">
           <p>
-            Para cualquier duda o solicitud sobre tus datos, contáctanos por nuestro{' '}
+            Para cualquier duda o solicitud sobre tus datos, contáctanos en{' '}
+            <a href={`mailto:${PUBLISHER.email}`} className="text-ignite hover:text-ignite-h underline underline-offset-4">
+              {PUBLISHER.email}
+            </a>{' '}
+            o por nuestro{' '}
             <a href={DISCORD} target="_blank" rel="noreferrer" className="text-ignite hover:text-ignite-h underline underline-offset-4">
               servidor de Discord
             </a>
