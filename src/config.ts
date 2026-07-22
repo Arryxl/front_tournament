@@ -29,6 +29,26 @@ export const TOURNAMENT = {
 // se fijan aquí — se editan desde el admin (Configuración) y se guardan en
 // /settings (`phaseDates`, `prizeFirst/second/third`, `prizeNote`).
 
+// ------------------------------------------------------------
+// EDITORA / PUBLISHER — requerido por Epic Games para aprobar la
+// vinculación de cuentas (Epic Account Services). El dominio público
+// debe mostrar el nombre de la organización/editora, el nombre del
+// producto y un resumen. `name` DEBE coincidir con el "organization
+// name" registrado en tu cuenta de Epic Developer.
+// ------------------------------------------------------------
+export const PUBLISHER = {
+  // Nombre de la editora (persona/organización responsable del producto).
+  name: 'Juan Reyes',
+  // Correo de contacto público.
+  email: 'solucionalo.co@gmail.com',
+  // Nombre y resumen del producto (lo que ve el revisor de Epic).
+  product: 'Gravity',
+  overview:
+    'Gravity es una liga de torneos de Rocket League 3v3: 16 equipos compiten ' +
+    'por temporada en fase de grupos y eliminatorias, con inscripción gratuita ' +
+    'y premio en efectivo. Plataforma cross-play.',
+};
+
 export const SOCIALS = {
   tiktok: 'https://www.tiktok.com/@gravity_leaguerl',
   instagram: 'https://www.instagram.com/gravityleague.1',

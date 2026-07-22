@@ -8,6 +8,7 @@ import { SocialRow } from './Socials';
 import { NavMenu, NAV_LINKS } from './NavMenu';
 import NotificationBell from './NotificationBell';
 import { useSettings } from '../lib/useSettings';
+import { PUBLISHER } from '../config';
 import type { Role } from '../types';
 
 export function PublicLayout() {
@@ -88,10 +89,14 @@ export function PublicLayout() {
       </main>
       <footer className="border-t border-line mt-10">
         <div className="max-w-[1240px] mx-auto px-[var(--pad)] py-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
-          <div>
+          <div className="max-w-md">
             <Wordmark className="text-5xl" />
             <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-mute mt-4">
               Rocket League {s.formatLabel} · {s.seasonLabel} · GRV-03
+            </p>
+            {/* Resumen del producto — requerido por la revisión de Epic Games. */}
+            <p className="text-sm text-mute mt-4 leading-relaxed">
+              {PUBLISHER.overview}
             </p>
           </div>
           <div className="flex flex-col gap-4 md:items-end">
@@ -102,8 +107,15 @@ export function PublicLayout() {
             >
               Política de privacidad
             </Link>
-            <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-mute">
-              © {new Date().getFullYear()} Gravity League
+            {/* Editora + contacto — requerido por la revisión de Epic Games. */}
+            <a
+              href={`mailto:${PUBLISHER.email}`}
+              className="font-mono text-[10px] tracking-[0.18em] uppercase text-mute hover:text-ignite transition-colors"
+            >
+              Contacto: {PUBLISHER.email}
+            </a>
+            <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-mute md:text-right">
+              © {new Date().getFullYear()} {PUBLISHER.product} · Publicado por {PUBLISHER.name}
             </div>
           </div>
         </div>

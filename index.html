@@ -5,9 +5,11 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0A0A0B" />
+    <!-- Editora / publisher — requerido por la revisión de Epic Games. -->
+    <meta name="author" content="Juan Reyes" />
     <meta
       name="description"
-      content="Gravity — Liga de torneos Rocket League 3v3. 16 equipos, premio en efectivo, inscripción gratis. Temporada 01."
+      content="Gravity — Liga de torneos Rocket League 3v3. 16 equipos, premio en efectivo, inscripción gratis. Temporada 01. Publicado por Juan Reyes."
     />
     <meta property="og:title" content="GRAVITY · Torneo Rocket League 3v3" />
     <meta
@@ -19,6 +21,27 @@
   </head>
   <body>
     <div id="root"></div>
+    <!--
+      Contenido estático de respaldo — visible sin JavaScript. Requerido por la
+      verificación de dominio de Epic Games: el dominio debe mostrar el nombre de
+      la organización/editora, el nombre del producto y un resumen, aunque el
+      revisor o un rastreador no ejecute JavaScript.
+    -->
+    <noscript>
+      <main style="max-width:720px;margin:0 auto;padding:48px 20px;font-family:system-ui,sans-serif;color:#e8e8ea;background:#0a0a0b">
+        <h1 style="font-size:28px;margin:0 0 8px">Gravity</h1>
+        <p style="font-size:15px;line-height:1.6;color:#a1a1aa;margin:0 0 20px">
+          Gravity es una liga de torneos de Rocket League 3v3: 16 equipos compiten
+          por temporada en fase de grupos y eliminatorias, con inscripción gratuita
+          y premio en efectivo. Plataforma cross-play.
+        </p>
+        <p style="font-size:14px;line-height:1.6;color:#a1a1aa;margin:0">
+          Publicado por <strong>Juan Reyes</strong>.<br />
+          Contacto: <a href="mailto:solucionalo.co@gmail.com" style="color:#e8e8ea">solucionalo.co@gmail.com</a><br />
+          Política de privacidad: <a href="/privacidad" style="color:#e8e8ea">/privacidad</a>
+        </p>
+      </main>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
